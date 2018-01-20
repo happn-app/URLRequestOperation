@@ -1,0 +1,9 @@
+[submodule "Carthage/Checkouts/RetryingOperation"]
+	path = Carthage/Checkouts/RetryingOperation
+	url = ssh://git@github.com/happn-app/RetryingOperation.git
+[submodule "Carthage/Checkouts/SemiSingleton"]
+	path = Carthage/Checkouts/SemiSingleton
+	url = ssh://git@github.com/happn-app/SemiSingleton.git
+[submodule "Carthage/Checkouts/AsyncOperationResult"]
+	path = Carthage/Checkouts/AsyncOperationResult
+	url = ssh://git@github.com/happn-app/AsyncOperationResult.git
