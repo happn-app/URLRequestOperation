@@ -24,10 +24,10 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		7B20A3E32013A944000E869D /* IPUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* IPUtils.swift */; };
-		7B20A3E42013A944000E869D /* IPUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* IPUtils.swift */; };
-		7B20A3E52013A944000E869D /* IPUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* IPUtils.swift */; };
-		7B20A3E62013A944000E869D /* IPUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* IPUtils.swift */; };
+		7B20A3E32013A944000E869D /* SockaddrWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* SockaddrWrapper.swift */; };
+		7B20A3E42013A944000E869D /* SockaddrWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* SockaddrWrapper.swift */; };
+		7B20A3E52013A944000E869D /* SockaddrWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* SockaddrWrapper.swift */; };
+		7B20A3E62013A944000E869D /* SockaddrWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A3E22013A944000E869D /* SockaddrWrapper.swift */; };
 		7B20A44E2013E89F000E869D /* ReachabilitySubscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A44D2013E89F000E869D /* ReachabilitySubscriber.swift */; };
 		7B20A44F2013E89F000E869D /* ReachabilitySubscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A44D2013E89F000E869D /* ReachabilitySubscriber.swift */; };
 		7B20A4502013E89F000E869D /* ReachabilitySubscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B20A44D2013E89F000E869D /* ReachabilitySubscriber.swift */; };
@@ -357,7 +357,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7B20A3E22013A944000E869D /* IPUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPUtils.swift; sourceTree = "<group>"; };
+		7B20A3E22013A944000E869D /* SockaddrWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SockaddrWrapper.swift; sourceTree = "<group>"; };
 		7B20A4182013DBDA000E869D /* AsyncOperationResult.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AsyncOperationResult.xcodeproj; path = AsyncOperationResult/AsyncOperationResult.xcodeproj; sourceTree = "<group>"; };
 		7B20A44D2013E89F000E869D /* ReachabilitySubscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReachabilitySubscriber.swift; sourceTree = "<group>"; };
 		7B20A4612013F22B000E869D /* ReachabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReachabilityTests.swift; sourceTree = "<group>"; };
@@ -470,7 +470,7 @@
 			children = (
 				7B20A44D2013E89F000E869D /* ReachabilitySubscriber.swift */,
 				7B60D1F3201281AB00D4777D /* ReachabilityObserver.swift */,
-				7B20A3E22013A944000E869D /* IPUtils.swift */,
+				7B20A3E22013A944000E869D /* SockaddrWrapper.swift */,
 			);
 			name = Reachability;
 			sourceTree = "<group>";
@@ -1062,7 +1062,7 @@
 			files = (
 				7B60D1F5201281AB00D4777D /* ReachabilityObserver.swift in Sources */,
 				7B60D1FA201281B500D4777D /* URLRequestOperation.swift in Sources */,
-				7B20A3E42013A944000E869D /* IPUtils.swift in Sources */,
+				7B20A3E42013A944000E869D /* SockaddrWrapper.swift in Sources */,
 				7B60D1FF20128F6A00D4777D /* DependencyInjection.swift in Sources */,
 				7B20A44F2013E89F000E869D /* ReachabilitySubscriber.swift in Sources */,
 				7B60D1F02012800B00D4777D /* URLRequestOperationSessionDelegate.swift in Sources */,
@@ -1086,7 +1086,7 @@
 			files = (
 				7B60D1F4201281AB00D4777D /* ReachabilityObserver.swift in Sources */,
 				7B60D1F9201281B500D4777D /* URLRequestOperation.swift in Sources */,
-				7B20A3E32013A944000E869D /* IPUtils.swift in Sources */,
+				7B20A3E32013A944000E869D /* SockaddrWrapper.swift in Sources */,
 				7B60D1FE20128F6A00D4777D /* DependencyInjection.swift in Sources */,
 				7B20A44E2013E89F000E869D /* ReachabilitySubscriber.swift in Sources */,
 				7B60D1EF2012800B00D4777D /* URLRequestOperationSessionDelegate.swift in Sources */,
@@ -1109,7 +1109,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B60D1FC201281B500D4777D /* URLRequestOperation.swift in Sources */,
-				7B20A3E62013A944000E869D /* IPUtils.swift in Sources */,
+				7B20A3E62013A944000E869D /* SockaddrWrapper.swift in Sources */,
 				7B60D20120128F6A00D4777D /* DependencyInjection.swift in Sources */,
 				7B60D1F22012800B00D4777D /* URLRequestOperationSessionDelegate.swift in Sources */,
 				7B60D1ED20127FB100D4777D /* GenericURLSessionDelegate.swift in Sources */,
@@ -1122,7 +1122,7 @@
 			files = (
 				7B60D1F6201281AB00D4777D /* ReachabilityObserver.swift in Sources */,
 				7B60D1FB201281B500D4777D /* URLRequestOperation.swift in Sources */,
-				7B20A3E52013A944000E869D /* IPUtils.swift in Sources */,
+				7B20A3E52013A944000E869D /* SockaddrWrapper.swift in Sources */,
 				7B60D20020128F6A00D4777D /* DependencyInjection.swift in Sources */,
 				7B20A4502013E89F000E869D /* ReachabilitySubscriber.swift in Sources */,
 				7B60D1F12012800B00D4777D /* URLRequestOperationSessionDelegate.swift in Sources */,

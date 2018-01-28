@@ -49,7 +49,7 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 	
 	public enum InitInfo : Hashable {
 		
-		case sockaddr(sockaddr)
+		case sockaddr(SockAddrWrapper)
 		case host(String)
 		
 		public var hashValue: Int {
@@ -78,28 +78,16 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		
 	}
 	
-	public static func reachabilityObserver(forIPv4AddressStr IPv4AddressStr: String, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
-		var sa = sockaddr_in()
-		sa.sin_family = sa_family_t(AF_INET)
-		sa.sin_len = __uint8_t(MemoryLayout<sockaddr_in>.size)
-		let successValue = inet_pton(AF_INET, IPv4AddressStr, &sa.sin_addr)
-		try processInetPToN(returnValue: successValue)
-		
-		return try reachabilityObserver(forSockAddress: unsafeBitCast(sa, to: sockaddr.self), semiSingletonStore: semiSingletonStore)
+	public static func reachabilityObserver(forIPv4AddressStr ipV4AddressStr: String, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
+		return try reachabilityObserver(forSockAddressWrapper: SockAddrWrapper(ipV4AddressStr: ipV4AddressStr), semiSingletonStore: semiSingletonStore)
 	}
 	
-	public static func reachabilityObserver(forIPv6AddressStr IPv6AddressStr: String, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
-		var sa = sockaddr_in6()
-		sa.sin6_family = sa_family_t(AF_INET6)
-		sa.sin6_len = __uint8_t(MemoryLayout<sockaddr_in6>.size)
-		let successValue = inet_pton(AF_INET6, IPv6AddressStr, &sa.sin6_addr)
-		try processInetPToN(returnValue: successValue)
-		
-		return try reachabilityObserver(forSockAddress: unsafeBitCast(sa, to: sockaddr.self), semiSingletonStore: semiSingletonStore)
+	public static func reachabilityObserver(forIPv6AddressStr ipV6AddressStr: String, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
+		return try reachabilityObserver(forSockAddressWrapper: SockAddrWrapper(ipV6AddressStr: ipV6AddressStr), semiSingletonStore: semiSingletonStore)
 	}
 	
-	public static func reachabilityObserver(forSockAddress sockAddress: sockaddr, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
-		let initInfo = InitInfo.sockaddr(sockAddress)
+	public static func reachabilityObserver(forSockAddressWrapper sockAddressWrapper: SockAddrWrapper, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
+		let initInfo = InitInfo.sockaddr(sockAddressWrapper)
 		return try semiSingletonStore?.semiSingleton(forKey: initInfo) ?? ReachabilityObserver(key: initInfo)
 	}
 	
@@ -118,19 +106,19 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 			}
 			reachabilityRef = ref
 			
-		case .sockaddr(var addr):
-			guard let ref = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, &addr) else {
-				throw Error.cannotCreateReachability
+		case .sockaddr(let addr):
+			reachabilityRef = try addr.withUnsafeSockaddrPointer{ ptr in
+				guard let ref = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, ptr) else {
+					throw Error.cannotCreateReachability
+				}
+				return ref
 			}
-			reachabilityRef = ref
 		}
 		
 		let container = WeakReachabilityObserverContainer(observer: self)
 		var context = SCNetworkReachabilityContext(version: 0, info: unsafeBitCast(container, to: UnsafeMutableRawPointer.self), retain: reachabilityRetainForReachabilityObserver, release: reachabilityReleaseForReachabilityObserver, copyDescription: nil)
-		try withUnsafeMutablePointer(to: &context) { pointer in
-			guard SCNetworkReachabilitySetCallback(reachabilityRef, reachabilityCallbackForReachabilityObserver, pointer) else {
-				throw Error.cannotSetReachabilityCallback
-			}
+		guard SCNetworkReachabilitySetCallback(reachabilityRef, reachabilityCallbackForReachabilityObserver, &context) else {
+			throw Error.cannotSetReachabilityCallback
 		}
 		
 		isReachabilityScheduled = SCNetworkReachabilitySetDispatchQueue(reachabilityRef, reachabilityQueue)
