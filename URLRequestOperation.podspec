@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
 	spec.name = "URLRequestOperation"
-	spec.version = "1.0.0"
+	spec.version = "1.0.1"
 	spec.summary = "Using OperationQueue for your URL requests (with an built-in retry mechanism)"
 	spec.homepage = "https://www.happn.com/"
 	spec.license = {type: 'TBD', file: 'License.txt'}
