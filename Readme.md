@@ -7,7 +7,7 @@ Here is the detailed lifespan of an `URLRequestOperation`:
 2. Request Launch:
    1. First, the URL is processed for running. Which means the method
       `processURLRequestForRunning` is called. This is an override point for
-		subclasses if they want to prevent the request to run depending on certain
+      subclasses if they want to prevent the request to run depending on certain
       condition, or if they want to modify the URL Request prior running it.
       
       This processing might take some time, or be expensive resource-wise, which
