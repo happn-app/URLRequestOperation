@@ -124,16 +124,13 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		isReachabilityScheduled = SCNetworkReachabilitySetDispatchQueue(reachabilityRef, reachabilityQueue)
 		#if os(iOS)
 			appDidEnterBackgroundObserver = NotificationCenter.default.addObserver(forName: .UIApplicationDidEnterBackground, object: nil, queue: nil){ [weak self] notif in
-				guard let strongSelf = self, strongSelf.isReachabilityScheduled else {
-					return
-				}
+				guard let strongSelf = self, strongSelf.isReachabilityScheduled else {return}
 				strongSelf.isReachabilityScheduled = !SCNetworkReachabilitySetDispatchQueue(strongSelf.reachabilityRef, nil)
 			}
 			appWillEnterForegroundObserver = NotificationCenter.default.addObserver(forName: .UIApplicationWillEnterForeground, object: nil, queue: nil){ [weak self] notif in
-				guard let strongSelf = self, !strongSelf.isReachabilityScheduled else {
-					return
-				}
-				if let f = strongSelf.currentReachabilityFlags() {strongSelf.reachabilityChanged(newFlags: f)}
+				guard let strongSelf = self else {return}
+				if let currentFlags = strongSelf.currentReachabilityFlags() {strongSelf.reachabilityChanged(newFlags: currentFlags)}
+				guard !strongSelf.isReachabilityScheduled else {return}
 				strongSelf.isReachabilityScheduled = SCNetworkReachabilitySetDispatchQueue(strongSelf.reachabilityRef, strongSelf.reachabilityQueue)
 			}
 		#endif
