@@ -27,7 +27,6 @@ public enum SockAddrConversionError : Int, Error {
 public class SockAddrWrapper : Hashable, CustomStringConvertible {
 	
 	let len: Int /* Original type is __uint8_t */
-	let alignment: Int
 	let family: sa_family_t
 	let rawPointer: UnsafeMutableRawPointer
 	
@@ -70,13 +69,12 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 		let sockaddrPtr = rawsockaddr.assumingMemoryBound(to: sockaddr.self)
 		len = Int(sockaddrPtr.pointee.sa_len)
 		family = sockaddrPtr.pointee.sa_family
-		alignment = MemoryLayout<sockaddr>.alignment /* Not sure about that though... */
-		rawPointer = UnsafeMutableRawPointer.allocate(bytes: len, alignedTo: alignment)
-		rawPointer.copyBytes(from: rawsockaddr, count: len)
+		rawPointer = UnsafeMutableRawPointer.allocate(byteCount: len, alignment: MemoryLayout<sockaddr>.alignment /* Not sure about that though... */)
+		rawPointer.copyMemory(from: rawsockaddr, byteCount: len)
 	}
 	
 	deinit {
-		rawPointer.deallocate(bytes: len, alignedTo: alignment)
+		rawPointer.deallocate()
 	}
 	
 	public func sockaddrStringRepresentation() throws -> String {

@@ -6,8 +6,8 @@
         "repositoryURL": "git@github.com:happn-app/AsyncOperationResult",
         "state": {
           "branch": null,
-          "revision": "29447ed9b5dc4dae67144dec812468d0b5dc8967",
-          "version": "1.0.0"
+          "revision": "7d75dfc7eb6ae489b6b01e3321e5940e2b55a233",
+          "version": "1.0.1"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "git@github.com:happn-app/RetryingOperation",
         "state": {
           "branch": null,
-          "revision": "0be7fdfdad32ae8dcece2c6dd1080ccec1f2d7cc",
-          "version": "1.0.0"
+          "revision": "99993050e260c7b7fb3e15b247211286903aa87d",
+          "version": "1.0.1"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "git@github.com:happn-app/SemiSingleton",
         "state": {
           "branch": null,
-          "revision": "b32ebde73fbea27ca097aaa0c69b12ce04cc470a",
-          "version": "1.1.0"
+          "revision": "4ac83c4b5eabba365b0d152db6e661f8b90cafc9",
+          "version": "1.1.1"
         }
       }
     ]

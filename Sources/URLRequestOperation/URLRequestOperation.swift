@@ -799,7 +799,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 						]
 					#endif
 					
-					self.baseOperationEnded(retryHelpers: retryHelpers.flatMap{ $0 })
+					self.baseOperationEnded(retryHelpers: retryHelpers.compactMap{ $0 })
 				}
 			}
 		}

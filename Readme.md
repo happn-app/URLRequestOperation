@@ -77,6 +77,17 @@ Here is the detailed lifespan of an `URLRequestOperation`:
      If the operation is told to be retried, when it is retried, we simply go
      back to step 2. (The URL is re-processed, etc.)
 
+## Swift Compatibility
+
+This tables gives the known compatibilities of the project and the version of Xcode with which
+the `xcodeproj` has been updated.
+
+| URLRequestOperation Version | Min Swift Version | Max Swift Version | `xcodeproj` Last Updated With |
+| --- | --- | --- | --- |
+| 1.0.0 | 4.0 | 4.1 | Xcode 9.2 |
+| 1.0.1 | 4.0 | 4.1 | Xcode 9.2 |
+| 1.0.2 | 4.1 | 4.1 | Xcode 9.3 |
+
 ## Note to Maintainers: Updating the Dependencies
 ```
 carthage update --use-ssh --use-submodules --no-build
