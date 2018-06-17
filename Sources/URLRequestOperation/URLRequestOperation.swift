@@ -228,7 +228,13 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 	Subclasses may use another type of task, in which case both `fetchedData` and
 	`downloadedFileURL` might be `nil` even if the operation ended successfully
 	(see the documentation of subclasses to know how to retrieve the data). */
-	public private(set) var downloadedFileURL: URL?
+	public private(set) var downloadedFileURL: URL? {
+		didSet {
+			if let url = downloadedFileURL {processDownloadedFile?(url)}
+		}
+	}
+	
+	public var processDownloadedFile: ((_ url: URL) -> Void)?
 	
 	/**
    Always `nil` if the operation ended successfully. Should not be read while
