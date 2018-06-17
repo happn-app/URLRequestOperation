@@ -104,7 +104,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		/* Both should not happen, but syntactically can. */
 		case noDataFromDataTask
 		case noURLFromDownloadTask
-
+		
 		case fileAlreadyExist
 	}
 	
