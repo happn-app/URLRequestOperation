@@ -98,7 +98,6 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 	public enum URLRequestOperationError : Int, Error {
 		case noError = 0
 		case cancelled
-		case cannotAllocStorage
 		case unacceptableStatusCode
 		case unacceptableContentType
 	}
@@ -514,10 +513,6 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			case (_, NSURLErrorDomain, URLError.cancelled.rawValue): fallthrough
 			case (.cancelled?, _, _):
 				/* The operation has been cancelled. We do NOT retry. */
-				retryMode = .doNotRetry
-				
-			case (.cannotAllocStorage?, _, _):
-				/* Cannot allocate storage. We do not retry. */
 				retryMode = .doNotRetry
 				
 			case (.unacceptableContentType?, _, _): fallthrough
