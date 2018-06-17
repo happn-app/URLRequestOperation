@@ -100,6 +100,12 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		case cancelled
 		case unacceptableStatusCode
 		case unacceptableContentType
+		
+		/* Both should not happen, but syntactically can. */
+		case noDataFromDataTask
+		case noURLFromDownloadTask
+
+		case fileAlreadyExist
 	}
 	
 	/* **********************
@@ -108,11 +114,34 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 	
 	public struct Config {
 		
+		public enum DownloadBehavior {
+			
+			case failIfDestinationExists
+			case overwriteDestination
+			case findNonExistingFilenameInFolder
+			
+		}
+		
 		public let session: URLSession
 		public let originalRequest: URLRequest
 		
-		/** If `true`, a download task will be used instead of a data task. */
-		public var useDownloadTask: Bool
+		/**
+		If non-nil, a download task will be used instead of a data task, and
+		the downloaded file will be moved to the given URL. If a file already
+		exists at the given URL when trying to move, the operation will use the
+		`downloadBehavior` variable to determine what to do. Default is to fail.
+		
+		The operation will try and create intermediate folders if needed to create
+		the destination file.
+		
+		- important: When the operation is over, use the `downloadedFileURL`
+		property of the operation to retrieve the actual URL of the downloaded
+		file! It might differ from the URL given here. */
+		public var destinationURL: URL?
+		/** When destinationURL is non-nil (when a download task is used instead
+		of a data task), what happen if a file already exists at the given
+		destination? Default is to fail. */
+		public var downloadBehavior: DownloadBehavior
 		
 		/**
 		If >= 0, the operation won't be retried more than the given number of
@@ -150,7 +179,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		content types will match. Specifically, `application/json;format=42` will
 		**not** match, nor even will `text/plain`!
 		
-		TODO: Make a filtering that respects the [RFC 2616](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)...
+		TODO: Make a filtering that respects the [RFC 2616](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)...
 		
 		(_Ignore; fixes comment: */_)
 		
@@ -173,7 +202,9 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		public var urlResponseProcessor: ((_ response: URLResponse, _ completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) -> Void)?
 		
 		public init(
-			request: URLRequest, session s: URLSession?, useDownloadTask useDownload: Bool = false, maximumNumberOfRetries maxRetries: Int = -1, allowRetryingNonIdempotentRequests: Bool = false,
+			request: URLRequest, session s: URLSession?,
+			destinationURL dURL: URL? = nil, downloadBehavior dBehavior: DownloadBehavior = .failIfDestinationExists,
+			maximumNumberOfRetries maxRetries: Int = -1, allowRetryingNonIdempotentRequests: Bool = false,
 			queueForProcessingURLRequestForRunning qForProcessing: OperationQueue? = nil, queueForComputingRetryInfo qForRetryInfo: OperationQueue? = nil,
 			acceptableStatusCodes statusCodes: IndexSet? = IndexSet(integersIn: 200..<300),
 			acceptableContentTypes contentTypes: Set<String>? = nil,
@@ -182,7 +213,8 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			session = (s ?? .shared)
 			originalRequest = request
 			
-			useDownloadTask = useDownload
+			destinationURL = dURL
+			downloadBehavior = dBehavior
 			
 			maximumNumberOfRetries = maxRetries
 			alsoRetryNonIdempotentRequests = allowRetryingNonIdempotentRequests
@@ -227,13 +259,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 	Subclasses may use another type of task, in which case both `fetchedData` and
 	`downloadedFileURL` might be `nil` even if the operation ended successfully
 	(see the documentation of subclasses to know how to retrieve the data). */
-	public private(set) var downloadedFileURL: URL? {
-		didSet {
-			if let url = downloadedFileURL {processDownloadedFile?(url)}
-		}
-	}
-	
-	public var processDownloadedFile: ((_ url: URL) -> Void)?
+	public private(set) var downloadedFileURL: URL?
 	
 	/**
    Always `nil` if the operation ended successfully. Should not be read while
@@ -439,7 +465,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 	`urlSessionTaskForURLRequest(withDataCompletionHandler:downloadCompletionHandler:)`.
 	*/
 	open func urlSessionTaskForURLRequest(_ request: URLRequest, withDelegate delegate: URLRequestOperationSessionDelegate) -> URLSessionTask {
-		let task = (!config.useDownloadTask ? config.session.dataTask(with: request) : config.session.downloadTask(with: request))
+		let task = (config.destinationURL == nil ? config.session.dataTask(with: request) : config.session.downloadTask(with: request))
 		delegate.setTaskDelegate(self, forTask: task)
 		return task
 	}
@@ -464,7 +490,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		withDataCompletionHandler dataCompletionHandler: @escaping (Data?, URLResponse?, Error?) -> Void,
 		downloadCompletionHandler: @escaping (URL?, URLResponse?, Error?) -> Void
 	) -> URLSessionTask {
-		return (!config.useDownloadTask ?
+		return (config.destinationURL == nil ?
 			config.session.dataTask(with: request, completionHandler: dataCompletionHandler) :
 			config.session.downloadTask(with: request, completionHandler: downloadCompletionHandler)
 		)
@@ -647,7 +673,8 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		 * process the responses. */
 		guard finalError == nil else {return}
 		
-		downloadedFileURL = location
+		do    {try processDownloadedFile(url: location)}
+		catch {finalError = error}
 	}
 	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -656,13 +683,15 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		else                                                          {NSLog("URL Op id %d: Finished URL Session task", urlOperationIdentifier)}
 		logDebugInfo(type: "ios_request_end", additionalInfo: (statusCode != nil ? ["status_code": statusCode!] : nil))
 		
-		fetchedData = dataAccumulator /* If we do not have a data task, this does nothing */
-		dataAccumulator = nil
-		
-		if di.logFetchedStrings, let fetchedData = fetchedData, let fetchDataString = String(data: fetchedData, encoding: .utf8) {
-			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Fetched data as string: %@", log: $0, type: .debug, urlOperationIdentifier, fetchDataString) }}
-			else                                                          {NSLog("URL Op id %d: Fetched data as string: %@", urlOperationIdentifier, fetchDataString)}
+		if finalError == nil {
+			fetchedData = dataAccumulator /* If we do not have a data task, this does nothing */
+			
+			if di.logFetchedStrings, let fetchedData = fetchedData, let fetchDataString = String(data: fetchedData, encoding: .utf8) {
+				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Fetched data as string: %@", log: $0, type: .debug, urlOperationIdentifier, fetchDataString) }}
+				else                                                          {NSLog("URL Op id %d: Fetched data as string: %@", urlOperationIdentifier, fetchDataString)}
+			}
 		}
+		dataAccumulator = nil
 		
 		processEndOfTask(error: error)
 	}
@@ -675,8 +704,18 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		else                                                          {NSLog("URL Op id %d: Finished URL Session data task from handler", urlOperationIdentifier)}
 		logDebugInfo(type: "ios_request_end", additionalInfo: (statusCode != nil ? ["status_code": statusCode!] : nil))
 		
+		guard finalError == nil else {
+			processEndOfTask(error: nil)
+			return
+		}
+		
 		urlResponse = response
-		fetchedData = data
+		if let response = response, let responseError = errorForResponse(response) {
+			/* A response error is final and unrecoverable. */
+			finalError = responseError
+			processEndOfTask(error: nil)
+			return
+		}
 		
 		if let error = error {
 			/* There was an error completing the task. */
@@ -684,11 +723,12 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			return
 		}
 		
-		if let response = response, let responseError = errorForResponse(response) {
-			processEndOfTask(error: responseError)
-			return
+		/* When error is nil, data should not be nil. But it syntactically can! */
+		if let data = data {
+			fetchedData = data
+		} else {
+			finalError = URLRequestOperationError.noDataFromDataTask
 		}
-		
 		processEndOfTask(error: nil)
 	}
 	
@@ -700,8 +740,18 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		else                                                          {NSLog("URL Op id %d: Finished URL Session download task from handler", urlOperationIdentifier)}
 		logDebugInfo(type: "ios_request_end", additionalInfo: (statusCode != nil ? ["status_code": statusCode!] : nil))
 		
+		guard finalError == nil else {
+			processEndOfTask(error: nil)
+			return
+		}
+		
 		urlResponse = response
-		downloadedFileURL = url
+		if let response = response, let responseError = errorForResponse(response) {
+			/* A response error is final and unrecoverable. */
+			finalError = responseError
+			processEndOfTask(error: nil)
+			return
+		}
 		
 		if let error = error {
 			/* There was an error completing the task. */
@@ -709,11 +759,13 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			return
 		}
 		
-		if let response = response, let responseError = errorForResponse(response) {
-			processEndOfTask(error: responseError)
-			return
+		/* When error is nil, url should not be nil. But it syntactically can! */
+		if let url = url {
+			do    {try processDownloadedFile(url: url)}
+			catch {finalError = error}
+		} else {
+			finalError = URLRequestOperationError.noURLFromDownloadTask
 		}
-		
 		processEndOfTask(error: nil)
 	}
 	
@@ -721,7 +773,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 	   MARK: - Private
 	   *************** */
 	
-	/* PATCH is *not* required to be idempotent by the standards. */
+	/* PATCH is **not** required to be idempotent by the standards. */
 	private let idempotentHTTPMethods = Set(arrayLiteral: "GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE")
 	
 	private var currentTask: URLSessionTask?
@@ -747,6 +799,38 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			}
 		}
 		return nil
+	}
+	
+	private final func processDownloadedFile(url: URL) throws {
+		let fm = FileManager.default
+		var destinationURL = config.destinationURL!.absoluteURL
+		let destinationFolderURL = destinationURL.deletingLastPathComponent()
+		
+		try fm.createDirectory(at: destinationFolderURL, withIntermediateDirectories: true, attributes: nil)
+		
+		if fm.fileExists(atPath: destinationURL.path) {
+			switch config.downloadBehavior {
+			case .failIfDestinationExists:
+				throw URLRequestOperationError.fileAlreadyExist
+				
+			case .overwriteDestination:
+				try fm.removeItem(at: destinationURL)
+				
+			case .findNonExistingFilenameInFolder:
+				var i = 1
+				let ext = destinationURL.pathExtension
+				let extWithDot = (ext.isEmpty ? "" : "." + ext)
+				let basename = destinationURL.deletingPathExtension().lastPathComponent
+				repeat {
+					i += 1
+					let newBasename = basename + "-" + String(i) + extWithDot
+					if #available(OSX 10.11, iOS 9.0, *) {destinationURL = URL(fileURLWithPath: newBasename, isDirectory: false, relativeTo: destinationFolderURL).absoluteURL}
+					else                                 {destinationURL = destinationFolderURL.appendingPathComponent(newBasename).absoluteURL}
+				} while fm.fileExists(atPath: destinationURL.path)
+			}
+		}
+		
+		try fm.moveItem(at: url, to: destinationURL)
 	}
 	
 	private final func processEndOfTask(error: Error?) {
