@@ -839,6 +839,8 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		guard finalError == nil else {
 			/* If finalError != nil, we know the task must not be retried. It is
 			 * most likely cancelled, or an unrecoverable error occurred. */
+			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: URL operation finished with unrecoverable error (not retrying) %@.", log: $0, type: .debug, urlOperationIdentifier, String(describing: finalError)) }}
+			else                                                          {NSLog("URL Op id %d: URL operation finished with unrecoverable error (not retrying) %@.", urlOperationIdentifier, String(describing: finalError))}
 			urlRequestOperationWillEnd()
 			baseOperationEnded()
 			return
