@@ -1,3 +1,3 @@
-github "happn-app/AsyncOperationResult" "1.0.1"
-github "happn-app/RetryingOperation" "1.0.1"
-github "happn-app/SemiSingleton" "1.1.1"
+github "happn-app/AsyncOperationResult" "1.0.3"
+github "happn-app/RetryingOperation" "1.0.2"
+github "happn-app/SemiSingleton" "1.1.2"
