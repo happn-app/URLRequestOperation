@@ -87,12 +87,3 @@ the `xcodeproj` has been updated.
 | 1.0.0 | 4.0 | 4.1 | Xcode 9.2 |
 | 1.0.1 | 4.0 | 4.1 | Xcode 9.2 |
 | 1.0.2 | 4.1 | 4.1 | Xcode 9.3 |
-
-## Note to Maintainers: Updating the Dependencies
-The `XCODE_XCCONFIG_FILE` part of the command line below is optional; it allows dependencies
-to be compiled as static Frameworks instead of dynamic ones. As we’re not building an executable
-here and the dependencies will be compiled by the clients anyway, it won’t change much how the
-dependencies are compiled.
-```
-XCODE_XCCONFIG_FILE="$(pwd)/Xcode Supporting Files/StaticCarthageBuild.xcconfig" carthage update --use-ssh
-```
