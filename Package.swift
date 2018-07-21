@@ -14,14 +14,15 @@ let package = Package(
 		)
 	],
 	dependencies: [
-		.package(url: "git@github.com:happn-app/AsyncOperationResult", from: "1.0.0"),
-		.package(url: "git@github.com:happn-app/RetryingOperation", from: "1.1.1"),
-		.package(url: "git@github.com:happn-app/SemiSingleton", from: "1.1.3")
+		.package(url: "git@github.com:happn-app/AsyncOperationResult.git", from: "1.0.0"),
+		.package(url: "git@github.com:happn-app/RetryingOperation.git", from: "1.1.1"),
+		.package(url: "git@github.com:happn-app/DummyLinuxOSLog.git", from: "1.0.0"),
+		.package(url: "git@github.com:happn-app/SemiSingleton.git", from: "1.1.3")
 	],
 	targets: [
 		.target(
 			name: "URLRequestOperation",
-			dependencies: ["AsyncOperationResult", "RetryingOperation", "SemiSingleton"]
+			dependencies: ["AsyncOperationResult", "RetryingOperation", "SemiSingleton", "DummyLinuxOSLog"]
 		),
 		.testTarget(
 			name: "URLRequestOperationTests",

@@ -329,7 +329,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Retrying URL Request operation with request %@", log: $0, urlOperationIdentifier, String(describing: currentURLRequest)) }}
 				else                                                          {NSLog("URL Op id %d: Retrying URL Request operation with request %@", urlOperationIdentifier, String(describing: currentURLRequest))}
 			#else
-				NSLogString("URL Op id \(urlOperationIdentifier): Retrying URL Request operation with request \(String(describing: currentURLRequest))")
+				NSLogString("URL Op id \(urlOperationIdentifier): Retrying URL Request operation with request \(String(describing: currentURLRequest))", log: di.log)
 			#endif
 		}
 		
@@ -359,7 +359,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Creating URL Session task for URL: %@", log: $0, type: .debug, urlOperationIdentifier, String(describing: currentURLRequest)) }}
 				else                                                          {NSLog("URL Op id %d: Creating URL Session task for URL: %@", urlOperationIdentifier, String(describing: currentURLRequest))}
 			#else
-				NSLogString("URL Op id \(urlOperationIdentifier): Creating URL Session task for URL: \(String(describing: currentURLRequest))")
+				NSLogString("URL Op id \(urlOperationIdentifier): Creating URL Session task for URL: \(String(describing: currentURLRequest))", log: di.log)
 			#endif
 			let task: URLSessionTask
 			if let delegate = config.session.delegate as? URLRequestOperationSessionDelegate {
@@ -377,8 +377,8 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: URL Request HTTP body (in base64): %@", log: $0, type: .debug, urlOperationIdentifier, currentURLRequest.httpBody?.base64EncodedString() ?? "<Empty>") }}
 				else                                                          {NSLog("URL Op id %d: URL Request HTTP body (in base64): %@", urlOperationIdentifier, currentURLRequest.httpBody?.base64EncodedString() ?? "<Empty>")}
 			#else
-				NSLogString("URL Op id \(urlOperationIdentifier): Starting URL Session Task for URL: \(String(describing: currentURLRequest))")
-				NSLogString("URL Op id \(urlOperationIdentifier): URL Request HTTP body (in base64): \(currentURLRequest.httpBody?.base64EncodedString() ?? "<Empty>")")
+				NSLogString("URL Op id \(urlOperationIdentifier): Starting URL Session Task for URL: \(String(describing: currentURLRequest))", log: di.log)
+				NSLogString("URL Op id \(urlOperationIdentifier): URL Request HTTP body (in base64): \(currentURLRequest.httpBody?.base64EncodedString() ?? "<Empty>")", log: di.log)
 			#endif
 			assert(task.state == .suspended)
 			dateOfLatestTaskStart = Date()
@@ -416,7 +416,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Processing URL %@ for running…", log: $0, type: .debug, urlOperationIdentifier, String(describing: currentURLRequest)) }}
 			else                                                          {NSLog("URL Op id %d: Processing URL %@ for running…", urlOperationIdentifier, String(describing: currentURLRequest))}
 		#else
-			NSLogString("URL Op id \(urlOperationIdentifier): Processing URL \(String(describing: currentURLRequest)) for running…")
+			NSLogString("URL Op id \(urlOperationIdentifier): Processing URL \(String(describing: currentURLRequest)) for running…", log: di.log)
 		#endif
 		let processURLBlock: () -> Void = {
 			self.processURLRequestForRunning(self.currentURLRequest){ result in
@@ -427,7 +427,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 						if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Done processing URL, got new URL: %@", log: $0, type: .debug, self.urlOperationIdentifier, String(describing: self.currentURLRequest)) }}
 						else                                                          {NSLog("URL Op id %d: Done processing URL, got new URL: %@", self.urlOperationIdentifier, String(describing: self.currentURLRequest))}
 					#else
-						NSLogString("URL Op id \(self.urlOperationIdentifier): Done processing URL, got new URL: \(String(describing: self.currentURLRequest))")
+						NSLogString("URL Op id \(self.urlOperationIdentifier): Done processing URL, got new URL: \(String(describing: self.currentURLRequest))", log: di.log)
 					#endif
 					
 					createAndLaunchTask()
@@ -437,7 +437,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 						if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Got error while processing URL: %@", log: $0, type: .debug, self.urlOperationIdentifier, String(describing: error)) }}
 						else                                                          {NSLog("URL Op id %d: Got error while processing URL: %@", self.urlOperationIdentifier, String(describing: error))}
 					#else
-						NSLogString("URL Op id \(self.urlOperationIdentifier): Got error while processing URL: \(String(describing: error))")
+						NSLogString("URL Op id \(self.urlOperationIdentifier): Got error while processing URL: \(String(describing: error))", log: di.log)
 					#endif
 					self.processEndOfTask(error: error)
 				}
@@ -665,7 +665,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Got URL Session response %@", log: $0, type: .debug, urlOperationIdentifier, response) }}
 			else                                                          {NSLog("URL Op id %d: Got URL Session response %@", urlOperationIdentifier, response)}
 		#else
-			NSLogString("URL Op id \(urlOperationIdentifier): Got URL Session response \(response)")
+			NSLogString("URL Op id \(urlOperationIdentifier): Got URL Session response \(response)", log: di.log)
 		#endif
 		
 		/* If finalError is not nil, we already have a fatal error, no need to
@@ -720,7 +720,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Did finish download to URL %{public}@", log: $0, type: .debug, urlOperationIdentifier, String(describing: location)) }}
 			else                                                          {NSLog("URL Op id %d: Did finish download to URL %@", urlOperationIdentifier, String(describing: location))}
 		#else
-			NSLogString("URL Op id \(urlOperationIdentifier): Did finish download to URL \(String(describing: location))")
+			NSLogString("URL Op id \(urlOperationIdentifier): Did finish download to URL \(String(describing: location))", log: di.log)
 		#endif
 		
 		/* If finalError is not nil, we already have a fatal error, no need to
@@ -745,7 +745,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 					if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Fetched data as string: %@", log: $0, type: .debug, urlOperationIdentifier, fetchDataString) }}
 					else                                                          {NSLog("URL Op id %d: Fetched data as string: %@", urlOperationIdentifier, fetchDataString)}
 				#else
-					NSLogString("URL Op id \(urlOperationIdentifier): Fetched data as string: \(fetchDataString)")
+					NSLogString("URL Op id \(urlOperationIdentifier): Fetched data as string: \(fetchDataString)", log: di.log)
 				#endif
 			}
 		}
@@ -901,7 +901,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: URL operation finished with unrecoverable error (not retrying) %@.", log: $0, type: .debug, urlOperationIdentifier, String(describing: finalError)) }}
 				else                                                          {NSLog("URL Op id %d: URL operation finished with unrecoverable error (not retrying) %@.", urlOperationIdentifier, String(describing: finalError))}
 			#else
-				NSLogString("URL Op id \(urlOperationIdentifier): URL operation finished with unrecoverable error (not retrying) \(String(describing: finalError)).")
+				NSLogString("URL Op id \(urlOperationIdentifier): URL operation finished with unrecoverable error (not retrying) \(String(describing: finalError)).", log: di.log)
 			#endif
 			urlRequestOperationWillEnd()
 			baseOperationEnded()
@@ -922,7 +922,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 						if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: URL operation finished (not retrying) with error %@.", log: $0, type: .debug, self.urlOperationIdentifier, String(describing: newError)) }}
 						else                                                          {NSLog("URL Op id %d: URL operation finished (not retrying) with error %@.", self.urlOperationIdentifier, String(describing: newError))}
 					#else
-						NSLogString("URL Op id \(self.urlOperationIdentifier): URL operation finished (not retrying) with error \(String(describing: newError)).")
+						NSLogString("URL Op id \(self.urlOperationIdentifier): URL operation finished (not retrying) with error \(String(describing: newError)).", log: di.log)
 					#endif
 					self.finalError = newError
 					self.urlRequestOperationWillEnd()
@@ -935,7 +935,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 						if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: URL operation finished (retrying in %g seconds) with error %@.", log: $0, type: .debug, self.urlOperationIdentifier, delay, String(describing: newError)) }}
 						else                                                          {NSLog("URL Op id %d: URL operation finished (retrying in %g seconds) with error %@.", self.urlOperationIdentifier, delay, String(describing: newError))}
 					#else
-						NSLogString("URL Op id \(self.urlOperationIdentifier): URL operation finished (retrying in \(delay) seconds) with error \(String(describing: newError)).")
+						NSLogString("URL Op id \(self.urlOperationIdentifier): URL operation finished (retrying in \(delay) seconds) with error \(String(describing: newError)).", log: di.log)
 					#endif
 					
 					let host = self.currentURLRequest.url?.host
@@ -1079,7 +1079,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Cannot log data %@ to debug logs: %@", log: $0, type: .info, urlOperationIdentifier, sentData, String(describing: error)) }}
 				else                                                          {NSLog("*** URL Op id %d: Cannot log data %@ to debug logs: %@", urlOperationIdentifier, sentData, String(describing: error))}
 			#else
-				NSLogString("*** URL Op id \(urlOperationIdentifier): Cannot log data \(sentData) to debug logs: \(String(describing: error))")
+				NSLogString("*** URL Op id \(urlOperationIdentifier): Cannot log data \(sentData) to debug logs: \(String(describing: error))", log: di.log)
 			#endif
 		}
 	}
