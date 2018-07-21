@@ -26,9 +26,13 @@ The URLSessionDelegates and URLSessionTask are not retained by this class (weak
 references). */
 open class GenericURLSessionDelegate: NSObject, URLSessionDelegate {
 	
-	var taskToDelegate = NSMapTable<URLSessionTask, URLSessionTaskDelegate>.weakToWeakObjects()
+	#if !os(Linux)
+		var taskToDelegate = NSMapTable<URLSessionTask, URLSessionTaskDelegate>.weakToWeakObjects()
+	#else
+		var taskToDelegate = LinuxWeakToWeakForGenericURLSessionDelegateMapTable()
+	#endif
 	
-	public func setTaskDelegate(_ delegate: URLSessionTaskDelegate, forTask task: URLSessionTask) {
+	public func setTaskDelegate(_ delegate: AnyObject & URLSessionTaskDelegate, forTask task: URLSessionTask) {
 		taskToDelegate.setObject(delegate, forKey: task)
 	}
 	

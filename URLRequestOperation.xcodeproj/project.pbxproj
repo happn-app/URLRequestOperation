@@ -69,6 +69,10 @@
 		7B60D20120128F6A00D4777D /* DependencyInjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B60D1FD20128F6A00D4777D /* DependencyInjection.swift */; };
 		7B7A34C820027B4700348DF4 /* URLRequestOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7A34BF20027B4600348DF4 /* URLRequestOperation.framework */; };
 		7B7A34D620027B6700348DF4 /* URLRequestOperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8BD034200274B9009BE667 /* URLRequestOperationTests.swift */; };
+		7B80CEC82103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */; };
+		7B80CEC92103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */; };
+		7B80CECA2103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */; };
+		7B80CECB2103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */; };
 		7B8BD02320026E8C009BE667 /* URLRequestOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B8BD01A20026E8C009BE667 /* URLRequestOperation.framework */; };
 		7B8BD036200274B9009BE667 /* URLRequestOperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8BD034200274B9009BE667 /* URLRequestOperationTests.swift */; };
 		7B9BEB9D20E91202006B1A89 /* AsyncOperationResult.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B9BEB8520E910C7006B1A89 /* AsyncOperationResult.framework */; };
@@ -192,6 +196,7 @@
 		7B60D1FD20128F6A00D4777D /* DependencyInjection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DependencyInjection.swift; sourceTree = "<group>"; };
 		7B7A34BF20027B4600348DF4 /* URLRequestOperation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = URLRequestOperation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B7A34C720027B4700348DF4 /* URLRequestOperation-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "URLRequestOperation-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinuxWeakToWeakMapTable.swift; sourceTree = "<group>"; };
 		7B8BD01A20026E8C009BE667 /* URLRequestOperation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = URLRequestOperation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B8BD01D20026E8C009BE667 /* Framework-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Framework-Info.plist"; sourceTree = "<group>"; };
 		7B8BD02220026E8C009BE667 /* URLRequestOperation-macOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "URLRequestOperation-macOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -370,6 +375,7 @@
 				7B60D1F8201281B400D4777D /* URLRequestOperation.swift */,
 				7B60D1EE2012800B00D4777D /* URLRequestOperationSessionDelegate.swift */,
 				7B60D1E920127FB100D4777D /* GenericURLSessionDelegate.swift */,
+				7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */,
 				7B20A4472013E68B000E869D /* Reachability */,
 			);
 			path = URLRequestOperation;
@@ -760,6 +766,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B80CEC92103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */,
 				7B60D1F5201281AB00D4777D /* ReachabilityObserver.swift in Sources */,
 				7B60D1FA201281B500D4777D /* URLRequestOperation.swift in Sources */,
 				7B20A3E42013A944000E869D /* SockaddrWrapper.swift in Sources */,
@@ -784,6 +791,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B80CEC82103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */,
 				7B60D1F4201281AB00D4777D /* ReachabilityObserver.swift in Sources */,
 				7B60D1F9201281B500D4777D /* URLRequestOperation.swift in Sources */,
 				7B20A3E32013A944000E869D /* SockaddrWrapper.swift in Sources */,
@@ -810,6 +818,7 @@
 			files = (
 				7B60D1FC201281B500D4777D /* URLRequestOperation.swift in Sources */,
 				7B20A3E62013A944000E869D /* SockaddrWrapper.swift in Sources */,
+				7B80CECB2103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */,
 				7B60D20120128F6A00D4777D /* DependencyInjection.swift in Sources */,
 				7B60D1F22012800B00D4777D /* URLRequestOperationSessionDelegate.swift in Sources */,
 				7B60D1ED20127FB100D4777D /* GenericURLSessionDelegate.swift in Sources */,
@@ -820,6 +829,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B80CECA2103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */,
 				7B60D1F6201281AB00D4777D /* ReachabilityObserver.swift in Sources */,
 				7B60D1FB201281B500D4777D /* URLRequestOperation.swift in Sources */,
 				7B20A3E52013A944000E869D /* SockaddrWrapper.swift in Sources */,
