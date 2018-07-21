@@ -15,8 +15,8 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url: "git@github.com:happn-app/AsyncOperationResult", from: "1.0.0"),
-		.package(url: "git@github.com:happn-app/RetryingOperation", from: "1.0.0"),
-		.package(url: "git@github.com:happn-app/SemiSingleton", from: "1.1.0")
+		.package(url: "git@github.com:happn-app/RetryingOperation", from: "1.1.1"),
+		.package(url: "git@github.com:happn-app/SemiSingleton", from: "1.1.3")
 	],
 	targets: [
 		.target(
