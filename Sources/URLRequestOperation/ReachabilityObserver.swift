@@ -17,7 +17,7 @@ import SystemConfiguration
 	import UIKit
 #endif
 
-#if canImport(DummyLinuxOSLog)
+#if !canImport(os) && canImport(DummyLinuxOSLog)
 	import DummyLinuxOSLog
 #endif
 import SemiSingleton

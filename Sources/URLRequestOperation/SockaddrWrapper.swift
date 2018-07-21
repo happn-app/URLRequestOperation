@@ -11,7 +11,7 @@ import Foundation
 	import os.log
 #endif
 
-#if canImport(DummyLinuxOSLog)
+#if !canImport(os) && canImport(DummyLinuxOSLog)
 	import DummyLinuxOSLog
 #endif
 
