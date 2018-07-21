@@ -565,8 +565,14 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			/* We now know the request CAN be retried (idempotent and maximum
 			 * number of retries not exceeded). Should we retry? */
 			
-			switch (error as? URLRequestOperationError, (error as NSError).domain, (error as NSError).code) {
-			case (_, NSURLErrorDomain, URLError.cancelled.rawValue): fallthrough
+			let nsError: NSError?
+			#if !os(Linux)
+				nsError = (error as NSError)
+			#else
+				nsError = (error as? NSError)
+			#endif
+			switch (error as? URLRequestOperationError, nsError?.domain, nsError?.code) {
+			case (_, NSURLErrorDomain?, URLError.cancelled.rawValue?): fallthrough
 			case (.cancelled?, _, _):
 				/* The operation has been cancelled. We do NOT retry. */
 				retryMode = .doNotRetry
