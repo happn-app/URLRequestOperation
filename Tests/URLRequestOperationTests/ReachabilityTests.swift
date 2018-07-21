@@ -3,9 +3,9 @@ import XCTest
 
 
 
-#if canImport(SystemConfiguration)
-
 class ReachabilityTests: XCTestCase {
+	
+	#if canImport(SystemConfiguration)
 	
 	func testQuad9Reachability() {
 		do {
@@ -36,6 +36,16 @@ class ReachabilityTests: XCTestCase {
 		("testInvalidHostReachability", testInvalidHostReachability)
 	]
 	
+	#else
+	
+	func testReachabilityUnsupportedOnThisPlatform() {
+		XCTAssertTrue(true)
+	}
+	
+	static var allTests = [
+		("testReachabilityUnsupportedOnThisPlatform", testReachabilityUnsupportedOnThisPlatform)
+	]
+	
+	#endif
+	
 }
-
-#endif
