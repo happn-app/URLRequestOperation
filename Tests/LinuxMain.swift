@@ -6,6 +6,8 @@ import XCTest
 
 XCTMain([
 	testCase(URLRequestOperationTests.allTests),
+#if canImport(SystemConfiguration)
 	testCase(ReachabilityTests.allTests),
+#endif
 	testCase(IPUtilsTests.allTests)
 ])

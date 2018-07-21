@@ -3,6 +3,8 @@ import XCTest
 
 
 
+#if canImport(SystemConfiguration)
+
 class ReachabilityTests: XCTestCase {
 	
 	func testQuad9Reachability() {
@@ -35,3 +37,5 @@ class ReachabilityTests: XCTestCase {
 	]
 	
 }
+
+#endif

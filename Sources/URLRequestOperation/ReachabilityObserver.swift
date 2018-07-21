@@ -6,6 +6,8 @@
  * Copyright © 2016 happn. All rights reserved.
  */
 
+#if canImport(SystemConfiguration)
+
 import Foundation
 #if canImport(os)
 	import os.log
@@ -261,3 +263,5 @@ private func reachabilityReleaseForReachabilityObserver(input: UnsafeRawPointer)
 	let u = Unmanaged.passUnretained(unsafeBitCast(input, to: ReachabilityObserver.WeakReachabilityObserverContainer.self))
 	u.release()
 }
+
+#endif

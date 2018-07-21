@@ -874,7 +874,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 					else                                                          {NSLog("URL Op id %d: URL operation finished (retrying in %g seconds) with error %@.", self.urlOperationIdentifier, delay, String(describing: newError))}
 					
 					let host = self.currentURLRequest.url?.host
-					#if !os(watchOS)
+					#if canImport(SystemConfiguration)
 						let retryHelpers: [RetryHelper?] = [
 							setupOtherSuccessObserver ? OtherSuccessRetryHelper(host: host, operation: self) : nil,
 							setupReachability ? ReachabilityRetryHelper(host: host, operation: self) : nil,
@@ -882,8 +882,8 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 						]
 					#else
 						if setupReachability {
-							if #available(watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Asked to setup reachability for a retry, but reachability observing is not supported on watchOS.", log: $0, type: .debug, self.urlOperationIdentifier) }}
-							else                          {NSLog("URL Op id %d: Asked to setup reachability for a retry, but reachability observing is not supported on watchOS.", self.urlOperationIdentifier)}
+							if #available(watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Asked to setup reachability for a retry, but reachability observing is not supported on this platform.", log: $0, type: .debug, self.urlOperationIdentifier) }}
+							else                          {NSLog("URL Op id %d: Asked to setup reachability for a retry, but reachability observing is not supported on this platform.", self.urlOperationIdentifier)}
 						}
 						let retryHelpers: [RetryHelper?] = [
 							setupOtherSuccessObserver ? OtherSuccessRetryHelper(host: host, operation: self) : nil,
@@ -903,7 +903,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		return true
 	}
 	
-	#if !os(watchOS)
+	#if canImport(SystemConfiguration)
 	private class ReachabilityRetryHelper : NSObject, RetryHelper, ReachabilitySubscriber {
 		
 		init?(host: String?, operation op: URLRequestOperation) {
