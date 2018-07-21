@@ -33,7 +33,9 @@ class URLRequestOperationTests: XCTestCase {
 	
 	/* Fill this array with all the tests to have Linux testing compatibility. */
 	static var allTests = [
-		("testFetchFrostLandConstant", testFetchFrostLandConstant)
+		("testFetchFrostLandConstant", testFetchFrostLandConstant),
+		("testFetchInvalidHost", testFetchInvalidHost),
+		("testFetch404", testFetch404)
 	]
 	
 }
