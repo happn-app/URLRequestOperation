@@ -7,9 +7,14 @@
  */
 
 import Foundation
-import os.log
+#if canImport(os)
+	import os.log
+#endif
 
 import AsyncOperationResult
+#if canImport(DummyLinuxOSLog)
+	import DummyLinuxOSLog
+#endif
 import RetryingOperation
 
 

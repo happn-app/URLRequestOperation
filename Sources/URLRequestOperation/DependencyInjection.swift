@@ -7,8 +7,13 @@
  */
 
 import Foundation
+#if canImport(os)
+	import os.log
+#endif
 
-import os.log
+#if canImport(DummyLinuxOSLog)
+	import DummyLinuxOSLog
+#endif
 
 
 

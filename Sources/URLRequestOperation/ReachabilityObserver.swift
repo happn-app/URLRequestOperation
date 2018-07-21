@@ -7,13 +7,17 @@
  */
 
 import Foundation
-import os.log
+#if canImport(os)
+	import os.log
+#endif
 import SystemConfiguration
-
 #if os(iOS)
 	import UIKit
 #endif
 
+#if canImport(DummyLinuxOSLog)
+	import DummyLinuxOSLog
+#endif
 import SemiSingleton
 
 
