@@ -6,8 +6,9 @@
  * Copyright © 2018 happn. All rights reserved.
  */
 
-import Foundation
+#if canImport(SystemConfiguration)
 
+import Foundation
 import SystemConfiguration
 
 
@@ -43,3 +44,5 @@ public extension ReachabilitySubscriber {
 	func reachabilityChanged(observer: ReachabilityObserver, newFlags: SCNetworkReachabilityFlags) {}
 	
 }
+
+#endif

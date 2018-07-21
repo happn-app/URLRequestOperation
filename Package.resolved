@@ -3,29 +3,38 @@
     "pins": [
       {
         "package": "AsyncOperationResult",
-        "repositoryURL": "git@github.com:happn-app/AsyncOperationResult",
+        "repositoryURL": "git@github.com:happn-app/AsyncOperationResult.git",
         "state": {
           "branch": null,
-          "revision": "7d75dfc7eb6ae489b6b01e3321e5940e2b55a233",
-          "version": "1.0.1"
+          "revision": "27a69817521f7a47a1f466cd094bbc2e4ad4e099",
+          "version": "1.0.4"
+        }
+      },
+      {
+        "package": "DummyLinuxOSLog",
+        "repositoryURL": "git@github.com:happn-app/DummyLinuxOSLog.git",
+        "state": {
+          "branch": null,
+          "revision": "47333c87665e0f9e957246148965418c9a4ad823",
+          "version": "1.0.0"
         }
       },
       {
         "package": "RetryingOperation",
-        "repositoryURL": "git@github.com:happn-app/RetryingOperation",
+        "repositoryURL": "git@github.com:happn-app/RetryingOperation.git",
         "state": {
           "branch": null,
-          "revision": "99993050e260c7b7fb3e15b247211286903aa87d",
-          "version": "1.0.1"
+          "revision": "9a1bbe89aee28e42fd51553435f35a50b91b0195",
+          "version": "1.1.1"
         }
       },
       {
         "package": "SemiSingleton",
-        "repositoryURL": "git@github.com:happn-app/SemiSingleton",
+        "repositoryURL": "git@github.com:happn-app/SemiSingleton.git",
         "state": {
           "branch": null,
-          "revision": "4ac83c4b5eabba365b0d152db6e661f8b90cafc9",
-          "version": "1.1.1"
+          "revision": "c738da7064f9c9b4407133f59779e8770396e3c7",
+          "version": "1.1.3"
         }
       }
     ]

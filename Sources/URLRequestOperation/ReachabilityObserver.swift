@@ -6,14 +6,20 @@
  * Copyright © 2016 happn. All rights reserved.
  */
 
-import Foundation
-import os.log
-import SystemConfiguration
+#if canImport(SystemConfiguration)
 
+import Foundation
+#if canImport(os)
+	import os.log
+#endif
+import SystemConfiguration
 #if os(iOS)
 	import UIKit
 #endif
 
+#if !canImport(os) && canImport(DummyLinuxOSLog)
+	import DummyLinuxOSLog
+#endif
 import SemiSingleton
 
 
@@ -257,3 +263,5 @@ private func reachabilityReleaseForReachabilityObserver(input: UnsafeRawPointer)
 	let u = Unmanaged.passUnretained(unsafeBitCast(input, to: ReachabilityObserver.WeakReachabilityObserverContainer.self))
 	u.release()
 }
+
+#endif

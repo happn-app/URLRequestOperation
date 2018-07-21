@@ -5,6 +5,8 @@ import XCTest
 
 class ReachabilityTests: XCTestCase {
 	
+	#if canImport(SystemConfiguration)
+	
 	func testQuad9Reachability() {
 		do {
 			let reachability = try ReachabilityObserver.reachabilityObserver(forIPv4AddressStr: "9.9.9.9")
@@ -33,5 +35,17 @@ class ReachabilityTests: XCTestCase {
 		("testQuad9Reachability", testQuad9Reachability),
 		("testInvalidHostReachability", testInvalidHostReachability)
 	]
+	
+	#else
+	
+	func testReachabilityUnsupportedOnThisPlatform() {
+		XCTAssertTrue(true)
+	}
+	
+	static var allTests = [
+		("testReachabilityUnsupportedOnThisPlatform", testReachabilityUnsupportedOnThisPlatform)
+	]
+	
+	#endif
 	
 }
