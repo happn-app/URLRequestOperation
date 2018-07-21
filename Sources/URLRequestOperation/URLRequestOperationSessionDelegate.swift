@@ -13,15 +13,27 @@ import Foundation
 open class URLRequestOperationSessionDelegate : GenericURLSessionDelegate, URLSessionDataDelegate, URLSessionDownloadDelegate {
 	
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-		taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
+		#if !os(Linux)
+			taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
+		#else
+			taskDelegateForTask(dataTask)?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
+		#endif
 	}
 	
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-		taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didReceive: data)
+		#if !os(Linux)
+			taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didReceive: data)
+		#else
+			taskDelegateForTask(dataTask)?.urlSession(session, dataTask: dataTask, didReceive: data)
+		#endif
 	}
 	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-		taskDelegateForTask(task)?.urlSession?(session, task: task, didCompleteWithError: error)
+		#if !os(Linux)
+			taskDelegateForTask(task)?.urlSession?(session, task: task, didCompleteWithError: error)
+		#else
+			taskDelegateForTask(task)?.urlSession(session, task: task, didCompleteWithError: error)
+		#endif
 	}
 	
 	public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
