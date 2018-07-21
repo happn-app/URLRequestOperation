@@ -32,14 +32,18 @@ public enum SockAddrConversionError : Int, Error {
 
 public class SockAddrWrapper : Hashable, CustomStringConvertible {
 	
-	let len: Int /* Original type is __uint8_t */
+	#if !os(Linux)
+		let len: Int /* Original type is __uint8_t */
+	#endif
 	let family: sa_family_t
 	let rawPointer: UnsafeMutableRawPointer
 	
 	public convenience init(ipV4AddressStr: String) throws {
 		var sa4 = sockaddr_in()
 		sa4.sin_family = sa_family_t(AF_INET)
-		sa4.sin_len = __uint8_t(MemoryLayout<sockaddr_in>.size)
+		#if !os(Linux)
+			sa4.sin_len = __uint8_t(MemoryLayout<sockaddr_in>.size)
+		#endif
 		let successValue = inet_pton(AF_INET, ipV4AddressStr, &sa4.sin_addr)
 		try SockAddrWrapper.processInetPToN(returnValue: successValue)
 		
@@ -49,7 +53,9 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 	public convenience init(ipV6AddressStr: String) throws {
 		var sa6 = sockaddr_in6()
 		sa6.sin6_family = sa_family_t(AF_INET6)
-		sa6.sin6_len = __uint8_t(MemoryLayout<sockaddr_in6>.size)
+		#if !os(Linux)
+			sa6.sin6_len = __uint8_t(MemoryLayout<sockaddr_in6>.size)
+		#endif
 		let successValue = inet_pton(AF_INET6, ipV6AddressStr, &sa6.sin6_addr)
 		try SockAddrWrapper.processInetPToN(returnValue: successValue)
 		
@@ -73,10 +79,17 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 	
 	init(rawsockaddr: UnsafeRawPointer) {
 		let sockaddrPtr = rawsockaddr.assumingMemoryBound(to: sockaddr.self)
-		len = Int(sockaddrPtr.pointee.sa_len)
+		#if !os(Linux)
+			len = Int(sockaddrPtr.pointee.sa_len)
+		#endif
 		family = sockaddrPtr.pointee.sa_family
-		rawPointer = UnsafeMutableRawPointer.allocate(byteCount: len, alignment: MemoryLayout<sockaddr>.alignment /* Not sure about that though... */)
-		rawPointer.copyMemory(from: rawsockaddr, byteCount: len)
+		#if !os(Linux)
+			rawPointer = UnsafeMutableRawPointer.allocate(byteCount: len, alignment: MemoryLayout<sockaddr>.alignment /* Not sure about that though... */)
+			rawPointer.copyMemory(from: rawsockaddr, byteCount: len)
+		#else
+			rawPointer = UnsafeMutableRawPointer.allocate(byteCount: MemoryLayout<sockaddr>.size, alignment: MemoryLayout<sockaddr>.alignment /* Not sure about that though... */)
+			rawPointer.copyMemory(from: rawsockaddr, byteCount: MemoryLayout<sockaddr>.size)
+		#endif
 	}
 	
 	deinit {
@@ -130,7 +143,9 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 	}
 	
 	public static func ==(lhs: SockAddrWrapper, rhs: SockAddrWrapper) -> Bool {
-		guard lhs.len == rhs.len else {return false}
+		#if !os(Linux)
+			guard lhs.len == rhs.len else {return false}
+		#endif
 		guard lhs.family == rhs.family else {return false}
 		
 		switch lhs.family {
