@@ -619,10 +619,20 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		/* First retry is after one second; next retry is after one minute; next
 		 * retry is after one hour; next retry (and all subsequent retries) is
 		 * after six hours. */
-		let retryDelays = [1, 3, 60, 60 * 60, 6 * 60 * 60]
+		let retryDelays: [TimeInterval] = [1, 3, 60, 60 * 60, 6 * 60 * 60]
 		
 		let idx = max(0, min(idx, retryDelays.count - 1))
-		return TimeInterval(arc4random() % UInt32(retryDelays[idx] * 1000)) / 1000
+		#if swift(>=4.2)
+			return TimeInterval.random(in: 0..<retryDelays[idx])
+		#else
+			#if !os(Linux)
+				return TimeInterval(arc4random() % UInt32(retryDelays[idx] * 1000)) / 1000
+			#else
+				/* VERY MUCH UNSAFE RANDOM! But we don’t really care for this
+				 * particular use-case. */
+				return TimeInterval(random() % Int(retryDelays[idx] * 1000)) / 1000
+			#endif
+		#endif
 	}
 	
 	public func currentExponentialBackoffTime() -> TimeInterval {
