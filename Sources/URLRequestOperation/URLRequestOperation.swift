@@ -566,7 +566,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			 * number of retries not exceeded). Should we retry? */
 			
 			let nsError: NSError?
-			#if !os(Linux)
+			#if !os(Linux) || swift(>=4.2)
 				nsError = (error as NSError)
 			#else
 				nsError = (error as? NSError)
