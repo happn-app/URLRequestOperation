@@ -52,6 +52,7 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 	}
 	
 	public typealias SemiSingletonKey = InitInfo
+	public typealias SemiSingletonAdditionalInitInfo = Void
 	
 	public enum InitInfo : Hashable {
 		
@@ -94,18 +95,22 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 	
 	public static func reachabilityObserver(forSockAddressWrapper sockAddressWrapper: SockAddrWrapper, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
 		let initInfo = InitInfo.sockaddr(sockAddressWrapper)
-		return try semiSingletonStore?.semiSingleton(forKey: initInfo) ?? ReachabilityObserver(key: initInfo)
+		return try semiSingletonStore?.semiSingleton(forKey: initInfo) ?? ReachabilityObserver(info: initInfo)
 	}
 	
 	public static func reachabilityObserver(forHost host: String, semiSingletonStore: SemiSingletonStore? = .shared) throws -> ReachabilityObserver {
 		let initInfo = InitInfo.host(host)
-		return try semiSingletonStore?.semiSingleton(forKey: initInfo) ?? ReachabilityObserver(key: initInfo)
+		return try semiSingletonStore?.semiSingleton(forKey: initInfo) ?? ReachabilityObserver(info: initInfo)
 	}
 	
-	public required init(key: InitInfo) throws {
-		subscribersLock.name = "Lock for Reachability Observer of \(key)"
+	public convenience init(key: InitInfo, additionalInfo: Void, store: SemiSingletonStore) throws {
+		try self.init(info: key)
+	}
+	
+	public init(info: InitInfo) throws {
+		subscribersLock.name = "Lock for Reachability Observer of \(info)"
 		
-		switch key {
+		switch info {
 		case .host(let host):
 			guard let ref = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, host) else {
 				throw Error.cannotCreateReachability
