@@ -134,13 +134,13 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		
 		isReachabilityScheduled = SCNetworkReachabilitySetDispatchQueue(reachabilityRef, reachabilityQueue)
 		#if os(iOS)
-			appDidEnterBackgroundObserver = NotificationCenter.default.addObserver(forName: .UIApplicationDidEnterBackground, object: nil, queue: nil){ [weak self] notif in
+			appDidEnterBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil){ [weak self] notif in
 				guard let strongSelf = self, strongSelf.isReachabilityScheduled else {
 					return
 				}
 				strongSelf.isReachabilityScheduled = !SCNetworkReachabilitySetDispatchQueue(strongSelf.reachabilityRef, nil)
 			}
-			appWillEnterForegroundObserver = NotificationCenter.default.addObserver(forName: .UIApplicationWillEnterForeground, object: nil, queue: nil){ [weak self] notif in
+			appWillEnterForegroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil){ [weak self] notif in
 				guard let strongSelf = self, !strongSelf.isReachabilityScheduled else {
 					return
 				}
@@ -154,8 +154,8 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		if #available(OSX 10.12, tvOS 10.0, iOS 10.0, *) {di.log.flatMap{ os_log("Deiniting a reachability observer with reachability ref %@", log: $0, type: .debug, String(describing: reachabilityRef)) }}
 		else                                             {NSLog("Deiniting a reachability observer with reachability ref %@", String(describing: reachabilityRef))}
 		#if os(iOS)
-			if let observer = appDidEnterBackgroundObserver  {NotificationCenter.default.removeObserver(observer, name: .UIApplicationDidEnterBackground,  object: nil)}
-			if let observer = appWillEnterForegroundObserver {NotificationCenter.default.removeObserver(observer, name: .UIApplicationWillEnterForeground, object: nil)}
+			if let observer = appDidEnterBackgroundObserver  {NotificationCenter.default.removeObserver(observer, name: UIApplication.didEnterBackgroundNotification,  object: nil)}
+			if let observer = appWillEnterForegroundObserver {NotificationCenter.default.removeObserver(observer, name: UIApplication.willEnterForegroundNotification, object: nil)}
 		#endif
 		if isReachabilityScheduled && !SCNetworkReachabilitySetDispatchQueue(reachabilityRef, nil) {
 			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, *) {di.log.flatMap{ os_log("Cannot remove dispatch queue from a reachability. We might crash later if reachability changes.", log: $0, type: .error) }}
