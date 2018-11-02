@@ -24,7 +24,10 @@ import SemiSingleton
 
 
 
-public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
+/* When (if) we have optional methods in a protocol in pure Swift, we can drop
+ * the NSObject’s inheritance from this class! See the ReachabilitySubscriber
+ * protocol for more information. */
+public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleInit {
 	
 	public static func convertReachabilityFlagsToStr(_ flags: SCNetworkReachabilityFlags) -> String {
 		#if os(iOS)
@@ -126,6 +129,8 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 			}
 		}
 		
+		super.init()
+		
 		let container = WeakReachabilityObserverContainer(observer: self)
 		var context = SCNetworkReachabilityContext(version: 0, info: unsafeBitCast(container, to: UnsafeMutableRawPointer.self), retain: reachabilityRetainForReachabilityObserver, release: reachabilityReleaseForReachabilityObserver, copyDescription: nil)
 		guard SCNetworkReachabilitySetCallback(reachabilityRef, reachabilityCallbackForReachabilityObserver, &context) else {
@@ -134,13 +139,13 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		
 		isReachabilityScheduled = SCNetworkReachabilitySetDispatchQueue(reachabilityRef, reachabilityQueue)
 		#if os(iOS)
-			appDidEnterBackgroundObserver = NotificationCenter.default.addObserver(forName: .UIApplicationDidEnterBackground, object: nil, queue: nil){ [weak self] notif in
+			appDidEnterBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil){ [weak self] notif in
 				guard let strongSelf = self, strongSelf.isReachabilityScheduled else {
 					return
 				}
 				strongSelf.isReachabilityScheduled = !SCNetworkReachabilitySetDispatchQueue(strongSelf.reachabilityRef, nil)
 			}
-			appWillEnterForegroundObserver = NotificationCenter.default.addObserver(forName: .UIApplicationWillEnterForeground, object: nil, queue: nil){ [weak self] notif in
+			appWillEnterForegroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil){ [weak self] notif in
 				guard let strongSelf = self, !strongSelf.isReachabilityScheduled else {
 					return
 				}
@@ -154,8 +159,8 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		if #available(OSX 10.12, tvOS 10.0, iOS 10.0, *) {di.log.flatMap{ os_log("Deiniting a reachability observer with reachability ref %@", log: $0, type: .debug, String(describing: reachabilityRef)) }}
 		else                                             {NSLog("Deiniting a reachability observer with reachability ref %@", String(describing: reachabilityRef))}
 		#if os(iOS)
-			if let observer = appDidEnterBackgroundObserver  {NotificationCenter.default.removeObserver(observer, name: .UIApplicationDidEnterBackground,  object: nil)}
-			if let observer = appWillEnterForegroundObserver {NotificationCenter.default.removeObserver(observer, name: .UIApplicationWillEnterForeground, object: nil)}
+			if let observer = appDidEnterBackgroundObserver  {NotificationCenter.default.removeObserver(observer, name: UIApplication.didEnterBackgroundNotification,  object: nil)}
+			if let observer = appWillEnterForegroundObserver {NotificationCenter.default.removeObserver(observer, name: UIApplication.willEnterForegroundNotification, object: nil)}
 		#endif
 		if isReachabilityScheduled && !SCNetworkReachabilitySetDispatchQueue(reachabilityRef, nil) {
 			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, *) {di.log.flatMap{ os_log("Cannot remove dispatch queue from a reachability. We might crash later if reachability changes.", log: $0, type: .error) }}
@@ -242,10 +247,10 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		let subscribersArray = subscribers.allObjects
 		subscribersLock.unlock()
 		for subscriber in subscribersArray {
-			subscriber.reachabilityChanged(observer: self, newFlags: newFlags)
+			subscriber.reachabilityChanged?(observer: self, newFlags: newFlags)
 			if isReachableChanged {
-				if isReachable {subscriber.reachabilityDidBecomeReachable(observer: self)}
-				else           {subscriber.reachabilityDidBecomeUnreachable(observer: self)}
+				if isReachable {subscriber.reachabilityDidBecomeReachable?(observer: self)}
+				else           {subscriber.reachabilityDidBecomeUnreachable?(observer: self)}
 			}
 		}
 	}
