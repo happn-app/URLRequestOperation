@@ -24,7 +24,10 @@ import SemiSingleton
 
 
 
-public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
+/* When (if) we have optional methods in a protocol in pure Swift, we can drop
+ * the NSObject’s inheritance from this class! See the ReachabilitySubscriber
+ * protocol for more information. */
+public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleInit {
 	
 	public static func convertReachabilityFlagsToStr(_ flags: SCNetworkReachabilityFlags) -> String {
 		#if os(iOS)
@@ -125,6 +128,8 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 				return ref
 			}
 		}
+		
+		super.init()
 		
 		let container = WeakReachabilityObserverContainer(observer: self)
 		var context = SCNetworkReachabilityContext(version: 0, info: unsafeBitCast(container, to: UnsafeMutableRawPointer.self), retain: reachabilityRetainForReachabilityObserver, release: reachabilityReleaseForReachabilityObserver, copyDescription: nil)
@@ -242,10 +247,10 @@ public final class ReachabilityObserver : SemiSingletonWithFallibleInit {
 		let subscribersArray = subscribers.allObjects
 		subscribersLock.unlock()
 		for subscriber in subscribersArray {
-			subscriber.reachabilityChanged(observer: self, newFlags: newFlags)
+			subscriber.reachabilityChanged?(observer: self, newFlags: newFlags)
 			if isReachableChanged {
-				if isReachable {subscriber.reachabilityDidBecomeReachable(observer: self)}
-				else           {subscriber.reachabilityDidBecomeUnreachable(observer: self)}
+				if isReachable {subscriber.reachabilityDidBecomeReachable?(observer: self)}
+				else           {subscriber.reachabilityDidBecomeUnreachable?(observer: self)}
 			}
 		}
 	}
