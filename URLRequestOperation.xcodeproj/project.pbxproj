@@ -74,6 +74,7 @@
 		7B6DBEED21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEEC21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework */; };
 		7B6DBEEE21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEEC21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework */; };
 		7B6DBEF021CE42B1007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEEF21CE42B1007BBCE9 /* RecursiveSyncDispatch.framework */; };
+		7B6DBEF121CE4374007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEE921CE4250007BBCE9 /* RecursiveSyncDispatch.framework */; };
 		7B7A34C820027B4700348DF4 /* URLRequestOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7A34BF20027B4600348DF4 /* URLRequestOperation.framework */; };
 		7B7A34D620027B6700348DF4 /* URLRequestOperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8BD034200274B9009BE667 /* URLRequestOperationTests.swift */; };
 		7B80CEC82103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */; };
@@ -325,6 +326,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B900337218D0758007E19C5 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEF121CE4374007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B900338218D0758007E19C5 /* RetryingOperation.framework in Frameworks */,
 				7B900339218D0758007E19C5 /* SemiSingleton.framework in Frameworks */,
 			);
