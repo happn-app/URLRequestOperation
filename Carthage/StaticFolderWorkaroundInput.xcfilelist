@@ -1,13 +1,17 @@
 # Static, Carthage-generated frameworks
 $(SRCROOT)/Carthage/Build/Mac/Static/AsyncOperationResult.framework
+$(SRCROOT)/Carthage/Build/Mac/Static/RecursiveSyncDispatch.framework
 $(SRCROOT)/Carthage/Build/Mac/Static/RetryingOperation.framework
 $(SRCROOT)/Carthage/Build/Mac/Static/SemiSingleton.framework
 $(SRCROOT)/Carthage/Build/iOS/Static/AsyncOperationResult.framework
+$(SRCROOT)/Carthage/Build/iOS/Static/RecursiveSyncDispatch.framework
 $(SRCROOT)/Carthage/Build/iOS/Static/RetryingOperation.framework
 $(SRCROOT)/Carthage/Build/iOS/Static/SemiSingleton.framework
 $(SRCROOT)/Carthage/Build/tvOS/Static/AsyncOperationResult.framework
+$(SRCROOT)/Carthage/Build/tvOS/Static/RecursiveSyncDispatch.framework
 $(SRCROOT)/Carthage/Build/tvOS/Static/RetryingOperation.framework
 $(SRCROOT)/Carthage/Build/tvOS/Static/SemiSingleton.framework
 $(SRCROOT)/Carthage/Build/watchOS/Static/AsyncOperationResult.framework
+$(SRCROOT)/Carthage/Build/watchOS/Static/RecursiveSyncDispatch.framework
 $(SRCROOT)/Carthage/Build/watchOS/Static/RetryingOperation.framework
 $(SRCROOT)/Carthage/Build/watchOS/Static/SemiSingleton.framework

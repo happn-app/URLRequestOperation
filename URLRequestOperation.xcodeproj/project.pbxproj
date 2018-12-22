@@ -67,6 +67,13 @@
 		7B60D1FF20128F6A00D4777D /* DependencyInjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B60D1FD20128F6A00D4777D /* DependencyInjection.swift */; };
 		7B60D20020128F6A00D4777D /* DependencyInjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B60D1FD20128F6A00D4777D /* DependencyInjection.swift */; };
 		7B60D20120128F6A00D4777D /* DependencyInjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B60D1FD20128F6A00D4777D /* DependencyInjection.swift */; };
+		7B6DBEE721CE4231007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEE621CE4231007BBCE9 /* RecursiveSyncDispatch.framework */; };
+		7B6DBEE821CE4231007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEE621CE4231007BBCE9 /* RecursiveSyncDispatch.framework */; };
+		7B6DBEEA21CE4250007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEE921CE4250007BBCE9 /* RecursiveSyncDispatch.framework */; };
+		7B6DBEEB21CE4250007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEE921CE4250007BBCE9 /* RecursiveSyncDispatch.framework */; };
+		7B6DBEED21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEEC21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework */; };
+		7B6DBEEE21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEEC21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework */; };
+		7B6DBEF021CE42B1007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6DBEEF21CE42B1007BBCE9 /* RecursiveSyncDispatch.framework */; };
 		7B7A34C820027B4700348DF4 /* URLRequestOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7A34BF20027B4600348DF4 /* URLRequestOperation.framework */; };
 		7B7A34D620027B6700348DF4 /* URLRequestOperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8BD034200274B9009BE667 /* URLRequestOperationTests.swift */; };
 		7B80CEC82103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */; };
@@ -222,6 +229,10 @@
 		7B60D1F3201281AB00D4777D /* ReachabilityObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReachabilityObserver.swift; sourceTree = "<group>"; };
 		7B60D1F8201281B400D4777D /* URLRequestOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLRequestOperation.swift; sourceTree = "<group>"; };
 		7B60D1FD20128F6A00D4777D /* DependencyInjection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DependencyInjection.swift; sourceTree = "<group>"; };
+		7B6DBEE621CE4231007BBCE9 /* RecursiveSyncDispatch.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = RecursiveSyncDispatch.framework; sourceTree = "<group>"; };
+		7B6DBEE921CE4250007BBCE9 /* RecursiveSyncDispatch.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = RecursiveSyncDispatch.framework; sourceTree = "<group>"; };
+		7B6DBEEC21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = RecursiveSyncDispatch.framework; sourceTree = "<group>"; };
+		7B6DBEEF21CE42B1007BBCE9 /* RecursiveSyncDispatch.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = RecursiveSyncDispatch.framework; sourceTree = "<group>"; };
 		7B7A34BF20027B4600348DF4 /* URLRequestOperation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = URLRequestOperation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B7A34C720027B4700348DF4 /* URLRequestOperation-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "URLRequestOperation-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B80CEC72103EB9700C1CF60 /* LinuxWeakToWeakMapTable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinuxWeakToWeakMapTable.swift; sourceTree = "<group>"; };
@@ -257,6 +268,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B9BEBA020E91209006B1A89 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEED21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B9BEBA120E91209006B1A89 /* RetryingOperation.framework in Frameworks */,
 				7B9BEBA220E91209006B1A89 /* SemiSingleton.framework in Frameworks */,
 			);
@@ -267,6 +279,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B9BEBAC20E91232006B1A89 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEEE21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B9BEBAD20E91232006B1A89 /* RetryingOperation.framework in Frameworks */,
 				7B9BEBAE20E91232006B1A89 /* SemiSingleton.framework in Frameworks */,
 				7B7A34C820027B4700348DF4 /* URLRequestOperation.framework in Frameworks */,
@@ -278,6 +291,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B9BEB9D20E91202006B1A89 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEEA21CE4250007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B9BEB9E20E91202006B1A89 /* RetryingOperation.framework in Frameworks */,
 				7B9BEB9F20E91202006B1A89 /* SemiSingleton.framework in Frameworks */,
 			);
@@ -288,6 +302,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B9BEBA920E91225006B1A89 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEEB21CE4250007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B9BEBAA20E91225006B1A89 /* RetryingOperation.framework in Frameworks */,
 				7B9BEBAB20E91225006B1A89 /* SemiSingleton.framework in Frameworks */,
 				7B8BD02320026E8C009BE667 /* URLRequestOperation.framework in Frameworks */,
@@ -299,6 +314,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B9BEBA620E91219006B1A89 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEF021CE42B1007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B9BEBA720E91219006B1A89 /* RetryingOperation.framework in Frameworks */,
 				7B9BEBA820E91219006B1A89 /* SemiSingleton.framework in Frameworks */,
 			);
@@ -319,6 +335,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B9BEBA320E91212006B1A89 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEE721CE4231007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B9BEBA420E91212006B1A89 /* RetryingOperation.framework in Frameworks */,
 				7B9BEBA520E91212006B1A89 /* SemiSingleton.framework in Frameworks */,
 			);
@@ -329,6 +346,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B9BEBAF20E9123A006B1A89 /* AsyncOperationResult.framework in Frameworks */,
+				7B6DBEE821CE4231007BBCE9 /* RecursiveSyncDispatch.framework in Frameworks */,
 				7B9BEBB020E9123A006B1A89 /* RetryingOperation.framework in Frameworks */,
 				7B9BEBB120E9123A006B1A89 /* SemiSingleton.framework in Frameworks */,
 				7BC696DE2002775C007BC3E9 /* URLRequestOperation.framework in Frameworks */,
@@ -455,6 +473,7 @@
 			isa = PBXGroup;
 			children = (
 				7B9BEB7C20E910C7006B1A89 /* AsyncOperationResult.framework */,
+				7B6DBEE621CE4231007BBCE9 /* RecursiveSyncDispatch.framework */,
 				7B9BEB7D20E910C7006B1A89 /* RetryingOperation.framework */,
 				7B9BEB8120E910C7006B1A89 /* SemiSingleton.framework */,
 			);
@@ -465,6 +484,7 @@
 			isa = PBXGroup;
 			children = (
 				7B9BEB8520E910C7006B1A89 /* AsyncOperationResult.framework */,
+				7B6DBEE921CE4250007BBCE9 /* RecursiveSyncDispatch.framework */,
 				7B9BEB8620E910C7006B1A89 /* RetryingOperation.framework */,
 				7B9BEB8820E910C7006B1A89 /* SemiSingleton.framework */,
 			);
@@ -476,6 +496,7 @@
 			isa = PBXGroup;
 			children = (
 				7B9BEB8D20E910C7006B1A89 /* AsyncOperationResult.framework */,
+				7B6DBEEC21CE42A2007BBCE9 /* RecursiveSyncDispatch.framework */,
 				7B9BEB8E20E910C7006B1A89 /* RetryingOperation.framework */,
 				7B9BEB9120E910C7006B1A89 /* SemiSingleton.framework */,
 			);
@@ -486,6 +507,7 @@
 			isa = PBXGroup;
 			children = (
 				7B9BEB9820E910C7006B1A89 /* AsyncOperationResult.framework */,
+				7B6DBEEF21CE42B1007BBCE9 /* RecursiveSyncDispatch.framework */,
 				7B9BEB9A20E910C7006B1A89 /* RetryingOperation.framework */,
 				7B9BEB9C20E910C7006B1A89 /* SemiSingleton.framework */,
 			);
