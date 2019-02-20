@@ -29,23 +29,6 @@ class ReachabilityTests: XCTestCase {
 		}
 	}
 	
-	
-	/* Fill this array with all the tests to have Linux testing compatibility. */
-	static var allTests = [
-		("testQuad9Reachability", testQuad9Reachability),
-		("testInvalidHostReachability", testInvalidHostReachability)
-	]
-	
-	#else
-	
-	func testReachabilityUnsupportedOnThisPlatform() {
-		XCTAssertTrue(true)
-	}
-	
-	static var allTests = [
-		("testReachabilityUnsupportedOnThisPlatform", testReachabilityUnsupportedOnThisPlatform)
-	]
-	
 	#endif
 	
 }

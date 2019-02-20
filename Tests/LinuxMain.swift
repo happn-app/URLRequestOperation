@@ -1,10 +1,8 @@
 import XCTest
-@testable import URLRequestOperationTests
 
+import URLRequestOperationTests
 
+var tests = [XCTestCaseEntry]()
+tests += URLRequestOperationTests.__allTests()
 
-XCTMain([
-	testCase(URLRequestOperationTests.allTests),
-	testCase(ReachabilityTests.allTests),
-	testCase(IPUtilsTests.allTests)
-])
+XCTMain(tests)

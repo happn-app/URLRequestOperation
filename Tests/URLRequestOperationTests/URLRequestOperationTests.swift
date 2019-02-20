@@ -30,12 +30,4 @@ class URLRequestOperationTests: XCTestCase {
 		XCTAssertEqual(op.statusCode, 404)
 	}
 	
-	
-	/* Fill this array with all the tests to have Linux testing compatibility. */
-	static var allTests = [
-		("testFetchFrostLandConstant", testFetchFrostLandConstant),
-		("testFetchInvalidHost", testFetchInvalidHost),
-		("testFetch404", testFetch404)
-	]
-	
 }
