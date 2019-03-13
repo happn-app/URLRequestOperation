@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0930"
+   LastUpgradeVersion = "1010"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7BB52E42200279EA007CAD7B"
+               BlueprintIdentifier = "7BE6F69B2239478900FF9391"
                BuildableName = "URLRequestOperation.framework"
-               BlueprintName = "URLRequestOperation-watchOS"
+               BlueprintName = "URLRequestOperation-Static"
                ReferencedContainer = "container:URLRequestOperation.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,9 +45,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7BB52E42200279EA007CAD7B"
+            BlueprintIdentifier = "7BE6F69B2239478900FF9391"
             BuildableName = "URLRequestOperation.framework"
-            BlueprintName = "URLRequestOperation-watchOS"
+            BlueprintName = "URLRequestOperation-Static"
             ReferencedContainer = "container:URLRequestOperation.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -63,9 +63,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7BB52E42200279EA007CAD7B"
+            BlueprintIdentifier = "7BE6F69B2239478900FF9391"
             BuildableName = "URLRequestOperation.framework"
-            BlueprintName = "URLRequestOperation-watchOS"
+            BlueprintName = "URLRequestOperation-Static"
             ReferencedContainer = "container:URLRequestOperation.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

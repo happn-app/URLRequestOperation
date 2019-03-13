@@ -3,16 +3,16 @@
     "pins": [
       {
         "package": "AsyncOperationResult",
-        "repositoryURL": "git@github.com:happn-app/AsyncOperationResult.git",
+        "repositoryURL": "git@github.com:happn-tech/AsyncOperationResult.git",
         "state": {
           "branch": null,
-          "revision": "27a69817521f7a47a1f466cd094bbc2e4ad4e099",
-          "version": "1.0.4"
+          "revision": "98aaf624ca0a2f4374d9a36a5710d2fd4b978eb3",
+          "version": "1.0.5"
         }
       },
       {
         "package": "DummyLinuxOSLog",
-        "repositoryURL": "git@github.com:happn-app/DummyLinuxOSLog.git",
+        "repositoryURL": "git@github.com:happn-tech/DummyLinuxOSLog.git",
         "state": {
           "branch": null,
           "revision": "47333c87665e0f9e957246148965418c9a4ad823",
@@ -20,21 +20,30 @@
         }
       },
       {
-        "package": "RetryingOperation",
-        "repositoryURL": "git@github.com:happn-app/RetryingOperation.git",
+        "package": "RecursiveSyncDispatch",
+        "repositoryURL": "git@github.com:happn-app/RecursiveSyncDispatch.git",
         "state": {
           "branch": null,
-          "revision": "9a1bbe89aee28e42fd51553435f35a50b91b0195",
-          "version": "1.1.1"
+          "revision": "4c4cda3cd81010c2870222a16825512048515f86",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "package": "RetryingOperation",
+        "repositoryURL": "git@github.com:happn-tech/RetryingOperation.git",
+        "state": {
+          "branch": null,
+          "revision": "01d9db0da1c18fdfe5a129317c6d94f214a4eff1",
+          "version": "1.1.2"
         }
       },
       {
         "package": "SemiSingleton",
-        "repositoryURL": "git@github.com:happn-app/SemiSingleton.git",
+        "repositoryURL": "git@github.com:happn-tech/SemiSingleton.git",
         "state": {
           "branch": null,
-          "revision": "e0610bc631878a114bb567da2bd1dbacff63f243",
-          "version": "2.0.0"
+          "revision": "d9e5de03c11392db18de2021c2361d4d64e5a87e",
+          "version": "2.0.2"
         }
       }
     ]

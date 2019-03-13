@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0930"
+   LastUpgradeVersion = "1010"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7B8BD01920026E8C009BE667"
-               BuildableName = "URLRequestOperation.framework"
-               BlueprintName = "URLRequestOperation-macOS"
+               BlueprintIdentifier = "7BB70601218D03A3005FBED7"
+               BuildableName = "ManualTest"
+               BlueprintName = "ManualTest"
                ReferencedContainer = "container:URLRequestOperation.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,23 +28,13 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7B8BD02120026E8C009BE667"
-               BuildableName = "URLRequestOperation-macOSTests.xctest"
-               BlueprintName = "URLRequestOperation-macOSTests"
-               ReferencedContainer = "container:URLRequestOperation.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7B8BD01920026E8C009BE667"
-            BuildableName = "URLRequestOperation.framework"
-            BlueprintName = "URLRequestOperation-macOS"
+            BlueprintIdentifier = "7BB70601218D03A3005FBED7"
+            BuildableName = "ManualTest"
+            BlueprintName = "ManualTest"
             ReferencedContainer = "container:URLRequestOperation.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -61,15 +51,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7B8BD01920026E8C009BE667"
-            BuildableName = "URLRequestOperation.framework"
-            BlueprintName = "URLRequestOperation-macOS"
+            BlueprintIdentifier = "7BB70601218D03A3005FBED7"
+            BuildableName = "ManualTest"
+            BlueprintName = "ManualTest"
             ReferencedContainer = "container:URLRequestOperation.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -79,15 +70,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7B8BD01920026E8C009BE667"
-            BuildableName = "URLRequestOperation.framework"
-            BlueprintName = "URLRequestOperation-macOS"
+            BlueprintIdentifier = "7BB70601218D03A3005FBED7"
+            BuildableName = "ManualTest"
+            BlueprintName = "ManualTest"
             ReferencedContainer = "container:URLRequestOperation.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

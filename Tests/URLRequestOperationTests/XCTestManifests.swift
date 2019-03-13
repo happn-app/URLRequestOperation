@@ -7,7 +7,9 @@ extension IPUtilsTests {
 }
 
 extension ReachabilityTests {
-    static let __allTests: [(String, () -> Void)] = [
+    static let __allTests = [
+        ("testInvalidHostReachability", testInvalidHostReachability),
+        ("testQuad9Reachability", testQuad9Reachability),
     ]
 }
 
