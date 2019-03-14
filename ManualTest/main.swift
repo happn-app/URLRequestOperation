@@ -22,6 +22,7 @@ import URLRequestOperation
 let q = OperationQueue()
 let request = URLRequest(url: URL(string: "https://frostland.fr")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.1)
 let operation = URLRequestOperation(request: request)
+operation.completionBlock = { exit(0) }
 q.addOperation(operation)
 
 dispatchMain()
