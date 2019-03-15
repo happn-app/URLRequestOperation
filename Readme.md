@@ -1,5 +1,5 @@
 # URL Request Operation
-Using OperationQueue for your URL requests (with an built-in retry mechanism).
+Using OperationQueue for your URL requests (with a built-in retry mechanism).
 
 ## How to Use
 Here is the detailed lifespan of an `URLRequestOperation`:
