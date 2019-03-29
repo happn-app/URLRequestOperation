@@ -362,12 +362,6 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		func createAndLaunchTask() {
 			assert(currentTask == nil)
 			
-			#if canImport(os)
-				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("URL Op id %d: Creating URL Session task for URL: %@", log: $0, type: .debug, urlOperationIdentifier, String(describing: currentURLRequest)) }}
-				else                                                          {NSLog("URL Op id %d: Creating URL Session task for URL: %@", urlOperationIdentifier, String(describing: currentURLRequest))}
-			#else
-				NSLogString("URL Op id \(urlOperationIdentifier): Creating URL Session task for URL: \(String(describing: currentURLRequest))", log: di.log)
-			#endif
 			let task: URLSessionTask
 			if let delegate = config.session.delegate as? URLRequestOperationSessionDelegate {
 				task = urlSessionTaskForURLRequest(currentURLRequest, withDelegate: delegate)
