@@ -69,7 +69,7 @@
 		7B20A44D2013E89F000E869D /* ReachabilitySubscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReachabilitySubscriber.swift; sourceTree = "<group>"; };
 		7B20A4612013F22B000E869D /* ReachabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReachabilityTests.swift; sourceTree = "<group>"; };
 		7B20A4682013F71D000E869D /* IPUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPUtilsTests.swift; sourceTree = "<group>"; };
-		7B21BACE2003B2C600DFF758 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
+		7B21BACE2003B2C600DFF758 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; wrapsLines = 1; };
 		7B21BAD02003BBC700DFF758 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		7B21BAD12003BF0600DFF758 /* License.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
 		7B60D1E920127FB100D4777D /* GenericURLSessionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenericURLSessionDelegate.swift; sourceTree = "<group>"; };
