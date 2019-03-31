@@ -3,46 +3,46 @@
     "pins": [
       {
         "package": "AsyncOperationResult",
-        "repositoryURL": "git@github.com:happn-tech/AsyncOperationResult.git",
+        "repositoryURL": "https://github.com/happn-tech/AsyncOperationResult.git",
         "state": {
           "branch": null,
-          "revision": "98aaf624ca0a2f4374d9a36a5710d2fd4b978eb3",
+          "revision": "cf6a617364267bedc334a9e61cf1f7efd7c0e0b4",
           "version": "1.0.5"
         }
       },
       {
         "package": "DummyLinuxOSLog",
-        "repositoryURL": "git@github.com:happn-tech/DummyLinuxOSLog.git",
+        "repositoryURL": "https://github.com/happn-tech/DummyLinuxOSLog.git",
         "state": {
           "branch": null,
-          "revision": "47333c87665e0f9e957246148965418c9a4ad823",
-          "version": "1.0.0"
+          "revision": "ce7a3bc30d38640d2bea2a3a72a7866d8d13c538",
+          "version": "1.0.1"
         }
       },
       {
         "package": "RecursiveSyncDispatch",
-        "repositoryURL": "git@github.com:happn-app/RecursiveSyncDispatch.git",
+        "repositoryURL": "https://github.com/happn-tech/RecursiveSyncDispatch.git",
         "state": {
           "branch": null,
-          "revision": "4c4cda3cd81010c2870222a16825512048515f86",
+          "revision": "b038867545cde7d635b9f76e06d378149fd8a6c8",
           "version": "1.0.0"
         }
       },
       {
         "package": "RetryingOperation",
-        "repositoryURL": "git@github.com:happn-tech/RetryingOperation.git",
+        "repositoryURL": "https://github.com/happn-tech/RetryingOperation.git",
         "state": {
           "branch": null,
-          "revision": "01d9db0da1c18fdfe5a129317c6d94f214a4eff1",
+          "revision": "6dcf5c46a1fc0bd45475b4b9ae827e6b640bfe6d",
           "version": "1.1.2"
         }
       },
       {
         "package": "SemiSingleton",
-        "repositoryURL": "git@github.com:happn-tech/SemiSingleton.git",
+        "repositoryURL": "https://github.com/happn-tech/SemiSingleton.git",
         "state": {
           "branch": null,
-          "revision": "d9e5de03c11392db18de2021c2361d4d64e5a87e",
+          "revision": "af0e7eacb76a381ec4366a2a87cb9ec960119433",
           "version": "2.0.2"
         }
       }
