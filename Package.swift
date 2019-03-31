@@ -1,16 +1,11 @@
-// swift-tools-version:4.2
-
+// swift-tools-version:5.0
 import PackageDescription
-
 
 
 let package = Package(
 	name: "URLRequestOperation",
 	products: [
-		.library(
-			name: "URLRequestOperation",
-			targets: ["URLRequestOperation"]
-		)
+		.library(name: "URLRequestOperation", targets: ["URLRequestOperation"])
 	],
 	dependencies: [
 		.package(url: "https://github.com/happn-tech/AsyncOperationResult.git", from: "1.0.5"),
@@ -19,13 +14,7 @@ let package = Package(
 		.package(url: "https://github.com/happn-tech/SemiSingleton.git", from: "2.0.2")
 	],
 	targets: [
-		.target(
-			name: "URLRequestOperation",
-			dependencies: ["AsyncOperationResult", "RetryingOperation", "SemiSingleton", "DummyLinuxOSLog"]
-		),
-		.testTarget(
-			name: "URLRequestOperationTests",
-			dependencies: ["URLRequestOperation"]
-		)
+		.target(name: "URLRequestOperation", dependencies: ["AsyncOperationResult", "RetryingOperation", "SemiSingleton", "DummyLinuxOSLog"]),
+		.testTarget(name: "URLRequestOperationTests", dependencies: ["URLRequestOperation"])
 	]
 )

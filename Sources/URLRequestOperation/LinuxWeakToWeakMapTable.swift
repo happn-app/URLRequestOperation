@@ -80,8 +80,8 @@ extension WeakElementBox: Equatable where ElementType: Equatable {
 
 extension WeakElementBox : Hashable where ElementType : Hashable {
 	
-	var hashValue: Int {
-		return element?.hashValue ?? 0
+	func hash(into hasher: inout Hasher) {
+		hasher.combine(element)
 	}
 	
 }

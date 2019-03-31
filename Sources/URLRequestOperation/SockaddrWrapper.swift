@@ -107,7 +107,8 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 		let len = socklen_t(max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN))
 		var data = Data(capacity: Int(len))
 		
-		try data.withUnsafeMutableBytes{ (rwBuffer: UnsafeMutablePointer<Int8>) -> Void in
+		try data.withUnsafeMutableBytes{ (rwBuffer: UnsafeMutableRawBufferPointer) -> Void in
+			let rwBuffer = rwBuffer.bindMemory(to: Int8.self).baseAddress!
 			switch rawPointer.assumingMemoryBound(to: sockaddr.self).pointee.sa_family {
 			case sa_family_t(AF_INET):
 				let s = inet_ntop(AF_INET, &rawPointer.assumingMemoryBound(to: sockaddr_in.self).pointee.sin_addr, rwBuffer, len)
@@ -126,7 +127,8 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 			}
 		}
 		
-		return try data.withUnsafeBytes{ (ccharBuffer: UnsafePointer<CChar>) -> String in
+		return try data.withUnsafeBytes{ (ccharBuffer: UnsafeRawBufferPointer) -> String in
+			let ccharBuffer = ccharBuffer.bindMemory(to: CChar.self).baseAddress!
 			guard let ret = String(cString: ccharBuffer, encoding: .ascii) else {
 				throw SockAddrConversionError.cannotConvertDataToString
 			}
@@ -142,11 +144,11 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 		return "sockaddr wrapper for <\((try? sockaddrStringRepresentation()) ?? "Unknown sockaddr String Representation")>"
 	}
 	
-	public var hashValue: Int {
+	public func hash(into hasher: inout Hasher) {
 		/* Is this hash computation really wise? It is probably the safest way to
 		 * do it, but I think we could go faster than converting the address to a
 		 * String... */
-		return ((try? sockaddrStringRepresentation())?.hashValue ?? 0)
+		try? hasher.combine(sockaddrStringRepresentation())
 	}
 	
 	public static func ==(lhs: SockAddrWrapper, rhs: SockAddrWrapper) -> Bool {

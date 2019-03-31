@@ -69,21 +69,6 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		case sockaddr(SockAddrWrapper)
 		case host(String)
 		
-		public var hashValue: Int {
-			switch self {
-			case .host(let host):     return host.hashValue
-			case .sockaddr(let addr): return Int.max/2 &+ addr.hashValue
-			}
-		}
-		
-		public static func ==(lhs: InitInfo, rhs: InitInfo) -> Bool {
-			switch (lhs, rhs) {
-			case (.sockaddr(let addr1), .sockaddr(let addr2)): return addr1 == addr2
-			case (.host(let host1), .host(let host2)):         return host1 == host2
-			default:                                           return false
-			}
-		}
-		
 	}
 	
 	public enum Error : Int, Swift.Error {
