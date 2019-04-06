@@ -31,36 +31,37 @@ the NSURLSessionTask object given in parameter to the delegate methods.
 
 The URLSessionDelegates and URLSessionTask are not retained by this class (weak
 references). */
-open class GenericURLSessionDelegate: NSObject, URLSessionDelegate {
-	
-	#if !os(Linux)
-		var taskToDelegate = NSMapTable<URLSessionTask, URLSessionTaskDelegate>.weakToWeakObjects()
-	#else
-		var taskToDelegate = LinuxWeakToWeakForGenericURLSessionDelegateMapTable()
-	#endif
+open class GenericURLSessionDelegate : NSObject, URLSessionDelegate {
 	
 	public func setTaskDelegate(_ delegate: AnyObject & URLSessionTaskDelegate, forTask task: URLSessionTask) {
-		taskToDelegate.setObject(delegate, forKey: task)
+		queueSyncForMapTable.sync{ taskToDelegate.setObject(delegate, forKey: task) }
 	}
 	
 	public func taskDelegateForTask(_ task: URLSessionTask) -> URLSessionTaskDelegate? {
-		return taskToDelegate.object(forKey: task)
+		return queueSyncForMapTable.sync{ taskToDelegate.object(forKey: task) }
 	}
 	
 //	@objc(dataTaskDelegateForDataTask:)
 	public func taskDelegateForTask(_ task: URLSessionDataTask) -> URLSessionDataDelegate? {
-		return taskToDelegate.object(forKey: task) as? URLSessionDataDelegate
+		return queueSyncForMapTable.sync{ taskToDelegate.object(forKey: task) as? URLSessionDataDelegate }
 	}
 	
 //	@objc(downloadTaskDelegateForDownloadTask:)
 	public func taskDelegateForTask(_ task: URLSessionDownloadTask) -> URLSessionDownloadDelegate? {
-		return taskToDelegate.object(forKey: task) as? URLSessionDownloadDelegate
+		return queueSyncForMapTable.sync{ taskToDelegate.object(forKey: task) as? URLSessionDownloadDelegate }
 	}
 	
 	@available(OSX 10.11, iOS 9.0, *)
 //	@objc(streamTaskDelegateForStreamTask:)
 	public func taskDelegateForTask(_ task: URLSessionStreamTask) -> URLSessionStreamDelegate? {
-		return taskToDelegate.object(forKey: task) as? URLSessionStreamDelegate
+		return queueSyncForMapTable.sync{ taskToDelegate.object(forKey: task) as? URLSessionStreamDelegate }
 	}
+	
+	private let queueSyncForMapTable = DispatchQueue(label: "com.happn.URLRequestOperation.GenericURLSessionDelegate")
+	#if !os(Linux)
+		private var taskToDelegate = NSMapTable<URLSessionTask, URLSessionTaskDelegate>.weakToWeakObjects()
+	#else
+		private var taskToDelegate = LinuxWeakToWeakForGenericURLSessionDelegateMapTable()
+	#endif
 	
 }
