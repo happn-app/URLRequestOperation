@@ -169,6 +169,10 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		Default is `false`. */
 		public var alsoRetryNonIdempotentRequests: Bool
 		
+		/** If `true`, even idempotent won't be retried. Use at your own risk.
+		Default is `false`. */
+		public var alsoAvoidRetry: Bool
+
 		/** The queue on which the operation for processing the URL for running
 		will be run. If nil, the operation won't be dispatched and will run in the
 		current context. */
@@ -216,7 +220,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		public init(
 			request: URLRequest, session s: URLSession?,
 			destinationURL dURL: URL? = nil, downloadBehavior dBehavior: DownloadBehavior = .failIfDestinationExists,
-			maximumNumberOfRetries maxRetries: Int = -1, allowRetryingNonIdempotentRequests: Bool = false,
+			maximumNumberOfRetries maxRetries: Int = -1, allowRetryingNonIdempotentRequests: Bool = false, avoidRetry: Bool = false,
 			queueForProcessingURLRequestForRunning qForProcessing: OperationQueue? = nil, queueForComputingRetryInfo qForRetryInfo: OperationQueue? = nil,
 			acceptableStatusCodes statusCodes: IndexSet? = IndexSet(integersIn: 200..<300),
 			acceptableContentTypes contentTypes: Set<String>? = nil,
@@ -230,6 +234,8 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			
 			maximumNumberOfRetries = maxRetries
 			alsoRetryNonIdempotentRequests = allowRetryingNonIdempotentRequests
+			
+			alsoAvoidRetry = avoidRetry
 			
 			queueForProcessingURLRequestForRunning = qForProcessing
 			queueForComputingRetryInfo = qForRetryInfo
@@ -564,7 +570,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 			/* There was an error while processing the request. Let's compute
 			 * `baseOperationNeedsRetry` and `baseOperationRetryDelay`. */
 			
-			guard (isRequestIdempotent(currentURLRequest) || config.alsoRetryNonIdempotentRequests) && (config.maximumNumberOfRetries < 0 || currentNumberOfRetries < config.maximumNumberOfRetries) else {
+			guard (isRequestIdempotent(currentURLRequest) || config.alsoRetryNonIdempotentRequests) && !config.alsoAvoidRetry && (config.maximumNumberOfRetries < 0 || currentNumberOfRetries < config.maximumNumberOfRetries) else {
 				completionHandler(.doNotRetry, currentURLRequest, error)
 				return
 			}
