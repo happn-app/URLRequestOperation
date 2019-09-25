@@ -16,6 +16,10 @@ limitations under the License. */
 import XCTest
 @testable import URLRequestOperation
 
+#if canImport(FoundationNetworking)
+	import FoundationNetworking
+#endif
+
 
 
 class URLRequestOperationTests: XCTestCase {
