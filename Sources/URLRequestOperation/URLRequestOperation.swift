@@ -899,6 +899,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 		}
 		
 		try fm.moveItem(at: url, to: destinationURL)
+		downloadedFileURL = destinationURL
 	}
 	
 	private final func processEndOfTask(error: Error?) {
