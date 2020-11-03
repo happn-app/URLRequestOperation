@@ -1,3 +1,5 @@
+#!/usr/bin/swift sh
+
 /*
 Copyright 2019 happn
 
@@ -15,14 +17,14 @@ limitations under the License. */
 
 import Foundation
 
-import URLRequestOperation
+import URLRequestOperation // ../
 
 
 
 let q = OperationQueue()
 let request = URLRequest(url: URL(string: "https://frostland.fr")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.1)
 let operation = URLRequestOperation(request: request)
-operation.completionBlock = { exit(0) }
+operation.completionBlock = { print("ok"); exit(0) }
 q.addOperation(operation)
 
 dispatchMain()

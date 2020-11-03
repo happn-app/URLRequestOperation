@@ -1,3 +1,0 @@
-github "happn-tech/AsyncOperationResult" ~> 1.0.5
-github "happn-tech/RetryingOperation" ~> 1.1.2
-github "happn-tech/SemiSingleton" ~> 2.0.2

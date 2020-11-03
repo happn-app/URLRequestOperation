@@ -18,9 +18,7 @@ import Foundation
 	import os.log
 #endif
 
-#if !canImport(os) && canImport(DummyLinuxOSLog)
-	import DummyLinuxOSLog
-#endif
+import Logging
 
 
 
@@ -176,8 +174,11 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 			return memcmp(&lhs6Ptr.pointee.sin6_addr, &rhs6Ptr.pointee.sin6_addr, MemoryLayout.size(ofValue: lhs6Ptr.pointee.sin6_addr)) == 0
 			
 		default:
-			if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("Got unknown family when comparing two SockAddrWrapper", log: $0, type: .error) }}
-			else                                                          {NSLog("Got unknown family when comparing two SockAddrWrapper")}
+			#if canImport(os)
+			if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+				URLRequestOperationConfig.oslog.flatMap{ os_log("Got unknown family when comparing two SockAddrWrapper", log: $0, type: .error) }}
+			#endif
+			URLRequestOperationConfig.logger?.error("Got unknown family when comparing two SockAddrWrapper")
 			return false
 		}
 	}
@@ -189,8 +190,11 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 		case -1: fallthrough
 		default: /* No other case than 1, 0 or -1 should happen. We consider any other value to be -1. */
 			if v != -1 {
-				if #available(OSX 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {di.log.flatMap{ os_log("Got unknown return value from inet_pton: %d. Treating as -1.", log: $0, type: .info, v) }}
-				else                                                          {NSLog("Got unknown return value from inet_pton: %d. Treating as -1.", v)}
+				#if canImport(os)
+				if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+					URLRequestOperationConfig.oslog.flatMap{ os_log("Got unknown return value from inet_pton: %d. Treating as -1.", log: $0, type: .info, v) }}
+				#endif
+				URLRequestOperationConfig.logger?.info("Got unknown return value from inet_pton: \(v). Treating as -1.")
 			}
 			throw SockAddrConversionError.systemError
 		}
