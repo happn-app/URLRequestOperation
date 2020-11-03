@@ -1,5 +1,3 @@
-#!/usr/bin/swift sh
-
 /*
 Copyright 2019 happn
 
@@ -17,7 +15,7 @@ limitations under the License. */
 
 import Foundation
 
-import URLRequestOperation // ../
+import URLRequestOperation
 
 
 

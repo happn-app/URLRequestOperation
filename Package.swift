@@ -20,6 +20,7 @@ let package = Package(
 			.product(name: "RetryingOperation", package: "RetryingOperation"),
 			.product(name: "SemiSingleton", package: "SemiSingleton")
 		]),
+		.target(name: "ManualTest", dependencies: ["URLRequestOperation"]),
 		.testTarget(name: "URLRequestOperationTests", dependencies: ["URLRequestOperation"])
 	]
 )
