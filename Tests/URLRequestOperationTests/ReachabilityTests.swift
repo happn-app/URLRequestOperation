@@ -20,7 +20,7 @@ import XCTest
 
 class ReachabilityTests: XCTestCase {
 	
-	#if canImport(SystemConfiguration)
+#if canImport(SystemConfiguration)
 	
 	func testQuad9Reachability() {
 		do {
@@ -34,16 +34,15 @@ class ReachabilityTests: XCTestCase {
 	func testInvalidHostReachability() {
 		do {
 			let _/*reachability*/ = try ReachabilityObserver.reachabilityObserver(forHost: "invalid.frostland.fr")
-			/* Funnily enough, it seems testing the reachability does not mean much
-			 * in a test unit. It seems the system does not have the time to
-			 * realize the server is unreachable and simply defaults to it being
-			 * reachable... */
+			/* Funnily enough, it seems testing the reachability does not mean much in a test unit.
+			 * It seems the system does not have the time to realize the server is unreachable
+			 * and simply defaults to it being reachable… */
 //			XCTAssertFalse(reachability.currentlyReachable)
 		} catch {
 			XCTFail("Error thrown during test: \(error)")
 		}
 	}
 	
-	#endif
+#endif
 	
 }
