@@ -1,5 +1,5 @@
 /*
-Copyright 2019 happn
+Copyright 2019-2021 happn
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,9 +29,8 @@ import SemiSingleton
 
 
 
-/* When (if) we have optional methods in a protocol in pure Swift, we can drop
-  * the NSObject’s inheritance from this class! See the ReachabilitySubscriber
-  * protocol for more information. */
+/* If we can drop @objc in ReachabilitySubscriber, we could drop NSObject’s inheritance.
+ * See the ReachabilitySubscriber protocol for more information. */
 public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleInit {
 	
 	public static func convertReachabilityFlagsToStr(_ flags: SCNetworkReachabilityFlags) -> String {

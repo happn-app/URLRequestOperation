@@ -15,17 +15,23 @@ limitations under the License. */
 
 import Foundation
 
+import RetryingOperation
 
 
-#if DEBUG
-internal let opIdQueue = DispatchQueue(label: "com.happn.URLRequestOperation.OperationID")
-internal var latestURLOperationIdentifier = -1
-#endif
 
-internal protocol URLRequestOperation {
+public final class URLRequestDownloadOperation : RetryingOperation, URLRequestOperation {
 	
 #if DEBUG
-	var urlOperationIdentifier: Int {get}
+	public let urlOperationIdentifier: Int
 #endif
+	
+	public override init() {
+#if DEBUG
+		self.urlOperationIdentifier = opIdQueue.sync{
+			latestURLOperationIdentifier &+= 1
+			return latestURLOperationIdentifier
+		}
+#endif
+	}
 	
 }

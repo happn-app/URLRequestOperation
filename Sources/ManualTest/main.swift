@@ -1,5 +1,5 @@
 /*
-Copyright 2019 happn
+Copyright 2019-2021 happn
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,10 +18,38 @@ import Foundation
 import URLRequestOperation
 
 
+class SessionDelegate : NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
+	
+	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+		print("task ended; error: \(String(describing: error))")
+	}
+	
+	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+		print("data received")
+	}
+	
+	@available(macOS 10.12, *)
+	func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+		print("metrics received")
+	}
+	
+}
+
+/* ************************************************************ */
+
+let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperationSessionDelegateProxy(SessionDelegate()), delegateQueue: nil)
+//let t1 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!)
+//let t2 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!, completionHandler: { data, response, error in
+//	print("task ended in handler; error \(String(describing: error))")
+//})
+//
+//t1.resume()
+//Thread.sleep(forTimeInterval: 1)
+//t2.resume()
 
 let q = OperationQueue()
-let request = URLRequest(url: URL(string: "https://frostland.fr")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.1)
-let operation = URLRequestOperation(request: request)
+let request = URLRequest(url: URL(string: "https://frostland.fr")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.5)
+let operation = URLRequestDataOperation<Data>(request: request, session: session)
 operation.completionBlock = { print("ok"); exit(0) }
 q.addOperation(operation)
 

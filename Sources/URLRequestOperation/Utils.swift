@@ -17,15 +17,13 @@ import Foundation
 
 
 
-#if DEBUG
-internal let opIdQueue = DispatchQueue(label: "com.happn.URLRequestOperation.OperationID")
-internal var latestURLOperationIdentifier = -1
-#endif
-
-internal protocol URLRequestOperation {
+extension Result {
 	
-#if DEBUG
-	var urlOperationIdentifier: Int {get}
-#endif
+	var failure: Failure? {
+		switch self {
+			case .success:        return nil
+			case .failure(let f): return f
+		}
+	}
 	
 }
