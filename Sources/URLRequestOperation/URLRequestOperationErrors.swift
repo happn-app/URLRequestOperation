@@ -1,5 +1,5 @@
 /*
-Copyright 2021 happn
+Copyright 2019-2021 happn
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,15 +17,11 @@ import Foundation
 
 
 
-#if DEBUG
-internal let opIdQueue = DispatchQueue(label: "com.happn.URLRequestOperation.OperationID")
-internal var latestURLOperationIdentifier = -1
-#endif
-
-internal protocol URLRequestOperation {
+/** All of the errors thrown by the module should have this type. */
+public enum URLRequestOperationError : Error {
 	
-#if DEBUG
-	var urlOperationIdentifier: Int {get}
-#endif
+	case operationNotFinished
 	
 }
+
+typealias Err = URLRequestOperationError

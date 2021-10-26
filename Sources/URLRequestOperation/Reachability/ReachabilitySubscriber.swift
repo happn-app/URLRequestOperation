@@ -1,5 +1,5 @@
 /*
-Copyright 2019 happn
+Copyright 2019-2021 happn
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ public protocol ReachabilitySubscriber : AnyObject {
 	 * So we cheat and use the ObjC feature.
 	 * An earlier solution was to implement the methods as an extension of the protocol (with empty implementations),
 	 * but that failed, because Swift called the empty implementations instead of the overrides when an override exists.
-	 * See the history of this file for more information! */
+	 * Also we store subscribers in an NSHashTable which requires its objects to be @objc somehow. */
 	
 	/* Both methods below are sent only when reachability actually changes.
 	 * If a reachability notification notifies of a reachable state to a reachable state,
