@@ -23,6 +23,8 @@ public final class URLRequestDownloadOperation : RetryingOperation, URLRequestOp
 	
 #if DEBUG
 	public let urlOperationIdentifier: Int
+#else
+	public let urlOperationIdentifier: UUID
 #endif
 	
 	public override init() {
@@ -31,6 +33,8 @@ public final class URLRequestDownloadOperation : RetryingOperation, URLRequestOp
 			latestURLOperationIdentifier &+= 1
 			return latestURLOperationIdentifier
 		}
+#else
+		self.urlOperationIdentifier = UUID()
 #endif
 	}
 	
