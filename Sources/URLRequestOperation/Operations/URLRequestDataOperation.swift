@@ -92,7 +92,6 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
 		print("yo1")
-		/* Most likely ignored */
 		completionHandler(.allow)
 	}
 	

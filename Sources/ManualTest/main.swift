@@ -20,32 +20,56 @@ import URLRequestOperation
 
 class SessionDelegate : NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
 	
+	let delegateId: Int
+	
+	init(id: Int) {
+		delegateId = id
+	}
+	
 	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-		print("task ended; error: \(String(describing: error))")
+		print("delegate \(delegateId): task ended; error: \(String(describing: error))")
 	}
 	
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-		print("data received")
+		print("delegate \(delegateId): data received")
 	}
 	
 	@available(macOS 10.12, *)
 	func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
-		print("metrics received")
+		print("delegate \(delegateId): metrics received")
 	}
 	
 }
 
 /* ************************************************************ */
 
-let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperationSessionDelegateProxy(SessionDelegate()), delegateQueue: nil)
+let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperationSessionDelegateProxy(SessionDelegate(id: 1)), delegateQueue: nil)
+
 //let t1 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!)
+//t1.resume()
+//Thread.sleep(forTimeInterval: 1)
+//
 //let t2 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!, completionHandler: { data, response, error in
 //	print("task ended in handler; error \(String(describing: error))")
 //})
-//
-//t1.resume()
-//Thread.sleep(forTimeInterval: 1)
 //t2.resume()
+//Thread.sleep(forTimeInterval: 1)
+//
+//if #available(macOS 12.0, *) {
+//	let delegate = SessionDelegate(id: 2)
+//	let t3 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!)
+//	t3.delegate = delegate
+//
+//	t3.resume()
+//	Thread.sleep(forTimeInterval: 1)
+//
+//	let t4 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!, completionHandler: { data, response, error in
+//		print("task ended in handler; error \(String(describing: error))")
+//	})
+//	t4.delegate = delegate
+//	t4.resume()
+//	Thread.sleep(forTimeInterval: 1)
+//}
 
 let q = OperationQueue()
 let request = URLRequest(url: URL(string: "https://frostland.fr")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.5)
