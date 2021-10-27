@@ -26,6 +26,8 @@ internal protocol URLRequestOperation {
 	
 #if DEBUG
 	var urlOperationIdentifier: Int {get}
+#else
+	var urlOperationIdentifier: UUID {get}
 #endif
 	
 }
