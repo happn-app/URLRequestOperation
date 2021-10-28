@@ -40,29 +40,41 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 	
 	public final override func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
 		/* We do _not_ call super for that one; instead we will call the “task delegate” ourselves.
-		 * We do this because we already need to get the task delegate to check if we have to override the completion handler
-		 * and we want to avoid getting it twice if possible. */
-		let d = delegates.taskDelegateForTask(dataTask)
-		d?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { _ in })
-		
-		let newCompletion: (URLSession.ResponseDisposition) -> Void
-		if let op = d as? URLRequestOperation {
-			newCompletion = { responseDisposition in
-				switch responseDisposition {
-					case .allow, .cancel, .becomeDownload, .becomeStream: ()
-					@unknown default:
+		 * We do this because the task delegate might return another response disposition than simply allow and we must merge that disposition with the one of the original delegate. */
+		if let d = delegates.taskDelegateForTask(dataTask) {
+			d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition1 in
+				let newCompletion: (URLSession.ResponseDisposition) -> Void = { responseDisposition2 in
+					let responseDisposition: URLSession.ResponseDisposition
+					switch (responseDisposition1, responseDisposition2) {
+						case (.cancel, _),        (_, .cancel):        responseDisposition = .cancel
+						case (.allow, let other), (let other, .allow): responseDisposition = other
+						default:
 #if canImport(os)
-						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-							URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: op.urlOperationIdentifier), responseDisposition.rawValue) }}
+							let id = ((d as? URLRequestOperation)?.urlOperationIdentifier).flatMap{ "\($0)" }
+							if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+								URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Cannot merge two incompatible response disposition %ld and %ld. Cancelling request.", log: $0, type: .info, id ?? "<not from URLRequestOperation>", responseDisposition1.rawValue, responseDisposition2.rawValue) }}
 #endif
-						URLRequestOperationConfig.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(op.urlOperationIdentifier)"])
+							URLRequestOperationConfig.logger?.warning("Cannot merge two incompatible response disposition \(responseDisposition1) and \(responseDisposition2). Cancelling request.", metadata: id.flatMap{ [LMK.operationID: "\($0)"] })
+							responseDisposition = .cancel
+					}
+					if let op = d as? URLRequestOperation {
+						switch responseDisposition {
+							case .allow, .cancel, .becomeDownload, .becomeStream: ()
+							@unknown default:
+#if canImport(os)
+								if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+									URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: op.urlOperationIdentifier), responseDisposition.rawValue) }}
+#endif
+								URLRequestOperationConfig.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(op.urlOperationIdentifier)"])
+						}
+					}
+					completionHandler(responseDisposition)
 				}
-				completionHandler(responseDisposition)
-			}
+				(self.originalDelegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: newCompletion) ?? completionHandler(responseDisposition1)
+			})
 		} else {
-			newCompletion = completionHandler
+			(originalDelegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ?? completionHandler(.allow)
 		}
-		(originalDelegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: newCompletion) ?? completionHandler(.allow)
 	}
 	
 	@available(macOS 10.11, *)
