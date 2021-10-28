@@ -22,18 +22,6 @@ import RetryingOperation
 
 
 
-public protocol RetryLimiter {
-	
-	func canRetry(request: URLRequest, response: URLResponse, retryCount: Int) -> Bool
-	
-}
-
-public protocol RetryHelperProvider {
-	
-	func retryHelper(for request: URLRequest) -> RetryHelper
-	
-}
-
 public final class URLRequestDataOperation<ResponseType> : RetryingOperation, URLRequestOperation, URLSessionDataDelegate {
 	
 #if DEBUG
@@ -48,6 +36,11 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	 The _original_ request with which the ``URLRequestOperation`` has been initialized. */
 	public let originalRequest: URLRequest
 	
+	public let requestProcessors: [RequestProcessor]
+	public let resultValidators: [ResultValidator]
+	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
+	public let retryProviders: [RetryProvider]
+	
 	public private(set) var result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
 	
 	/**
@@ -56,7 +49,14 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	 If the session’s delegate is an ``URLRequestOperationSessionDelegateProxy`` (ObjC runtime only) or an ``URLRequestOperationSessionDelegate``,
 	 ``URLRequestOperation`` will create an `URLSessionTask` that will use the delegate to get the data.
 	 Otherwise a handler-based task will be created. */
-	public init(request: URLRequest, session: URLSession = .shared) {
+	public init(
+		request: URLRequest, session: URLSession = .shared,
+		requestProcessors: [RequestProcessor] = [],
+		resultValidators: [ResultValidator] = [],
+		resultProcessor: AnyResultProcessor<Data, ResponseType>,
+		retryProviders: [RetryProvider] = [],
+		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
+	) {
 #if DEBUG
 		self.urlOperationIdentifier = opIdQueue.sync{
 			latestURLOperationIdentifier &+= 1
@@ -68,57 +68,41 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		self.session = session
 		self.currentRequest = request
 		self.originalRequest = request
+		
+		self.requestProcessors = requestProcessors
+		self.resultValidators = resultValidators
+		self.resultProcessor = resultProcessor
+		self.retryProviders = retryProviders
+	}
+	
+	public convenience init(
+		request: URLRequest, session: URLSession = .shared,
+		requestProcessors: [RequestProcessor] = [],
+		resultValidators: [ResultValidator] = [],
+		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
+		retryProviders: [RetryProvider] = []
+	) where ResponseType == Data {
+		self.init(request: request, session: session, requestProcessors: requestProcessors, resultValidators: resultValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
 	}
 	
 	public override func startBaseOperation(isRetry: Bool) {
 		assert(currentTask == nil)
+		assert(currentData == nil)
+		assert(currentError == nil)
+		assert(currentResponse == nil)
 		assert(result.failure as? URLRequestOperationError == Err.operationNotFinished)
 		
-		let task: URLSessionDataTask
-		if #available(macOS 12.0, *) {
-			if session.delegate is URLRequestOperation {
-#if canImport(os)
-				URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }
-#endif
-				URLRequestOperationConfig.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
+			guard !self.isCancelled else {
+				self.baseOperationEnded()
+				return
 			}
 			
-			task = session.dataTask(with: currentRequest)
-			task.delegate = self
-		} else {
-			if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
-				task = session.dataTask(with: currentRequest)
-				delegate.delegates.setTaskDelegate(self, forTask: task)
-			} else {
-				if session.delegate != nil {
-					if session.delegate is URLRequestOperation {
-						/* Session’s delegate is an URLRequestOperation. */
-#if canImport(os)
-						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-							URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }}
-#endif
-						URLRequestOperationConfig.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
-					} else {
-						/* Session’s delegate is non-nil, but it’s not an URLRequestOperationSessionDelegate. */
-#if canImport(os)
-						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-							URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete).", log: $0, String(describing: urlOperationIdentifier)) }}
-#endif
-						URLRequestOperationConfig.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete).", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
-					}
-				} else {
-					/* Session’s delegate is nil. */
-#if canImport(os)
-						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-							URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", log: $0, String(describing: urlOperationIdentifier)) }}
-#endif
-						URLRequestOperationConfig.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
-				}
-				task = session.dataTask(with: currentRequest, completionHandler: taskEnded)
-			}
-		}
-		currentTask = task
-		task.resume()
+			let task = self.task(for: request)
+			self.currentRequest = request
+			self.currentTask = task
+			task.resume()
+		})
 	}
 	
 	public override var isAsynchronous: Bool {
@@ -227,8 +211,78 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	
 	private var currentResponse: URLResponse?
 	private var currentData: Data?
+	private var currentError: Error?
 	
-	fileprivate func taskEnded(data: Data?, response: URLResponse?, error: Error?) {
+	private func task(for request: URLRequest) -> URLSessionDataTask {
+		let task: URLSessionDataTask
+		if #available(macOS 12.0, *) {
+			if session.delegate is URLRequestOperation {
+#if canImport(os)
+				URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }
+#endif
+				URLRequestOperationConfig.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+			}
+			
+			task = session.dataTask(with: currentRequest)
+			task.delegate = self
+		} else {
+			if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
+				task = session.dataTask(with: currentRequest)
+				delegate.delegates.setTaskDelegate(self, forTask: task)
+			} else {
+				if session.delegate != nil {
+					if session.delegate is URLRequestOperation {
+						/* Session’s delegate is an URLRequestOperation. */
+#if canImport(os)
+						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+							URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }}
+#endif
+						URLRequestOperationConfig.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+					} else {
+						/* Session’s delegate is non-nil, but it’s not an URLRequestOperationSessionDelegate. */
+#if canImport(os)
+						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+							URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete).", log: $0, String(describing: urlOperationIdentifier)) }}
+#endif
+						URLRequestOperationConfig.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete).", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+					}
+				} else {
+					/* Session’s delegate is nil. */
+#if canImport(os)
+					if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+						URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", log: $0, String(describing: urlOperationIdentifier)) }}
+#endif
+					URLRequestOperationConfig.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+				}
+				task = session.dataTask(with: currentRequest, completionHandler: taskEnded)
+			}
+		}
+		return task
+	}
+	
+	/* Handler is only called in case of success */
+	private func runRequestProcessors(currentRequest: URLRequest, requestProcessors: [RequestProcessor], handler: @escaping (URLRequest) -> Void) {
+		guard !isCancelled else {
+			return baseOperationEnded()
+		}
+		
+		guard let processor = requestProcessors.first else {
+			return handler(currentRequest)
+		}
+		
+		processor.transform(urlRequest: currentRequest, handler: { result in
+			switch result {
+				case .success(let success):
+					self.runRequestProcessors(currentRequest: success, requestProcessors: Array(requestProcessors.dropFirst()), handler: handler)
+					
+				case .failure(let failure):
+					self.currentError = failure
+					self.baseOperationEnded() /* TODO: Should we allow retry here? */
+			}
+		})
+	}
+	
+	private func taskEnded(data: Data?, response: URLResponse?, error: Error?) {
 	}
 	
 }
