@@ -21,6 +21,7 @@ import Foundation
 public enum URLRequestOperationError : Error {
 	
 	case operationNotFinished
+	case operationCancelled
 	
 }
 
