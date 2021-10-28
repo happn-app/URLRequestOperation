@@ -24,12 +24,12 @@ open class URLRequestOperationSessionDelegate : NSObject, URLSessionDataDelegate
 	
 	internal var delegates = URLSessionDelegates()
 	
-	/** Method is open, but super must be called to call the URLRequestOperation delegate. */
+	/** Method is open, but if overwritten, care must be taken to merge the result from the task delegate for the given task. */
 	open func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
 #if !canImport(FoundationNetworking)
-		delegates.taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { _ in })
+		delegates.taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
 #else
-		delegates.taskDelegateForTask(dataTask)?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: { _ in })
+		delegates.taskDelegateForTask(dataTask)?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
 #endif
 	}
 	
