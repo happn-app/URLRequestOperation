@@ -41,6 +41,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
 	public let retryProviders: [RetryProvider]
 	
+	/* TODO: Make this thread-safe */
 	public private(set) var result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
 	
 	/**
@@ -109,6 +110,12 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		return true
 	}
 	
+	public override func cancelBaseOperation() {
+		/* TODO: If we already ended, we should not overwrite the result. */
+		result = .failure(Err.operationCancelled)
+		currentTask?.cancel()
+	}
+	
 	/* *********************************
 	   MARK: - URL Session Data Delegate
 	   ********************************* */
@@ -133,23 +140,28 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
 		
-		if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
-			let newCompletion: (URLSession.ResponseDisposition) -> Void
-			newCompletion = { responseDisposition in
-				switch responseDisposition {
-					case .allow, .cancel, .becomeDownload, .becomeStream: ()
-					@unknown default:
-#if canImport(os)
-						URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: self.urlOperationIdentifier), responseDisposition.rawValue) }
-#endif
-						URLRequestOperationConfig.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(self.urlOperationIdentifier)"])
-				}
-				completionHandler(responseDisposition)
+		runResultValidators(data: nil, urlResponse: response, error: nil, resultValidators: resultValidators, handler: { error in
+			guard error == nil else {
+				return completionHandler(.cancel)
 			}
-			d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: newCompletion) ?? completionHandler(.allow)
-		} else {
-			completionHandler(.allow)
-		}
+			if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
+				let newCompletion: (URLSession.ResponseDisposition) -> Void
+				newCompletion = { responseDisposition in
+					switch responseDisposition {
+						case .allow, .cancel, .becomeDownload, .becomeStream: ()
+						@unknown default:
+#if canImport(os)
+							URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: self.urlOperationIdentifier), responseDisposition.rawValue) }
+#endif
+							URLRequestOperationConfig.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(self.urlOperationIdentifier)"])
+					}
+					completionHandler(responseDisposition)
+				}
+				d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: newCompletion) ?? completionHandler(.allow)
+			} else {
+				completionHandler(.allow)
+			}
+		})
 	}
 	
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
@@ -279,6 +291,20 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 					self.currentError = failure
 					self.baseOperationEnded() /* TODO: Should we allow retry here? */
 			}
+		})
+	}
+	
+	private func runResultValidators(data: Data?, urlResponse: URLResponse, error: Error?, resultValidators: [ResultValidator], handler: @escaping (Error?) -> Void) {
+		guard !isCancelled else {
+			return handler(Err.operationCancelled)
+		}
+		
+		guard let validator = resultValidators.first else {
+			return handler(error)
+		}
+		
+		validator.validate(data: data, urlResponse: urlResponse, error: error, handler: { newError in
+			self.runResultValidators(data: data, urlResponse: urlResponse, error: newError, resultValidators: Array(resultValidators.dropFirst()), handler: handler)
 		})
 	}
 	

@@ -70,6 +70,10 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 					}
 					completionHandler(responseDisposition)
 				}
+				guard responseDisposition1 != .cancel else {
+					/* No need to call the original delegate if we already know we want to cancel the task. */
+					return completionHandler(.cancel)
+				}
 				(self.originalDelegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: newCompletion) ?? completionHandler(responseDisposition1)
 			})
 		} else {
