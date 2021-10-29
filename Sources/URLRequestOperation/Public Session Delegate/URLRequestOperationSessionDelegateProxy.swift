@@ -43,7 +43,11 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 		 * We do this because the task delegate might return another response disposition than simply allow and we must merge that disposition with the one of the original delegate. */
 		if let d = delegates.taskDelegateForTask(dataTask) {
 			d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition1 in
-				let newCompletion: (URLSession.ResponseDisposition) -> Void = { responseDisposition2 in
+				guard responseDisposition1 != .cancel else {
+					/* No need to call the original delegate if we already know we want to cancel the task. */
+					return completionHandler(.cancel)
+				}
+				(self.originalDelegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition2 in
 					let responseDisposition: URLSession.ResponseDisposition
 					switch (responseDisposition1, responseDisposition2) {
 						case (.cancel, _),        (_, .cancel):        responseDisposition = .cancel
@@ -69,12 +73,7 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 						}
 					}
 					completionHandler(responseDisposition)
-				}
-				guard responseDisposition1 != .cancel else {
-					/* No need to call the original delegate if we already know we want to cancel the task. */
-					return completionHandler(.cancel)
-				}
-				(self.originalDelegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: newCompletion) ?? completionHandler(responseDisposition1)
+				}) ?? completionHandler(responseDisposition1)
 			})
 		} else {
 			(originalDelegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ?? completionHandler(.allow)

@@ -145,8 +145,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 				return completionHandler(.cancel)
 			}
 			if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
-				let newCompletion: (URLSession.ResponseDisposition) -> Void
-				newCompletion = { responseDisposition in
+				d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition in
 					switch responseDisposition {
 						case .allow, .cancel, .becomeDownload, .becomeStream: ()
 						@unknown default:
@@ -156,8 +155,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 							URLRequestOperationConfig.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(self.urlOperationIdentifier)"])
 					}
 					completionHandler(responseDisposition)
-				}
-				d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: newCompletion) ?? completionHandler(.allow)
+				}) ?? completionHandler(.allow)
 			} else {
 				completionHandler(.allow)
 			}
