@@ -38,8 +38,8 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	
 	public let requestProcessors: [RequestProcessor]
 	public let resultValidators: [ResultValidator]
-	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
-	public let retryProviders: [RetryProvider]
+	public let resultProcessor: AnyResultProcessor<Data?, ResponseType>
+	public let retryProviders: [AnyRetryProvider<URLRequestOperationResult<ResponseType>>]
 	
 	/* TODO: Make this thread-safe */
 	public private(set) var result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
@@ -54,8 +54,8 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
 		resultValidators: [ResultValidator] = [],
-		resultProcessor: AnyResultProcessor<Data, ResponseType>,
-		retryProviders: [RetryProvider] = [],
+		resultProcessor: AnyResultProcessor<Data?, ResponseType>,
+		retryProviders: [AnyRetryProvider<URLRequestOperationResult<ResponseType>>] = [],
 		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
 	) {
 #if DEBUG
@@ -80,9 +80,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
 		resultValidators: [ResultValidator] = [],
-		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
-		retryProviders: [RetryProvider] = []
-	) where ResponseType == Data {
+		resultProcessor: AnyResultProcessor<Data?, Data?> = .identity(),
+		retryProviders: [AnyRetryProvider<URLRequestOperationResult<ResponseType>>] = []
+	) where ResponseType == Data? {
 		self.init(request: request, session: session, requestProcessors: requestProcessors, resultValidators: resultValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
 	}
 	
@@ -91,7 +91,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		assert(currentData == nil)
 		assert(currentError == nil)
 		assert(currentResponse == nil)
-		assert(result.failure as? URLRequestOperationError == Err.operationNotFinished)
+		assert(expectedDataSize == nil)
+		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
+				 result.failure as? URLRequestOperationError == .operationCancelled)
 		
 		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
 			guard !self.isCancelled else {
@@ -137,11 +139,18 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 #endif
 	
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+		assert(currentData == nil)
+		assert(currentResponse == nil)
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
+		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
+				 result.failure as? URLRequestOperationError == .operationCancelled)
+		
+		currentResponse = response
+		expectedDataSize = response.expectedContentLength
 		
 		runResultValidators(data: nil, urlResponse: response, error: nil, resultValidators: resultValidators, handler: { error in
-			guard error == nil else {
+			guard error == nil, !self.isCancelled else {
 				return completionHandler(.cancel)
 			}
 			if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
@@ -165,6 +174,19 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
+		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
+				 result.failure as? URLRequestOperationError == .operationCancelled)
+		
+		currentData?.append(data) ?? {
+			var newData: Data
+			if let expectedDataSize = expectedDataSize, expectedDataSize > 0 && Int64(Int(truncatingIfNeeded: expectedDataSize)) == expectedDataSize {
+				newData = Data(capacity: Int(expectedDataSize /* Checked not to overflow */))
+			} else {
+				newData = Data()
+			}
+			newData.append(data)
+			currentData = newData
+		}()
 		
 		if #available(macOS 12.0, *) {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: data)
@@ -175,11 +197,13 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
+		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
+				 result.failure as? URLRequestOperationError == .operationCancelled)
 		
-		currentTask = streamTask
-		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
-			delegate.delegates.setTaskDelegate(self, forTask: streamTask)
-		}
+//		currentTask = streamTask
+//		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
+//			delegate.delegates.setTaskDelegate(self, forTask: streamTask)
+//		}
 		
 		if #available(macOS 12.0, *) {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
@@ -189,11 +213,13 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
+		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
+				 result.failure as? URLRequestOperationError == .operationCancelled)
 		
-		currentTask = downloadTask
-		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
-			delegate.delegates.setTaskDelegate(self, forTask: downloadTask)
-		}
+//		currentTask = downloadTask
+//		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
+//			delegate.delegates.setTaskDelegate(self, forTask: downloadTask)
+//		}
 		
 		if #available(macOS 12.0, *) {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
@@ -201,8 +227,17 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+		assert(currentResponse != nil)
 		assert(session === self.session)
 		assert(task === self.currentTask)
+		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
+				 result.failure as? URLRequestOperationError == .operationCancelled)
+		
+		taskEnded(data: currentData, response: currentResponse, error: error)
+		expectedDataSize = nil
+		currentResponse = nil
+		currentData = nil
+		currentTask = nil
 		
 		if #available(macOS 12.0, *) {
 			(session.delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
@@ -222,6 +257,8 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	private var currentResponse: URLResponse?
 	private var currentData: Data?
 	private var currentError: Error?
+	
+	private var expectedDataSize: Int64?
 	
 	private func task(for request: URLRequest) -> URLSessionDataTask {
 		let task: URLSessionDataTask
@@ -307,6 +344,34 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	private func taskEnded(data: Data?, response: URLResponse?, error: Error?) {
+		guard let response = response else {
+			result = .failure(error ?? Err.unknownError)
+			return baseOperationEnded()
+		}
+		
+		runResultValidators(data: data, urlResponse: response, error: error, resultValidators: resultValidators, handler: { error in
+			guard !self.isCancelled else {
+				self.result = .failure(Err.operationCancelled)
+				self.baseOperationEnded()
+				return
+			}
+			self.resultProcessor.transform(source: data, urlResponse: response, handler: { result in
+				self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, dataResponse: $0) })
+			})
+		})
+	}
+	
+	private func endBaseOperation(result: Result<URLRequestOperationResult<ResponseType>, Error>) {
+		/* We get the retry helpers from all retry providers.
+		 * If all of them agree the request should not be retried (they return nil), we agree and return nil too.
+		 * If any retry provider gives a non-nil array of retry helpers, we return all of the retry helpers returned by all of the providers. */
+		let rp1 = retryProviders.compactMap{ $0.retryHelpers(for: result) }
+		let retryHelpers = rp1.isEmpty ? nil : rp1.flatMap{ $0 }
+		if retryHelpers == nil {
+			/* We do not retry the operation. We must set the result. */
+			self.result = result
+		}
+		baseOperationEnded(retryHelpers: retryHelpers)
 	}
 	
 }

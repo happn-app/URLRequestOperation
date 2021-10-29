@@ -73,7 +73,7 @@ let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperatio
 
 let q = OperationQueue()
 let request = URLRequest(url: URL(string: "https://frostland.fr/constant.txt")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.5)
-let operation = URLRequestDataOperation<Data>(request: request, session: session)
+let operation = URLRequestDataOperation<Data?>(request: request, session: session)
 operation.completionBlock = { print("ok"); exit(0) }
 q.addOperation(operation)
 

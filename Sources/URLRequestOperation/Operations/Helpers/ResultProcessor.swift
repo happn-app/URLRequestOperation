@@ -28,7 +28,7 @@ public struct AnyResultProcessor<SourceType, ResultType> : ResultProcessor {
 	}
 	
 	public init<RP : ResultProcessor>(_ p: RP) where RP.SourceType == Self.SourceType, RP.ResultType == Self.ResultType {
-		transformHandler = p.transform
+		self.transformHandler = p.transform
 	}
 	
 	public init(transformHandler: @escaping (SourceType, URLResponse, @escaping (Result<ResultType, Error>) -> Void) -> Void) {

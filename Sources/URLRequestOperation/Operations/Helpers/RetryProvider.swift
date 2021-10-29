@@ -6,6 +6,36 @@ import RetryingOperation
 
 public protocol RetryProvider {
 	
-	func retryHelpers(for error: Error) -> [RetryHelper]?
+	associatedtype ResultType
+	
+	func retryHelpers(for result: Result<ResultType, Error>) -> [RetryHelper]?
+	
+}
+
+
+public extension RetryProvider {
+	
+	var erased: AnyRetryProvider<ResultType> {
+		return .init(self)
+	}
+	
+}
+
+
+public struct AnyRetryProvider<ResultType> : RetryProvider {
+	
+	public init<RP : RetryProvider>(_ p: RP) where RP.ResultType == Self.ResultType {
+		self.retryHelpersHandler = p.retryHelpers
+	}
+	
+	public init(retryHelpersHandler: @escaping (Result<ResultType, Error>) -> [RetryHelper]?) {
+		self.retryHelpersHandler = retryHelpersHandler
+	}
+	
+	public func retryHelpers(for result: Result<ResultType, Error>) -> [RetryHelper]? {
+		retryHelpersHandler(result)
+	}
+	
+	private let retryHelpersHandler: (Result<ResultType, Error>) -> [RetryHelper]?
 	
 }
