@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/happn-app/RecursiveSyncDispatch.git",
         "state": {
           "branch": null,
-          "revision": "b038867545cde7d635b9f76e06d378149fd8a6c8",
-          "version": "1.0.0"
+          "revision": "04936f64e00d898006fc97b5ec938d8ce1fa14ea",
+          "version": "1.0.1"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/happn-app/SemiSingleton.git",
         "state": {
           "branch": null,
-          "revision": "a1a6e95cf84c9df995056e2f6df61d453ecdbd01",
-          "version": "2.0.3"
+          "revision": "1c17d1ab5d6026b18b22b1aa3c0eca111b8a87db",
+          "version": "2.0.4"
         }
       },
       {
