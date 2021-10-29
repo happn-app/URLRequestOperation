@@ -23,6 +23,8 @@ public enum URLRequestOperationError : Error {
 	case operationNotFinished
 	case operationCancelled
 	
+	case unknownError
+	
 }
 
 typealias Err = URLRequestOperationError
