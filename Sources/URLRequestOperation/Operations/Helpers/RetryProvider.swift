@@ -24,6 +24,10 @@ public extension RetryProvider {
 
 public struct AnyRetryProvider<ResultType> : RetryProvider {
 	
+	public static func forErrorCheck<T>(_ check: @escaping (Error?) -> [RetryHelper]?) -> AnyRetryProvider<T> {
+		return AnyRetryProvider<T>(retryHelpersHandler: { r in check(r.failure) })
+	}
+	
 	public init<RP : RetryProvider>(_ p: RP) where RP.ResultType == Self.ResultType {
 		self.retryHelpersHandler = p.retryHelpers
 	}
