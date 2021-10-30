@@ -15,6 +15,8 @@ limitations under the License. */
 
 import Foundation
 
+import RetryingOperation
+
 
 
 #if DEBUG
@@ -22,7 +24,7 @@ internal let opIdQueue = DispatchQueue(label: "com.happn.URLRequestOperation.Ope
 internal var latestURLOperationIdentifier = -1
 #endif
 
-internal protocol URLRequestOperation {
+public protocol URLRequestOperation : RetryingOperation {
 	
 #if DEBUG
 	var urlOperationIdentifier: Int {get}

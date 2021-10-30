@@ -54,7 +54,7 @@ open class SimpleErrorRetryProvider {
 		self.isKnownUnretryableErrors = isKnownUnretryableErrors
 	}
 	
-	open func retryHelpers(for request: URLRequest, error: Error?) -> [RetryHelper]? {
+	open func retryHelpers(for request: URLRequest, error: Error?, operation: URLRequestOperation) -> [RetryHelper]? {
 		guard let error = error else {
 			return nil
 		}
@@ -68,7 +68,6 @@ open class SimpleErrorRetryProvider {
 		
 		/* We now know the request CAN be retried (idempotent and maximum number of retries not exceeded).
 		 * Should we retry? */
-		
 		let isCancelledError = (
 			error as? URLRequestOperationError == .operationCancelled ||
 			((error as NSError).domain == NSURLErrorDomain && (error as NSError).code == URLError.cancelled.rawValue)
@@ -76,7 +75,12 @@ open class SimpleErrorRetryProvider {
 		guard !isCancelledError && !isKnownUnretryableErrors(error) else {
 			return nil
 		}
-		return []
+		
+		/* Let’s retry. */
+		currentNumberOfRetries += 1
+		return [
+			RetryingOperation.TimerRetryHelper(retryDelay: Self.exponentialBackoffTimeForIndex(currentNumberOfRetries - 1), retryingOperation: operation)
+		]
 	}
 	
 }
