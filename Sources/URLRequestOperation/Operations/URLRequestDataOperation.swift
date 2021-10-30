@@ -38,7 +38,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	
 	public let requestProcessors: [RequestProcessor]
 	public let resultValidators: [ResultValidator]
-	public let resultProcessor: AnyResultProcessor<Data?, ResponseType>
+	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
 	public let retryProviders: [AnyRetryProvider<URLRequestOperationResult<ResponseType>>]
 	
 	/* TODO: Make this thread-safe */
@@ -54,7 +54,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
 		resultValidators: [ResultValidator] = [],
-		resultProcessor: AnyResultProcessor<Data?, ResponseType>,
+		resultProcessor: AnyResultProcessor<Data, ResponseType>,
 		retryProviders: [AnyRetryProvider<URLRequestOperationResult<ResponseType>>] = [],
 		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
 	) {
@@ -80,9 +80,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
 		resultValidators: [ResultValidator] = [],
-		resultProcessor: AnyResultProcessor<Data?, Data?> = .identity(),
+		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
 		retryProviders: [AnyRetryProvider<URLRequestOperationResult<ResponseType>>] = []
-	) where ResponseType == Data? {
+	) where ResponseType == Data {
 		self.init(request: request, session: session, requestProcessors: requestProcessors, resultValidators: resultValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
 	}
 	
@@ -227,9 +227,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-		assert(currentResponse != nil)
 		assert(session === self.session)
 		assert(task === self.currentTask)
+		assert(currentResponse != nil || error != nil)
 		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
 				 result.failure as? URLRequestOperationError == .operationCancelled)
 		
@@ -345,9 +345,16 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	
 	private func taskEnded(data: Data?, response: URLResponse?, error: Error?) {
 		guard let response = response else {
-			result = .failure(error ?? Err.unknownError)
+			/* A nil response should indicate an error, in which case error should not be nil.
+			 * We still safely unwrap the error in production mode. */
+			assert(error != nil)
+			result = .failure(error ?? Err.invalidURLSessionContract)
 			return baseOperationEnded()
 		}
+		
+		/* If the response has no data, the “did receive data” delegate method is not called and our data accumulator is nil.
+		 * Tested: with the handler-based version of the task, even for 204 requests, which litterally have no data, the handler is still called with an empty Data object. */
+		let data = data ?? Data()
 		
 		runResultValidators(data: data, urlResponse: response, error: error, resultValidators: resultValidators, handler: { error in
 			guard !self.isCancelled else {
