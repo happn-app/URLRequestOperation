@@ -73,7 +73,7 @@ let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperatio
 
 let q = OperationQueue()
 let request = URLRequest(url: URL(string: "https://frostland.fr/http-tests/200-empty")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.5)
-let operation = URLRequestDataOperation<Data>(request: request, session: session, retryProvider: .init(errorRetryHelpersHandler: SimpleErrorRetryProvider().retryHelpers))
+let operation = URLRequestDataOperation<Data>(request: request, session: session, retryProviders: [NetworkErrorRetryProvider()])
 operation.completionBlock = { print("ok") }
 q.addOperation(operation)
 

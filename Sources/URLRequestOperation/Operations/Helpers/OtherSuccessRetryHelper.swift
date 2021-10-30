@@ -32,7 +32,7 @@ public final class OtherSuccessRetryHelper : RetryHelper {
 //				Conf.oslog.flatMap{ os_log("URL Op id %d: Got an URL operation succeeded with same host as me. Forcing retrying sooner.", log: $0, type: .debug, self.operation.urlOperationIdentifier) }}
 //#endif
 //			Conf.logger?.debug("URL Op id \(self.operation.urlOperationIdentifier): Got an URL operation succeeded with same host as me. Forcing retrying sooner.")
-			self.operation.retry(in: SimpleErrorRetryProvider.exponentialBackoffTimeForIndex(1))
+			self.operation.retry(in: NetworkErrorRetryProvider.exponentialBackoffTimeForIndex(1))
 		})
 	}
 	

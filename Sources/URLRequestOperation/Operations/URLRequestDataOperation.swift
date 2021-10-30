@@ -39,7 +39,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public let requestProcessors: [RequestProcessor]
 	public let resultValidators: [ResultValidator]
 	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
-	public let retryProvider: AnyRetryProvider<URLRequestOperationResult<ResponseType>>?
+	public let retryProviders: [RetryProvider]
 	
 	/* TODO: Make this thread-safe */
 	public private(set) var result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
@@ -55,7 +55,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		requestProcessors: [RequestProcessor] = [],
 		resultValidators: [ResultValidator] = [],
 		resultProcessor: AnyResultProcessor<Data, ResponseType>,
-		retryProvider: AnyRetryProvider<URLRequestOperationResult<ResponseType>>? = nil,
+		retryProviders: [RetryProvider] = [],
 		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
 	) {
 #if DEBUG
@@ -73,7 +73,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		self.requestProcessors = requestProcessors
 		self.resultValidators = resultValidators
 		self.resultProcessor = resultProcessor
-		self.retryProvider = retryProvider
+		self.retryProviders = retryProviders
 	}
 	
 	public convenience init(
@@ -81,9 +81,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		requestProcessors: [RequestProcessor] = [],
 		resultValidators: [ResultValidator] = [],
 		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
-		retryProvider: AnyRetryProvider<URLRequestOperationResult<ResponseType>>? = nil
+		retryProviders: [RetryProvider] = []
 	) where ResponseType == Data {
-		self.init(request: request, session: session, requestProcessors: requestProcessors, resultValidators: resultValidators, resultProcessor: resultProcessor, retryProvider: retryProvider, nonConvenience: ())
+		self.init(request: request, session: session, requestProcessors: requestProcessors, resultValidators: resultValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
 	}
 	
 	public override func startBaseOperation(isRetry: Bool) {
@@ -363,7 +363,17 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	private func endBaseOperation(result: Result<URLRequestOperationResult<ResponseType>, Error>) {
-		let retryHelpers = retryProvider?.retryHelpers(for: currentRequest, result: result, operation: self)
+		let retryHelpers = result.failure.flatMap{ error -> [RetryHelper]? in
+			/* We use the retry helpers returned by the first retry provider that does not return nil. */
+			/* The line below might do this, but it’s obscure, and I’m not sure lazy actually does what I think… */
+//			retryProviders.lazy.compactMap{ $0.retryHelpers(for: currentRequest, error: error, operation: self) }.first
+			for rp in retryProviders {
+				if let rh = rp.retryHelpers(for: currentRequest, error: error, operation: self) {
+					return rh
+				}
+			}
+			return nil
+		}
 		if retryHelpers == nil {
 			/* We do not retry the operation. We must set the result. */
 			self.result = result
