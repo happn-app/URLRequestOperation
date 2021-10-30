@@ -41,8 +41,12 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
 	public let retryProviders: [RetryProvider]
 	
-	/* TODO: Make this thread-safe */
-	public private(set) var result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
+	public private(set) var result: Result<URLRequestOperationResult<ResponseType>, Error> {
+		get {_resultQ.sync{ _result }}
+		set {_resultQ.sync{ _result = newValue }}
+	}
+	private let _resultQ: DispatchQueue
+	private var _result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
 	
 	/**
 	 Init an ``URLRequestOperation``.
@@ -66,6 +70,8 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 #else
 		self.urlOperationIdentifier = UUID()
 #endif
+		self._resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.\(self.urlOperationIdentifier).ResultSync")
+		
 		self.session = session
 		self.currentRequest = request
 		self.originalRequest = request
@@ -112,8 +118,11 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	public override func cancelBaseOperation() {
-		/* TODO: If we already ended, we should not overwrite the result. */
-		result = .failure(Err.operationCancelled)
+		_resultQ.sync{
+			if _result.failure as? URLRequestOperationError == .operationNotFinished {
+				result = .failure(Err.operationCancelled)
+			}
+		}
 		currentTask?.cancel()
 	}
 	
