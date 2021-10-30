@@ -89,7 +89,6 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public override func startBaseOperation(isRetry: Bool) {
 		assert(currentTask == nil)
 		assert(currentData == nil)
-		assert(currentError == nil)
 		assert(currentResponse == nil)
 		assert(expectedDataSize == nil)
 		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
@@ -250,15 +249,11 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	   MARK: - Private
 	   *************** */
 	
-	/* Cannot be static because we’re in a generic type */
-	private let idempotentHTTPMethods = Set(arrayLiteral: "GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE")
-	
 	private var currentRequest: URLRequest
 	private var currentTask: URLSessionTask?
 	
 	private var currentResponse: URLResponse?
 	private var currentData: Data?
-	private var currentError: Error?
 	
 	private var expectedDataSize: Int64?
 	
@@ -325,8 +320,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 					self.runRequestProcessors(currentRequest: success, requestProcessors: Array(requestProcessors.dropFirst()), handler: handler)
 					
 				case .failure(let failure):
-					self.currentError = failure
-					self.baseOperationEnded() /* TODO: Should we allow retry here? */
+					self.endBaseOperation(result: .failure(failure))
 			}
 		})
 	}
@@ -350,8 +344,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 			/* A nil response should indicate an error, in which case error should not be nil.
 			 * We still safely unwrap the error in production mode. */
 			assert(error != nil)
-			result = .failure(error ?? Err.invalidURLSessionContract)
-			return baseOperationEnded()
+			return endBaseOperation(result: .failure(error ?? Err.invalidURLSessionContract))
 		}
 		
 		/* If the response has no data, the “did receive data” delegate method is not called and our data accumulator is nil.
@@ -360,7 +353,6 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		
 		runResultValidators(data: data, urlResponse: response, error: error, resultValidators: resultValidators, handler: { error in
 			guard !self.isCancelled else {
-				self.result = .failure(Err.operationCancelled)
 				self.baseOperationEnded()
 				return
 			}
@@ -371,7 +363,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	private func endBaseOperation(result: Result<URLRequestOperationResult<ResponseType>, Error>) {
-		let retryHelpers = retryProvider?.retryHelpers(for: result)
+		let retryHelpers = retryProvider?.retryHelpers(for: currentRequest, result: result)
 		if retryHelpers == nil {
 			/* We do not retry the operation. We must set the result. */
 			self.result = result
