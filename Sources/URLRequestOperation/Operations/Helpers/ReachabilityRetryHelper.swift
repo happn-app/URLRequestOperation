@@ -31,7 +31,7 @@ private class ReachabilityRetryHelper : NSObject, RetryHelper, ReachabilitySubsc
 //			Conf.oslog.flatMap{ os_log("URL Op id %d: The reachability observer tells me the host is reachable again. Let’s force retrying the operation sooner.", log: $0, type: .debug, operation.urlOperationIdentifier) }}
 //#endif
 //		Conf.logger?.debug("URL Op id \(operation.urlOperationIdentifier): The reachability observer tells me the host is reachable again. Let’s force retrying the operation sooner.")
-		operation.retry(in: SimpleErrorRetryProvider.exponentialBackoffTimeForIndex(1))
+		operation.retry(in: NetworkErrorRetryProvider.exponentialBackoffTimeForIndex(1))
 	}
 	
 	private let observer: ReachabilityObserver

@@ -6,10 +6,8 @@ import RetryingOperation
 
 /**
  A retry provider that can provide a retry helper for exponential backoff retry,
- with potential early retry on reachability and “other success on same domain”.
- 
- This helper is open so that it can be extended to provide a more complex retry logic depending on your business logic. */
-open class SimpleErrorRetryProvider {
+ with potential early retry on reachability and “other success on same domain”. */
+public final class NetworkErrorRetryProvider : RetryProvider {
 	
 	public static let idempotentHTTPMethods = Set(arrayLiteral: "GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE")
 	
@@ -54,11 +52,7 @@ open class SimpleErrorRetryProvider {
 		self.isKnownUnretryableErrors = isKnownUnretryableErrors
 	}
 	
-	open func retryHelpers(for request: URLRequest, error: Error?, operation: URLRequestOperation) -> [RetryHelper]? {
-		guard let error = error else {
-			return nil
-		}
-		
+	public func retryHelpers(for request: URLRequest, error: Error, operation: URLRequestOperation) -> [RetryHelper]? {
 		guard Self.isRequestIdempotent(request) || alsoRetryNonIdempotentRequests else {
 			return nil
 		}
