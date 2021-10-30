@@ -23,7 +23,12 @@ public enum URLRequestOperationError : Error {
 	case operationNotFinished
 	case operationCancelled
 	
-	case unknownError
+	/**
+	 A case that should never happen (URL response **and** error are `nil` from underlying session task).
+	 
+	 We provide this in order to avoid crashing instead if this case does happen.
+	 In debug mode, we do crash (assertion failure). */
+	case invalidURLSessionContract
 	
 }
 
