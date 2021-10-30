@@ -34,6 +34,9 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 	public let maximumNumberOfRetries: Int?
 	public let alsoRetryNonIdempotentRequests: Bool
 	
+	public let allowOtherSuccessObserver: Bool
+	public let allowReachabilityObserver: Bool
+	
 	/**
 	 This handler is called to determine if the given error is an error known not to be retryable.
 	 
@@ -45,10 +48,14 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 	public init(
 		maximumNumberOfRetries: Int? = nil,
 		alsoRetryNonIdempotentRequests: Bool = false,
+		allowOtherSuccessObserver: Bool = true,
+		allowReachabilityObserver: Bool = true,
 		isKnownUnretryableErrors: @escaping (Error) -> Bool = { _ in false }
 	) {
 		self.maximumNumberOfRetries = maximumNumberOfRetries
 		self.alsoRetryNonIdempotentRequests = alsoRetryNonIdempotentRequests
+		self.allowOtherSuccessObserver = allowOtherSuccessObserver
+		self.allowReachabilityObserver = allowReachabilityObserver
 		self.isKnownUnretryableErrors = isKnownUnretryableErrors
 	}
 	
@@ -72,9 +79,12 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 		
 		/* Let’s retry. */
 		currentNumberOfRetries += 1
-		return [
-			RetryingOperation.TimerRetryHelper(retryDelay: Self.exponentialBackoffTimeForIndex(currentNumberOfRetries - 1), retryingOperation: operation)
-		]
+		let host = request.url?.host
+		return ([
+			RetryingOperation.TimerRetryHelper(retryDelay: Self.exponentialBackoffTimeForIndex(currentNumberOfRetries - 1), retryingOperation: operation),
+			allowReachabilityObserver ? ReachabilityRetryHelper(host: host, operation: operation) : nil,
+			allowOtherSuccessObserver ? OtherSuccessRetryHelper(host: host, operation: operation) : nil
+		] as [RetryHelper?]).compactMap{ $0 }
 	}
 	
 }

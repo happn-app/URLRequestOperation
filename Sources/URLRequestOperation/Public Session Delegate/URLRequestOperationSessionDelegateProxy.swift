@@ -56,7 +56,7 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 #if canImport(os)
 							let id = ((d as? URLRequestOperation)?.urlOperationIdentifier).flatMap{ "\($0)" }
 							if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-								Conf.oslog.flatMap{ os_log("URL Op id %{public}@: Cannot merge two incompatible response disposition %ld and %ld. Cancelling request.", log: $0, type: .info, id ?? "<not from URLRequestOperation>", responseDisposition1.rawValue, responseDisposition2.rawValue) }}
+								Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Cannot merge two incompatible response disposition %ld and %ld. Cancelling request.", log: $0, type: .info, id ?? "<not from URLRequestOperation>", responseDisposition1.rawValue, responseDisposition2.rawValue) }}
 #endif
 							Conf.logger?.warning("Cannot merge two incompatible response disposition \(responseDisposition1) and \(responseDisposition2). Cancelling request.", metadata: id.flatMap{ [LMK.operationID: "\($0)"] })
 							responseDisposition = .cancel
@@ -67,7 +67,7 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 							@unknown default:
 #if canImport(os)
 								if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-									Conf.oslog.flatMap{ os_log("URL Op id %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: op.urlOperationIdentifier), responseDisposition.rawValue) }}
+									Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: op.urlOperationIdentifier), responseDisposition.rawValue) }}
 #endif
 								Conf.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(op.urlOperationIdentifier)"])
 						}
