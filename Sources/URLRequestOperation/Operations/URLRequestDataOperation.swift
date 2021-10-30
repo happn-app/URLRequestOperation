@@ -363,7 +363,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	private func endBaseOperation(result: Result<URLRequestOperationResult<ResponseType>, Error>) {
-		let retryHelpers = retryProvider?.retryHelpers(for: currentRequest, result: result)
+		let retryHelpers = retryProvider?.retryHelpers(for: currentRequest, result: result, operation: self)
 		if retryHelpers == nil {
 			/* We do not retry the operation. We must set the result. */
 			self.result = result

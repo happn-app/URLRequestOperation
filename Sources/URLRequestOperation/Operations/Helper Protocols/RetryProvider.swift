@@ -8,7 +8,7 @@ public protocol RetryProvider {
 	
 	associatedtype ResultType
 	
-	func retryHelpers(for request: URLRequest, result: Result<ResultType, Error>) -> [RetryHelper]?
+	func retryHelpers(for request: URLRequest, result: Result<ResultType, Error>, operation: URLRequestOperation) -> [RetryHelper]?
 	
 }
 
@@ -28,18 +28,18 @@ public struct AnyRetryProvider<ResultType> : RetryProvider {
 		self.retryHelpersHandler = p.retryHelpers
 	}
 	
-	public init(retryHelpersHandler: @escaping (URLRequest, Result<ResultType, Error>) -> [RetryHelper]?) {
+	public init(retryHelpersHandler: @escaping (URLRequest, Result<ResultType, Error>, URLRequestOperation) -> [RetryHelper]?) {
 		self.retryHelpersHandler = retryHelpersHandler
 	}
 	
-	public init(errorRetryHelpersHandler: @escaping (URLRequest, Error?) -> [RetryHelper]?) {
-		self.retryHelpersHandler = { req, res in errorRetryHelpersHandler(req, res.failure) }
+	public init(errorRetryHelpersHandler: @escaping (URLRequest, Error?, URLRequestOperation) -> [RetryHelper]?) {
+		self.retryHelpersHandler = { req, res, op in errorRetryHelpersHandler(req, res.failure, op) }
 	}
 	
-	public func retryHelpers(for request: URLRequest, result: Result<ResultType, Error>) -> [RetryHelper]? {
-		return retryHelpersHandler(request, result)
+	public func retryHelpers(for request: URLRequest, result: Result<ResultType, Error>, operation: URLRequestOperation) -> [RetryHelper]? {
+		return retryHelpersHandler(request, result, operation)
 	}
 	
-	private let retryHelpersHandler: (URLRequest, Result<ResultType, Error>) -> [RetryHelper]?
+	private let retryHelpersHandler: (URLRequest, Result<ResultType, Error>, URLRequestOperation) -> [RetryHelper]?
 	
 }
