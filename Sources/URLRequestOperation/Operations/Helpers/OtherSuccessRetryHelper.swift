@@ -29,9 +29,9 @@ public final class OtherSuccessRetryHelper : RetryHelper {
 			
 //#if canImport(os)
 //			if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-//				URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %d: Got an URL operation succeeded with same host as me. Forcing retrying sooner.", log: $0, type: .debug, self.operation.urlOperationIdentifier) }}
+//				Conf.oslog.flatMap{ os_log("URL Op id %d: Got an URL operation succeeded with same host as me. Forcing retrying sooner.", log: $0, type: .debug, self.operation.urlOperationIdentifier) }}
 //#endif
-//			URLRequestOperationConfig.logger?.debug("URL Op id \(self.operation.urlOperationIdentifier): Got an URL operation succeeded with same host as me. Forcing retrying sooner.")
+//			Conf.logger?.debug("URL Op id \(self.operation.urlOperationIdentifier): Got an URL operation succeeded with same host as me. Forcing retrying sooner.")
 			self.operation.retry(in: SimpleErrorRetryProvider.exponentialBackoffTimeForIndex(1))
 		})
 	}

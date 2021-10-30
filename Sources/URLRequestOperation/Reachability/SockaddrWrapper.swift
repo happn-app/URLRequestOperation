@@ -175,9 +175,9 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 			default:
 #if canImport(os)
 				if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-					URLRequestOperationConfig.oslog.flatMap{ os_log("Got unknown family when comparing two SockAddrWrapper", log: $0, type: .error) }}
+					Conf.oslog.flatMap{ os_log("Got unknown family when comparing two SockAddrWrapper", log: $0, type: .error) }}
 #endif
-				URLRequestOperationConfig.logger?.error("Got unknown family when comparing two SockAddrWrapper")
+				Conf.logger?.error("Got unknown family when comparing two SockAddrWrapper")
 				return false
 		}
 	}
@@ -191,9 +191,9 @@ public class SockAddrWrapper : Hashable, CustomStringConvertible {
 				if v != -1 {
 #if canImport(os)
 					if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-						URLRequestOperationConfig.oslog.flatMap{ os_log("Got unknown return value from inet_pton: %d. Treating as -1.", log: $0, type: .info, v) }}
+						Conf.oslog.flatMap{ os_log("Got unknown return value from inet_pton: %d. Treating as -1.", log: $0, type: .info, v) }}
 #endif
-					URLRequestOperationConfig.logger?.info("Got unknown return value from inet_pton: \(v). Treating as -1.")
+					Conf.logger?.info("Got unknown return value from inet_pton: \(v). Treating as -1.")
 				}
 				throw SockAddrConversionError.systemError
 		}
