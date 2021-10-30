@@ -147,7 +147,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 				 result.failure as? URLRequestOperationError == .operationCancelled)
 		
 		currentResponse = response
-		expectedDataSize = response.expectedContentLength
+		if response.expectedContentLength != -1/*NSURLResponseUnknownLength*/ {
+			expectedDataSize = response.expectedContentLength
+		}
 		
 		runResultValidators(data: nil, urlResponse: response, error: nil, resultValidators: resultValidators, handler: { error in
 			guard error == nil, !self.isCancelled else {
