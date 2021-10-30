@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(os)
+import os.log
+#endif
 
 import RetryingOperation
 
@@ -15,7 +18,7 @@ public final class OtherSuccessRetryHelper : RetryHelper {
 	
 	public static let requestSucceededNotifUserInfoHostKey = "Host"
 	
-	public init?(host h: String?, operation op: RetryingOperation) {
+	public init?(host h: String?, operation op: URLRequestOperation) {
 		guard let h = h else {return nil}
 		operation = op
 		host = h
@@ -27,11 +30,11 @@ public final class OtherSuccessRetryHelper : RetryHelper {
 			let succeededHost = notif.userInfo?[Self.requestSucceededNotifUserInfoHostKey] as? String
 			guard succeededHost == self.host else {return}
 			
-//#if canImport(os)
-//			if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-//				Conf.oslog.flatMap{ os_log("URL Op id %d: Got an URL operation succeeded with same host as me. Forcing retrying sooner.", log: $0, type: .debug, self.operation.urlOperationIdentifier) }}
-//#endif
-//			Conf.logger?.debug("URL Op id \(self.operation.urlOperationIdentifier): Got an URL operation succeeded with same host as me. Forcing retrying sooner.")
+#if canImport(os)
+			if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+				Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Got an URL operation succeeded with same host as me. Forcing retrying sooner.", log: $0, type: .debug, String(describing: self.operation.urlOperationIdentifier)) }}
+#endif
+			Conf.logger?.debug("Got an URL operation succeeded with same host as me. Forcing retrying sooner.", metadata: [LMK.operationID: "\(self.operation.urlOperationIdentifier)"])
 			self.operation.retry(in: NetworkErrorRetryProvider.exponentialBackoffTimeForIndex(1))
 		})
 	}
@@ -42,7 +45,7 @@ public final class OtherSuccessRetryHelper : RetryHelper {
 	}
 	
 	private let host: String
-	private let operation: RetryingOperation
+	private let operation: URLRequestOperation
 	private var otherSuccessObserver: NSObjectProtocol?
 	
 }
