@@ -159,7 +159,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 			expectedDataSize = response.expectedContentLength
 		}
 		
-		runResponseValidatorsIfNeeded(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
+		runResponseValidators(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
 			guard error == nil, !self.isCancelled else {
 				self.result = error.flatMap{ .failure($0) } ?? .failure(Err.operationCancelled)
 				return completionHandler(.cancel)
@@ -308,7 +308,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 #endif
 					Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
 				}
-				task = session.dataTask(with: currentRequest, completionHandler: taskEnded)
+				task = session.dataTask(with: currentRequest, completionHandler: taskEndedHandler)
 			}
 		}
 		return task
@@ -336,7 +336,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		})
 	}
 	
-	private func runResponseValidatorsIfNeeded(urlResponse: URLResponse, urlResponseValidators: [URLResponseValidator], handler: @escaping (Error?) -> Void) {
+	private func runResponseValidators(urlResponse: URLResponse, urlResponseValidators: [URLResponseValidator], handler: @escaping (Error?) -> Void) {
 		guard !isCancelled else {
 			return handler(Err.operationCancelled)
 		}
@@ -347,8 +347,19 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		
 		validator.validate(urlResponse: urlResponse, handler: { error in
 			if let error = error {return handler(error)}
-			self.runResponseValidatorsIfNeeded(urlResponse: urlResponse, urlResponseValidators: Array(urlResponseValidators.dropFirst()), handler: handler)
+			self.runResponseValidators(urlResponse: urlResponse, urlResponseValidators: Array(urlResponseValidators.dropFirst()), handler: handler)
 		})
+	}
+	
+	private func taskEndedHandler(data: Data?, response: URLResponse?, error: Error?) {
+		/* First validate the response if we have one, and we have no errors */
+		if let response = response, error == nil {
+			runResponseValidators(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
+				self.taskEnded(data: data, response: response, error: error)
+			})
+		} else {
+			taskEnded(data: data, response: response, error: error)
+		}
 	}
 	
 	private func taskEnded(data: Data?, response: URLResponse?, error: Error?) {
@@ -367,15 +378,12 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		 * Tested: with the handler-based version of the task, even for 204 requests, which litterally have no data, the handler is still called with an empty Data object. */
 		let data = data ?? Data()
 		
-		/* TODO: Do not re-validate if already validated. */
-		runResponseValidatorsIfNeeded(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
-			guard !self.isCancelled else {
-				assert(self.result.failure as? URLRequestOperationError == .operationCancelled)
-				return self.baseOperationEnded()
-			}
-			self.resultProcessor.transform(source: data, urlResponse: response, handler: { result in
-				self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, dataResponse: $0) })
-			})
+		guard !self.isCancelled else {
+			assert(self.result.failure as? URLRequestOperationError == .operationCancelled)
+			return self.baseOperationEnded()
+		}
+		self.resultProcessor.transform(source: data, urlResponse: response, handler: { result in
+			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, dataResponse: $0) })
 		})
 	}
 	
