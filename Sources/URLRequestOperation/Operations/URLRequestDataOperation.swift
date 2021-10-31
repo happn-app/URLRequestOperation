@@ -42,7 +42,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public let retryProviders: [RetryProvider]
 	
 	public private(set) var result: Result<URLRequestOperationResult<ResponseType>, Error> {
-		get {_resultQ.sync{ _result }}
+		get {_resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
 		set {_resultQ.sync{ _result = newValue }}
 	}
 	private let _resultQ: DispatchQueue
@@ -102,7 +102,6 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		
 		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
 			guard !self.isCancelled else {
-				assert(self.result.failure as? URLRequestOperationError == .operationCancelled)
 				return self.baseOperationEnded()
 			}
 			
@@ -118,11 +117,6 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	public override func cancelBaseOperation() {
-		_resultQ.sync{
-			if _result.failure as? URLRequestOperationError == .operationNotFinished {
-				result = .failure(Err.operationCancelled)
-			}
-		}
 		currentTask?.cancel()
 	}
 	
@@ -317,7 +311,6 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	/* Handler is only called in case of success */
 	private func runRequestProcessors(currentRequest: URLRequest, requestProcessors: [RequestProcessor], handler: @escaping (URLRequest) -> Void) {
 		guard !isCancelled else {
-			assert(result.failure as? URLRequestOperationError == .operationCancelled)
 			return baseOperationEnded()
 		}
 		
@@ -378,11 +371,10 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		 * Tested: with the handler-based version of the task, even for 204 requests, which litterally have no data, the handler is still called with an empty Data object. */
 		let data = data ?? Data()
 		
-		guard !self.isCancelled else {
-			assert(self.result.failure as? URLRequestOperationError == .operationCancelled)
-			return self.baseOperationEnded()
+		guard !isCancelled else {
+			return baseOperationEnded()
 		}
-		self.resultProcessor.transform(source: data, urlResponse: response, handler: { result in
+		resultProcessor.transform(source: data, urlResponse: response, handler: { result in
 			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, dataResponse: $0) })
 		})
 	}
