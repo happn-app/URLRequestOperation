@@ -36,8 +36,19 @@ public protocol URLRequestOperation : RetryingOperation {
 
 internal extension URLRequestOperation {
 	
+	static func isNotFinishedOrCancelledError(_ error: Error?) -> Bool {
+		switch error as? URLRequestOperationError {
+			case .operationNotFinished?: return true
+			case .operationCancelled?:   return true
+			default:                     return false
+		}
+	}
+	
 	static func isCancelledError(_ error: Error) -> Bool {
-		return error as? URLRequestOperationError == .operationCancelled
+		switch error as? URLRequestOperationError {
+			case .operationCancelled?: return true
+			default:                   return false
+		}
 	}
 	
 }

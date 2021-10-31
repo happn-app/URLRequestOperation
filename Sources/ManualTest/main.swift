@@ -73,11 +73,22 @@ let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperatio
 
 let q = OperationQueue()
 let request = URLRequest(url: URL(string: "https://frostland.fr/http-tests/200-empty")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.5)
-let operation = URLRequestDataOperation<Data>(request: request, session: session, retryProviders: [NetworkErrorRetryProvider()])
-operation.completionBlock = { print("ok") }
-q.addOperation(operation)
+let operation1 = URLRequestDataOperation<Data>(
+	request: request, session: session,
+	urlResponseValidators: [HTTPStatusCodeURLResponseValidator(expectedCodes: Set(arrayLiteral: 500))],
+	retryProviders: [
+		UnretriedErrorsRetryProvider(isBlacklistedError: { $0 is URLRequestOperationError }),
+		NetworkErrorRetryProvider()
+	]
+)
+let operation2 = URLRequestDownloadOperation<FileHandle>(request: request, session: session, retryProviders: [NetworkErrorRetryProvider()])
+operation1.completionBlock = { print("ok1") }
+operation2.completionBlock = { print("ok2") }
+
+q.addOperations([operation1, operation2], waitUntilFinished: false)
 
 q.waitUntilAllOperationsAreFinished()
-print(operation.result)
+print(operation1.result)
+print(operation2.result)
 
 //dispatchMain()
