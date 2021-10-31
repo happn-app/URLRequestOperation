@@ -23,6 +23,11 @@ public enum URLRequestOperationError : Error {
 	case operationNotFinished
 	case operationCancelled
 	
+	/** Error from ``HTTPStatusCodeURLResponseValidator`` if status code is not one of the expected values. */
+	case unexpectedStatusCode(Int?)
+	
+	case downloadDestinationExists
+	
 	/**
 	 A case that should never happen (URL response **and** error are `nil` from underlying session task).
 	 

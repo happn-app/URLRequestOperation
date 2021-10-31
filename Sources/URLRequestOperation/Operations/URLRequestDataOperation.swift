@@ -70,7 +70,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 #else
 		self.urlOperationIdentifier = UUID()
 #endif
-		self._resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.\(self.urlOperationIdentifier).ResultSync")
+		self._resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.Data-\(self.urlOperationIdentifier).ResultSync")
 		
 		self.session = session
 		self.currentRequest = request
@@ -97,8 +97,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		assert(currentData == nil)
 		assert(currentResponse == nil)
 		assert(expectedDataSize == nil)
-		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
-				 result.failure as? URLRequestOperationError == .operationCancelled)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
 		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
 			guard !self.isCancelled else {
@@ -145,42 +144,40 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		assert(currentResponse == nil)
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
-				 result.failure as? URLRequestOperationError == .operationCancelled)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
 		currentResponse = response
 		if response.expectedContentLength != -1/*NSURLResponseUnknownLength*/ {
 			expectedDataSize = response.expectedContentLength
 		}
 		
-		runResponseValidators(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
-			guard error == nil, !self.isCancelled else {
-				self.result = error.flatMap{ .failure($0) } ?? .failure(Err.operationCancelled)
-				return completionHandler(.cancel)
-			}
-			if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
-				d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition in
-					switch responseDisposition {
-						case .allow, .cancel, .becomeDownload, .becomeStream: ()
-						@unknown default:
+		let error = runResponseValidators(urlResponse: response)
+		guard error == nil, !isCancelled else {
+			responseValidationError = error
+			return completionHandler(.cancel)
+		}
+		
+		if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
+			d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition in
+				switch responseDisposition {
+					case .allow, .cancel, .becomeDownload, .becomeStream: ()
+					@unknown default:
 #if canImport(os)
-							Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: self.urlOperationIdentifier), responseDisposition.rawValue) }
+						Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Unknown response disposition %ld returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", log: $0, type: .info, String(describing: self.urlOperationIdentifier), responseDisposition.rawValue) }
 #endif
-							Conf.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(self.urlOperationIdentifier)"])
-					}
-					completionHandler(responseDisposition)
-				}) ?? completionHandler(.allow)
-			} else {
-				completionHandler(.allow)
-			}
-		})
+						Conf.logger?.warning("Unknown response disposition \(responseDisposition) returned for a task managed by URLRequestOperation. The operation will probably fail or never finish.", metadata: [LMK.operationID: "\(self.urlOperationIdentifier)"])
+				}
+				completionHandler(responseDisposition)
+			}) ?? completionHandler(.allow)
+		} else {
+			completionHandler(.allow)
+		}
 	}
 	
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
-				 result.failure as? URLRequestOperationError == .operationCancelled)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
 		currentData?.append(data) ?? {
 			var newData: Data
@@ -202,8 +199,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
-				 result.failure as? URLRequestOperationError == .operationCancelled)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
 //		currentTask = streamTask
 //		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
@@ -218,8 +214,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
-				 result.failure as? URLRequestOperationError == .operationCancelled)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
 //		currentTask = downloadTask
 //		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
@@ -235,10 +230,10 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		assert(session === self.session)
 		assert(task === self.currentTask)
 		assert(currentResponse != nil || error != nil)
-		assert(result.failure as? URLRequestOperationError == .operationNotFinished ||
-				 result.failure as? URLRequestOperationError == .operationCancelled)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
-		taskEnded(data: currentData, response: currentResponse, error: error)
+		taskEnded(data: currentData, response: currentResponse, error: responseValidationError ?? error)
+		responseValidationError = nil
 		expectedDataSize = nil
 		currentResponse = nil
 		currentData = nil
@@ -254,9 +249,10 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	   *************** */
 	
 	private var currentRequest: URLRequest
-	private var currentTask: URLSessionTask?
+	private var currentTask: URLSessionDataTask?
 	
 	private var currentResponse: URLResponse?
+	private var responseValidationError: Error?
 	private var currentData: Data?
 	
 	private var expectedDataSize: Int64?
@@ -290,9 +286,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 						/* Session’s delegate is non-nil, but it’s not an URLRequestOperationSessionDelegate. */
 #if canImport(os)
 						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-							Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete).", log: $0, String(describing: urlOperationIdentifier)) }}
+							Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least).", log: $0, String(describing: urlOperationIdentifier)) }}
 #endif
-						Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete).", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+						Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least).", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
 					}
 				} else {
 					/* Session’s delegate is nil. */
@@ -329,27 +325,23 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		})
 	}
 	
-	private func runResponseValidators(urlResponse: URLResponse, urlResponseValidators: [URLResponseValidator], handler: @escaping (Error?) -> Void) {
+	private func runResponseValidators(urlResponse: URLResponse) -> Error? {
 		guard !isCancelled else {
-			return handler(Err.operationCancelled)
+			return Err.operationCancelled
 		}
 		
-		guard let validator = urlResponseValidators.first else {
-			return handler(nil)
+		for validator in urlResponseValidators {
+			if let e = validator.validate(urlResponse: urlResponse) {
+				return e
+			}
 		}
-		
-		validator.validate(urlResponse: urlResponse, handler: { error in
-			if let error = error {return handler(error)}
-			self.runResponseValidators(urlResponse: urlResponse, urlResponseValidators: Array(urlResponseValidators.dropFirst()), handler: handler)
-		})
+		return nil
 	}
 	
 	private func taskEndedHandler(data: Data?, response: URLResponse?, error: Error?) {
 		/* First validate the response if we have one, and we have no errors */
 		if let response = response, error == nil {
-			runResponseValidators(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
-				self.taskEnded(data: data, response: response, error: error)
-			})
+			taskEnded(data: data, response: response, error: runResponseValidators(urlResponse: response))
 		} else {
 			taskEnded(data: data, response: response, error: error)
 		}
