@@ -33,3 +33,11 @@ public protocol URLRequestOperation : RetryingOperation {
 #endif
 	
 }
+
+internal extension URLRequestOperation {
+	
+	static func isCancelledError(_ error: Error) -> Bool {
+		return error as? URLRequestOperationError == .operationCancelled
+	}
+	
+}

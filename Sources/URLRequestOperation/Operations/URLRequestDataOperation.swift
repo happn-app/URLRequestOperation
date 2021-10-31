@@ -37,7 +37,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public let originalRequest: URLRequest
 	
 	public let requestProcessors: [RequestProcessor]
-	public let resultValidators: [ResultValidator]
+	public let urlResponseValidators: [URLResponseValidator]
 	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
 	public let retryProviders: [RetryProvider]
 	
@@ -57,7 +57,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public init(
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
-		resultValidators: [ResultValidator] = [],
+		urlResponseValidators: [URLResponseValidator] = [],
 		resultProcessor: AnyResultProcessor<Data, ResponseType>,
 		retryProviders: [RetryProvider] = [],
 		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
@@ -77,7 +77,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		self.originalRequest = request
 		
 		self.requestProcessors = requestProcessors
-		self.resultValidators = resultValidators
+		self.urlResponseValidators = urlResponseValidators
 		self.resultProcessor = resultProcessor
 		self.retryProviders = retryProviders
 	}
@@ -85,11 +85,11 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	public convenience init(
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
-		resultValidators: [ResultValidator] = [],
+		urlResponseValidators: [URLResponseValidator] = [],
 		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
 		retryProviders: [RetryProvider] = []
 	) where ResponseType == Data {
-		self.init(request: request, session: session, requestProcessors: requestProcessors, resultValidators: resultValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
+		self.init(request: request, session: session, requestProcessors: requestProcessors, urlResponseValidators: urlResponseValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
 	}
 	
 	public override func startBaseOperation(isRetry: Bool) {
@@ -102,8 +102,8 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		
 		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
 			guard !self.isCancelled else {
-				self.baseOperationEnded()
-				return
+				assert(self.result.failure as? URLRequestOperationError == .operationCancelled)
+				return self.baseOperationEnded()
 			}
 			
 			let task = self.task(for: request)
@@ -159,8 +159,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 			expectedDataSize = response.expectedContentLength
 		}
 		
-		runResultValidators(data: nil, urlResponse: response, error: nil, resultValidators: resultValidators, handler: { error in
+		runResponseValidatorsIfNeeded(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
 			guard error == nil, !self.isCancelled else {
+				self.result = error.flatMap{ .failure($0) } ?? .failure(Err.operationCancelled)
 				return completionHandler(.cancel)
 			}
 			if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
@@ -316,6 +317,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	/* Handler is only called in case of success */
 	private func runRequestProcessors(currentRequest: URLRequest, requestProcessors: [RequestProcessor], handler: @escaping (URLRequest) -> Void) {
 		guard !isCancelled else {
+			assert(result.failure as? URLRequestOperationError == .operationCancelled)
 			return baseOperationEnded()
 		}
 		
@@ -334,21 +336,26 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		})
 	}
 	
-	private func runResultValidators(data: Data?, urlResponse: URLResponse, error: Error?, resultValidators: [ResultValidator], handler: @escaping (Error?) -> Void) {
+	private func runResponseValidatorsIfNeeded(urlResponse: URLResponse, urlResponseValidators: [URLResponseValidator], handler: @escaping (Error?) -> Void) {
 		guard !isCancelled else {
 			return handler(Err.operationCancelled)
 		}
 		
-		guard let validator = resultValidators.first else {
-			return handler(error)
+		guard let validator = urlResponseValidators.first else {
+			return handler(nil)
 		}
 		
-		validator.validate(data: data, urlResponse: urlResponse, error: error, handler: { newError in
-			self.runResultValidators(data: data, urlResponse: urlResponse, error: newError, resultValidators: Array(resultValidators.dropFirst()), handler: handler)
+		validator.validate(urlResponse: urlResponse, handler: { error in
+			if let error = error {return handler(error)}
+			self.runResponseValidatorsIfNeeded(urlResponse: urlResponse, urlResponseValidators: Array(urlResponseValidators.dropFirst()), handler: handler)
 		})
 	}
 	
 	private func taskEnded(data: Data?, response: URLResponse?, error: Error?) {
+		if let error = error {
+			return endBaseOperation(result: .failure(error))
+		}
+		
 		guard let response = response else {
 			/* A nil response should indicate an error, in which case error should not be nil.
 			 * We still safely unwrap the error in production mode. */
@@ -360,10 +367,11 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		 * Tested: with the handler-based version of the task, even for 204 requests, which litterally have no data, the handler is still called with an empty Data object. */
 		let data = data ?? Data()
 		
-		runResultValidators(data: data, urlResponse: response, error: error, resultValidators: resultValidators, handler: { error in
+		/* TODO: Do not re-validate if already validated. */
+		runResponseValidatorsIfNeeded(urlResponse: response, urlResponseValidators: urlResponseValidators, handler: { error in
 			guard !self.isCancelled else {
-				self.baseOperationEnded()
-				return
+				assert(self.result.failure as? URLRequestOperationError == .operationCancelled)
+				return self.baseOperationEnded()
 			}
 			self.resultProcessor.transform(source: data, urlResponse: response, handler: { result in
 				self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, dataResponse: $0) })
@@ -372,19 +380,31 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	}
 	
 	private func endBaseOperation(result: Result<URLRequestOperationResult<ResponseType>, Error>) {
-		let retryHelpers = result.failure.flatMap{ error -> [RetryHelper]? in
-			/* We use the retry helpers returned by the first retry provider that does not return nil. */
-			/* The line below might do this, but it’s obscure, and I’m not sure lazy actually does what I think… */
-//			retryProviders.lazy.compactMap{ $0.retryHelpers(for: currentRequest, error: error, operation: self) }.first
+		let retryHelpers: [RetryHelper]?
+		
+		retryHelpersComputation:
+		if let error = result.failure {
+			/* We do not want to retry a cancelled operation.
+			 * In theory RetryingOperation would not let us anyway, but let’s be extra cautious. */
+			guard !Self.isCancelledError(error) else {
+				retryHelpers = nil
+				break retryHelpersComputation
+			}
+			
+			/* See doc of retryHelpers(for:,error:,operation:) for algorithm explanation. */
 			for rp in retryProviders {
 				if let rh = rp.retryHelpers(for: currentRequest, error: error, operation: self) {
-					return rh
+					retryHelpers = rh
+					break retryHelpersComputation
 				}
 			}
-			return nil
+			retryHelpers = nil
+		} else {
+			retryHelpers = nil
 		}
 		if retryHelpers == nil {
-			/* We do not retry the operation. We must set the result. */
+			/* We do not retry the operation.
+			 * We must set the result, whatever it is. */
 			self.result = result
 		}
 		baseOperationEnded(retryHelpers: retryHelpers)

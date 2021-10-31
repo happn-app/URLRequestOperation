@@ -37,47 +37,35 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 	public let allowOtherSuccessObserver: Bool
 	public let allowReachabilityObserver: Bool
 	
-	/**
-	 This handler is called to determine if the given error is an error known not to be retryable.
-	 
-	 - Note: The cancelled errors from `NSURLErrorDomain` and ``URLRequestOperation`` are always considered unretryable. */
-	public let isKnownUnretryableErrors: (Error) -> Bool
-	
 	public private(set) var currentNumberOfRetries: Int = 0
 	
 	public init(
 		maximumNumberOfRetries: Int? = nil,
 		alsoRetryNonIdempotentRequests: Bool = false,
 		allowOtherSuccessObserver: Bool = true,
-		allowReachabilityObserver: Bool = true,
-		isKnownUnretryableErrors: @escaping (Error) -> Bool = { _ in false }
+		allowReachabilityObserver: Bool = true
 	) {
 		self.maximumNumberOfRetries = maximumNumberOfRetries
 		self.alsoRetryNonIdempotentRequests = alsoRetryNonIdempotentRequests
 		self.allowOtherSuccessObserver = allowOtherSuccessObserver
 		self.allowReachabilityObserver = allowReachabilityObserver
-		self.isKnownUnretryableErrors = isKnownUnretryableErrors
 	}
 	
-	public func retryHelpers(for request: URLRequest, error: Error, operation: URLRequestOperation) -> [RetryHelper]? {
+	public func retryHelpers(for request: URLRequest, error: Error, operation: URLRequestOperation) -> [RetryHelper]?? {
 		guard Self.isRequestIdempotent(request) || alsoRetryNonIdempotentRequests else {
+			/* We don’t want to retry non-idempotent requests, but we’ll not block other retry provider to retry them if they want. */
 			return nil
 		}
 		guard maximumNumberOfRetries.flatMap({ currentNumberOfRetries < $0 }) ?? true else {
+			/* We don’t want to retry after max number of retries, but we’ll not block other retry provider to retry them if they want. */
+			return nil
+		}
+		guard (error as NSError).domain != NSURLErrorDomain || (error as NSError).code != URLError.cancelled.rawValue else {
+			/* We don’t want to retry cancelled tasks, but we’ll not block other retry provider to retry them if they want. */
 			return nil
 		}
 		
-		/* We now know the request CAN be retried (idempotent and maximum number of retries not exceeded).
-		 * Should we retry? */
-		let isCancelledError = (
-			error as? URLRequestOperationError == .operationCancelled ||
-			((error as NSError).domain == NSURLErrorDomain && (error as NSError).code == URLError.cancelled.rawValue)
-		)
-		guard !isCancelledError && !isKnownUnretryableErrors(error) else {
-			return nil
-		}
-		
-		/* Let’s retry. */
+		/* We now know the request CAN be retried (idempotent and maximum number of retries not exceeded, task not cancelled). */
 		currentNumberOfRetries += 1
 		let host = request.url?.host
 		return ([
