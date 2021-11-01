@@ -9,7 +9,8 @@ import RetryingOperation
 
 extension NSNotification.Name {
 	
-	public static let URLRequestOperationDidSucceedOperation = NSNotification.Name(rawValue: "com.happn.URLRequestOperation.DidSucceedRequest")
+	public static let URLRequestOperationDidSucceedURLSessionTask = NSNotification.Name(rawValue: "com.happn.URLRequestOperation.DidSucceedURLSessionTask")
+	public static let URLRequestOperationDidSucceedOperation = NSNotification.Name(rawValue: "com.happn.URLRequestOperation.DidSucceedOperation")
 	
 }
 
@@ -18,15 +19,18 @@ public final class OtherSuccessRetryHelper : RetryHelper {
 	
 	public static let requestSucceededNotifUserInfoHostKey = "Host"
 	
-	public init?(host h: String?, operation op: URLRequestOperation) {
-		guard let h = h else {return nil}
-		operation = op
-		host = h
+	public let host: String
+	
+	public init?(host: String?, monitorSessionTaskSuccessInsteadOfOperationSuccess: Bool = false, operation: URLRequestOperation) {
+		guard let host = host else {return nil}
+		self.host = host
+		self.notifName = monitorSessionTaskSuccessInsteadOfOperationSuccess ? .URLRequestOperationDidSucceedURLSessionTask : .URLRequestOperationDidSucceedOperation
+		self.operation = operation
 	}
 	
 	public func setup() {
 		assert(otherSuccessObserver == nil)
-		otherSuccessObserver = NotificationCenter.default.addObserver(forName: .URLRequestOperationDidSucceedOperation, object: nil, queue: nil, using: { notif in
+		otherSuccessObserver = NotificationCenter.default.addObserver(forName: notifName, object: nil, queue: nil, using: { notif in
 			let succeededHost = notif.userInfo?[Self.requestSucceededNotifUserInfoHostKey] as? String
 			guard succeededHost == self.host else {return}
 			
@@ -40,12 +44,13 @@ public final class OtherSuccessRetryHelper : RetryHelper {
 	}
 	
 	public func teardown() {
-		NotificationCenter.default.removeObserver(otherSuccessObserver! /* Internal error if observer is nil */, name: .URLRequestOperationDidSucceedOperation, object: nil)
+		NotificationCenter.default.removeObserver(otherSuccessObserver! /* Internal error if observer is nil */, name: notifName, object: nil)
 		otherSuccessObserver = nil
 	}
 	
-	private let host: String
 	private let operation: URLRequestOperation
+	
+	private let notifName: Notification.Name
 	private var otherSuccessObserver: NSObjectProtocol?
 	
 }

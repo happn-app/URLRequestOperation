@@ -151,6 +151,10 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 			expectedDataSize = response.expectedContentLength
 		}
 		
+		/* We successfully got some data from the server; let’s notify the people who care about it. */
+		let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
+		NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
+		
 		let error = runResponseValidators(urlResponse: response)
 		guard error == nil, !isCancelled else {
 			responseValidationError = error
@@ -341,6 +345,9 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	private func taskEndedHandler(data: Data?, response: URLResponse?, error: Error?) {
 		/* First validate the response if we have one, and we have no errors */
 		if let response = response, error == nil {
+			/* We successfully got some data from the server; let’s notify the people who care about it. */
+			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
+			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
 			taskEnded(data: data, response: response, error: runResponseValidators(urlResponse: response))
 		} else {
 			taskEnded(data: data, response: response, error: error)
@@ -398,6 +405,11 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 			/* We do not retry the operation.
 			 * We must set the result, whatever it is. */
 			self.result = result
+			/* If the operation is successful, let’s notify the people who care about it. */
+			if result.failure == nil {
+				let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
+				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: nil, userInfo: userInfo)
+			}
 		}
 		baseOperationEnded(retryHelpers: retryHelpers)
 	}
