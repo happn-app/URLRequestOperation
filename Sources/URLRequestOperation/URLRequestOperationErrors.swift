@@ -29,9 +29,11 @@ public enum URLRequestOperationError : Error {
 	case downloadDestinationExists
 	
 	/**
-	 A case that should never happen (URL response **and** error are `nil` from underlying session task).
+	 One of these cases that should never happen:
+	 - URL response **and** error are `nil` from underlying session task;
+	 - Task’s response is `nil` in `urlSession(:downloadTask:didFinishDownloadingTo:)`.
 	 
-	 We provide this in order to avoid crashing instead if this case does happen.
+	 We provide this in order to avoid crashing instead if one of these do happen.
 	 In debug mode, we do crash (assertion failure). */
 	case invalidURLSessionContract
 	
