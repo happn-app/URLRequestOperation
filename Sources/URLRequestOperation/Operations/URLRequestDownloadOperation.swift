@@ -133,6 +133,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	
 	public override func startBaseOperation(isRetry: Bool) {
 		let task = task(for: currentRequest)
+		currentTask = task
 		task.resume()
 	}
 	
@@ -165,6 +166,11 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 #endif
 	
 	public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+		assert(currentResult == nil)
+		assert(session === self.session)
+		assert(downloadTask === self.currentTask)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		
 		guard let response = downloadTask.response else {
 			assertionFailure("nil task’s response in urlSession(:downloadTask:didFinishDownloadingTo:)")
 			currentResult = .failure(Err.invalidURLSessionContract)
@@ -195,6 +201,10 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	}
 	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+		assert(session === self.session)
+		assert(task === self.currentTask)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		
 		if error == nil {
 			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
 			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
@@ -216,6 +226,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		endBaseOperation(result: currentResult ?? .failure(error!))
 		assert(downloadStatus.isStatusWaiting)
 		currentResult = nil
+		currentTask = nil
 	}
 	
 	/* ***************
