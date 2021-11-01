@@ -78,10 +78,16 @@ let operation1 = URLRequestDataOperation<Data>(
 	urlResponseValidators: [HTTPStatusCodeURLResponseValidator(expectedCodes: Set(arrayLiteral: 500))],
 	retryProviders: [
 		UnretriedErrorsRetryProvider(isBlacklistedError: { $0 is URLRequestOperationError }),
-		NetworkErrorRetryProvider()
+		NetworkErrorRetryProvider(maximumNumberOfRetries: 5)
 	]
 )
-let operation2 = URLRequestDownloadOperation<FileHandle>(request: request, session: session, retryProviders: [NetworkErrorRetryProvider()])
+let operation2 = URLRequestDownloadOperation<FileHandle>(
+	request: request, session: session,
+	urlResponseValidators: [HTTPStatusCodeURLResponseValidator(expectedCodes: Set(arrayLiteral: 500))],
+	retryProviders: [
+		NetworkErrorRetryProvider(maximumNumberOfRetries: 1, allowReachabilityObserver: false)
+	]
+)
 operation1.completionBlock = { print("ok1") }
 operation2.completionBlock = { print("ok2") }
 

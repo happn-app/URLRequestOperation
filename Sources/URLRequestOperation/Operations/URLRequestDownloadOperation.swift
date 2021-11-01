@@ -165,12 +165,57 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 #endif
 	
 	public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-		print("yo1: \(location) - \(FileManager.default.fileExists(atPath: location.path))")
-		currentURL = location
+		guard let response = downloadTask.response else {
+			assertionFailure("nil task’s response in urlSession(:downloadTask:didFinishDownloadingTo:)")
+			currentResult = .failure(Err.invalidURLSessionContract)
+			return
+		}
+		
+		guard !isCancelled else {
+			return baseOperationEnded()
+		}
+		
+		if let error = runResponseValidators(urlResponse: response) {
+			currentResult = .failure(error)
+			return
+		}
+		downloadStatus = .success(doneResultProcessor: false, doneDidComplete: false)
+		resultProcessor.transform(source: location, urlResponse: response, handler: { res in
+			session.delegateQueue.addOperation{
+				assert(self.currentResult == nil)
+				let res = res.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) }
+				guard self.downloadStatus.wentInResultProcessor() else {
+					self.currentResult = res
+					return
+				}
+				self.endBaseOperation(result: res)
+				assert(self.downloadStatus.isStatusWaiting)
+			}
+		})
 	}
 	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-		print("yo2: \(error) - \(currentURL.flatMap{ FileManager.default.fileExists(atPath: $0.path) })")
+		if error == nil {
+			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
+			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
+		}
+		
+		guard downloadStatus.wentInDidComplete() else {
+			guard error == nil else {
+				assertionFailure("Got error \(error!) from URLSession, but was told not to finish operation from did complete!")
+				return
+			}
+			return
+		}
+		
+		guard !isCancelled else {
+			return baseOperationEnded()
+		}
+		
+		assert((currentResult == nil && error != nil) || (currentResult != nil && error == nil))
+		endBaseOperation(result: currentResult ?? .failure(error!))
+		assert(downloadStatus.isStatusWaiting)
+		currentResult = nil
 	}
 	
 	/* ***************
@@ -180,7 +225,39 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	private var currentRequest: URLRequest
 	private var currentTask: URLSessionDownloadTask?
 	
-	private var currentURL: URL?
+	private enum DownloadStatus {
+		case waiting
+		case success(doneResultProcessor: Bool, doneDidComplete: Bool)
+		/** Returns `true` if processing should continue in did complete. */
+		mutating func wentInDidComplete() -> Bool {
+			switch self {
+				case .waiting: return true
+				case .success(doneResultProcessor: let rp, doneDidComplete: let dc):
+					assert(!dc, "Invalid state \(self) for download status in result processor")
+					if rp {self = .waiting;                                                    return true}
+					else  {self = .success(doneResultProcessor: false, doneDidComplete: true); return false}
+			}
+		}
+		/** Returns `true` if processing should continue in result processor. */
+		mutating func wentInResultProcessor() -> Bool {
+			switch self {
+				case .waiting: assertionFailure("Invalid state \(self) for download status in result processor"); return false
+				case .success(doneResultProcessor: let rp, doneDidComplete: let dc):
+					assert(!rp, "Invalid state \(self) for download status in result processor")
+					if dc {self = .waiting;                                                    return true}
+					else  {self = .success(doneResultProcessor: true, doneDidComplete: false); return false}
+			}
+		}
+		var isStatusWaiting: Bool {
+			switch self {
+				case .waiting: return true
+				default:       return false
+			}
+		}
+	}
+	
+	private var downloadStatus: DownloadStatus = .waiting
+	private var currentResult: Result<URLRequestOperationResult<ResultType>, Error>?
 	
 	/* TODO: Resume data init. */
 	private func task(for request: URLRequest) -> URLSessionDownloadTask {
@@ -231,25 +308,74 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		return task
 	}
 	
+	private func runResponseValidators(urlResponse: URLResponse) -> Error? {
+		guard !isCancelled else {
+			return Err.operationCancelled
+		}
+		
+		for validator in urlResponseValidators {
+			if let e = validator.validate(urlResponse: urlResponse) {
+				return e
+			}
+		}
+		return nil
+	}
+	
 	private func taskEnded(url: URL?, response: URLResponse?, error: Error?) {
 		if let error = error {
-//			return endBaseOperation(result: .failure(error))
+			return endBaseOperation(result: .failure(error))
 		}
 		
 		guard let response = response, let url = url else {
 			/* A nil response or url should indicate an error, in which case error should not be nil.
 			 * We still safely unwrap the error in production mode. */
 			assert(error != nil)
-//			return endBaseOperation(result: .failure(error ?? Err.invalidURLSessionContract))
-			return
+			return endBaseOperation(result: .failure(error ?? Err.invalidURLSessionContract))
 		}
 		
 		guard !isCancelled else {
 			return baseOperationEnded()
 		}
+		
 		resultProcessor.transform(source: url, urlResponse: response, handler: { result in
-//			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, dataResponse: $0) })
+			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) })
 		})
+	}
+	
+	private func endBaseOperation(result: Result<URLRequestOperationResult<ResultType>, Error>) {
+		let retryHelpers: [RetryHelper]?
+		
+	retryHelpersComputation:
+		if let error = result.failure {
+			/* We do not want to retry a cancelled operation.
+			 * In theory RetryingOperation would not let us anyway, but let’s be extra cautious. */
+			guard !Self.isCancelledError(error) else {
+				retryHelpers = nil
+				break retryHelpersComputation
+			}
+			
+			/* See doc of retryHelpers(for:,error:,operation:) for algorithm explanation. */
+			for rp in retryProviders {
+				if let rh = rp.retryHelpers(for: currentRequest, error: error, operation: self) {
+					retryHelpers = rh
+					break retryHelpersComputation
+				}
+			}
+			retryHelpers = nil
+		} else {
+			retryHelpers = nil
+		}
+		if retryHelpers == nil {
+			/* We do not retry the operation.
+			 * We must set the result, whatever it is. */
+			self.result = result
+			/* If the operation is successful, let’s notify the people who care about it. */
+			if result.failure == nil {
+				let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
+				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: nil, userInfo: userInfo)
+			}
+		}
+		baseOperationEnded(retryHelpers: retryHelpers)
 	}
 	
 }
