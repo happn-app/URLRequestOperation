@@ -22,7 +22,7 @@ import RetryingOperation
 
 
 
-public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation, URLRequestOperation, URLSessionDownloadDelegate {
+public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, URLRequestOperation, URLSessionDownloadDelegate {
 	
 #if DEBUG
 	public let urlOperationIdentifier: Int
@@ -39,15 +39,15 @@ public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation
 	
 	public let requestProcessors: [RequestProcessor]
 	public let urlResponseValidators: [URLResponseValidator]
-	public let resultProcessor: AnyResultProcessor<URL, ResponseType>
+	public let resultProcessor: AnyResultProcessor<URL, ResultType>
 	public let retryProviders: [RetryProvider]
 	
-	public private(set) var result: Result<URLRequestOperationResult<ResponseType>, Error> {
+	public private(set) var result: Result<URLRequestOperationResult<ResultType>, Error> {
 		get {_resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
 		set {_resultQ.sync{ _result = newValue }}
 	}
 	private let _resultQ: DispatchQueue
-	private var _result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
+	private var _result = Result<URLRequestOperationResult<ResultType>, Error>.failure(Err.operationNotFinished)
 	
 	public convenience init(
 		request: URLRequest, session: URLSession = .shared,
@@ -55,7 +55,7 @@ public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation
 		requestProcessors: [RequestProcessor] = [],
 		urlResponseValidators: [URLResponseValidator] = [],
 		retryProviders: [RetryProvider] = []
-	) where ResponseType == URL {
+	) where ResultType == URL {
 		self.init(
 			request: request, session: session,
 			task: nil,
@@ -72,7 +72,7 @@ public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation
 		urlResponseValidators: [URLResponseValidator] = [],
 		resultProcessor: AnyResultProcessor<URL, FileHandle> = URLToFileHandleResultProcessor().erased,
 		retryProviders: [RetryProvider] = []
-	) where ResponseType == FileHandle {
+	) where ResultType == FileHandle {
 		self.init(
 			request: request, session: session,
 			task: nil,
@@ -87,7 +87,7 @@ public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
 		urlResponseValidators: [URLResponseValidator] = [],
-		resultProcessor: AnyResultProcessor<URL, ResponseType>,
+		resultProcessor: AnyResultProcessor<URL, ResultType>,
 		retryProviders: [RetryProvider] = [],
 		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
 	) {
@@ -106,7 +106,7 @@ public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation
 		task: URLSessionDownloadTask?,
 		requestProcessors: [RequestProcessor] = [],
 		urlResponseValidators: [URLResponseValidator] = [],
-		resultProcessor: AnyResultProcessor<URL, ResponseType>,
+		resultProcessor: AnyResultProcessor<URL, ResultType>,
 		retryProviders: [RetryProvider] = []
 	) {
 #if DEBUG
@@ -168,7 +168,7 @@ public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation
 		print("yo1: \(location) - \(FileManager.default.fileExists(atPath: location.path))")
 		currentURL = location
 	}
-
+	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
 		print("yo2: \(error) - \(currentURL.flatMap{ FileManager.default.fileExists(atPath: $0.path) })")
 	}
@@ -237,7 +237,7 @@ public final class URLRequestDownloadOperation<ResponseType> : RetryingOperation
 		}
 		
 		guard let response = response, let url = url else {
-			/* A nil response should indicate an error, in which case error should not be nil.
+			/* A nil response or url should indicate an error, in which case error should not be nil.
 			 * We still safely unwrap the error in production mode. */
 			assert(error != nil)
 //			return endBaseOperation(result: .failure(error ?? Err.invalidURLSessionContract))

@@ -22,7 +22,7 @@ import RetryingOperation
 
 
 
-public final class URLRequestDataOperation<ResponseType> : RetryingOperation, URLRequestOperation, URLSessionDataDelegate {
+public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLRequestOperation, URLSessionDataDelegate {
 	
 #if DEBUG
 	public let urlOperationIdentifier: Int
@@ -38,15 +38,15 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 	
 	public let requestProcessors: [RequestProcessor]
 	public let urlResponseValidators: [URLResponseValidator]
-	public let resultProcessor: AnyResultProcessor<Data, ResponseType>
+	public let resultProcessor: AnyResultProcessor<Data, ResultType>
 	public let retryProviders: [RetryProvider]
 	
-	public private(set) var result: Result<URLRequestOperationResult<ResponseType>, Error> {
+	public private(set) var result: Result<URLRequestOperationResult<ResultType>, Error> {
 		get {_resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
 		set {_resultQ.sync{ _result = newValue }}
 	}
 	private let _resultQ: DispatchQueue
-	private var _result = Result<URLRequestOperationResult<ResponseType>, Error>.failure(Err.operationNotFinished)
+	private var _result = Result<URLRequestOperationResult<ResultType>, Error>.failure(Err.operationNotFinished)
 	
 	/**
 	 Init an ``URLRequestOperation``.
@@ -58,7 +58,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
 		urlResponseValidators: [URLResponseValidator] = [],
-		resultProcessor: AnyResultProcessor<Data, ResponseType>,
+		resultProcessor: AnyResultProcessor<Data, ResultType>,
 		retryProviders: [RetryProvider] = [],
 		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
 	) {
@@ -88,7 +88,7 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 		urlResponseValidators: [URLResponseValidator] = [],
 		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
 		retryProviders: [RetryProvider] = []
-	) where ResponseType == Data {
+	) where ResultType == Data {
 		self.init(request: request, session: session, requestProcessors: requestProcessors, urlResponseValidators: urlResponseValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
 	}
 	
@@ -374,14 +374,14 @@ public final class URLRequestDataOperation<ResponseType> : RetryingOperation, UR
 			return baseOperationEnded()
 		}
 		resultProcessor.transform(source: data, urlResponse: response, handler: { result in
-			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, dataResponse: $0) })
+			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) })
 		})
 	}
 	
-	private func endBaseOperation(result: Result<URLRequestOperationResult<ResponseType>, Error>) {
+	private func endBaseOperation(result: Result<URLRequestOperationResult<ResultType>, Error>) {
 		let retryHelpers: [RetryHelper]?
 		
-		retryHelpersComputation:
+	retryHelpersComputation:
 		if let error = result.failure {
 			/* We do not want to retry a cancelled operation.
 			 * In theory RetryingOperation would not let us anyway, but let’s be extra cautious. */
