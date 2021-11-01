@@ -17,11 +17,11 @@ import Foundation
 
 
 
-public struct URLRequestOperationResult<ResponseType> {
+public struct URLRequestOperationResult<ResultType> {
 	
 	public var finalURLRequest: URLRequest
 	
 	public var urlResponse: URLResponse
-	public var dataResponse: ResponseType
+	public var result: ResultType
 	
 }
