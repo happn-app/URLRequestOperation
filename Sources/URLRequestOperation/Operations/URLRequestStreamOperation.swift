@@ -19,6 +19,7 @@ import RetryingOperation
 
 
 
+@available(*, unavailable, message: "Not implemented yet")
 public final class URLRequestStreamOperation : RetryingOperation, URLRequestOperation {
 	
 #if DEBUG
