@@ -43,11 +43,14 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	public let retryProviders: [RetryProvider]
 	
 	public private(set) var result: Result<URLRequestOperationResult<ResultType>, Error> {
-		get {_resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
-		set {_resultQ.sync{ _result = newValue }}
+		get {resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
+		set {resultQ.sync{ _result = newValue }}
 	}
-	private let _resultQ: DispatchQueue
-	private var _result = Result<URLRequestOperationResult<ResultType>, Error>.failure(Err.operationNotFinished)
+	/** The resume data if available. Should not be used before the operation is over. */
+	public private(set) var resumeData: Data? {
+		get {resultQ.sync{ _resumeData }}
+		set {resultQ.sync{ _resumeData = newValue }}
+	}
 	
 	public convenience init(
 		request: URLRequest, session: URLSession = .shared,
@@ -117,7 +120,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 #else
 		self.urlOperationIdentifier = UUID()
 #endif
-		self._resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.Download-\(self.urlOperationIdentifier).ResultSync")
+		self.resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.Download-\(self.urlOperationIdentifier).ResultSync")
 		
 		self.session = session
 		self.currentRequest = request
@@ -205,6 +208,10 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		assert(task === self.currentTask)
 		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
+		if let rd = (error as NSError?)?.userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
+			resumeData = rd
+		}
+		
 		if error == nil {
 			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
 			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
@@ -232,6 +239,11 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	/* ***************
 	   MARK: - Private
 	   *************** */
+	
+	private let resultQ: DispatchQueue
+	
+	private var _result = Result<URLRequestOperationResult<ResultType>, Error>.failure(Err.operationNotFinished)
+	private var _resumeData: Data?
 	
 	private var currentRequest: URLRequest
 	private var currentTask: URLSessionDownloadTask?
