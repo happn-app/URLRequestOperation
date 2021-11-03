@@ -190,7 +190,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			session.delegateQueue.addOperation{
 				assert(self.currentResult == nil)
 				let res = res.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) }
-				guard self.downloadStatus.wentInResultProcessor() else {
+				guard self.downloadStatus.doingResultProcessor() else {
 					self.currentResult = res
 					return
 				}
@@ -210,7 +210,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
 		}
 		
-		guard downloadStatus.wentInDidComplete() else {
+		guard downloadStatus.doingDidComplete() else {
 			guard error == nil else {
 				assertionFailure("Got error \(error!) from URLSession, but was told not to finish operation from did complete!")
 				return
@@ -240,7 +240,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		case waiting
 		case success(doneResultProcessor: Bool, doneDidComplete: Bool)
 		/** Returns `true` if processing should continue in did complete. */
-		mutating func wentInDidComplete() -> Bool {
+		mutating func doingDidComplete() -> Bool {
 			switch self {
 				case .waiting: return true
 				case .success(doneResultProcessor: let rp, doneDidComplete: let dc):
@@ -250,7 +250,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			}
 		}
 		/** Returns `true` if processing should continue in result processor. */
-		mutating func wentInResultProcessor() -> Bool {
+		mutating func doingResultProcessor() -> Bool {
 			switch self {
 				case .waiting: assertionFailure("Invalid state \(self) for download status in result processor"); return false
 				case .success(doneResultProcessor: let rp, doneDidComplete: let dc):
