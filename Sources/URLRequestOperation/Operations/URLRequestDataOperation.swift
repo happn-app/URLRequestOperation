@@ -42,11 +42,9 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	public let retryProviders: [RetryProvider]
 	
 	public private(set) var result: Result<URLRequestOperationResult<ResultType>, Error> {
-		get {_resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
-		set {_resultQ.sync{ _result = newValue }}
+		get {resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
+		set {resultQ.sync{ _result = newValue }}
 	}
-	private let _resultQ: DispatchQueue
-	private var _result = Result<URLRequestOperationResult<ResultType>, Error>.failure(Err.operationNotFinished)
 	
 	/**
 	 Init an ``URLRequestOperation``.
@@ -70,7 +68,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 #else
 		self.urlOperationIdentifier = UUID()
 #endif
-		self._resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.Data-\(self.urlOperationIdentifier).ResultSync")
+		self.resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.Data-\(self.urlOperationIdentifier).ResultSync")
 		
 		self.session = session
 		self.currentRequest = request
@@ -251,6 +249,10 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	/* ***************
 	   MARK: - Private
 	   *************** */
+	
+	private let resultQ: DispatchQueue
+	
+	private var _result = Result<URLRequestOperationResult<ResultType>, Error>.failure(Err.operationNotFinished)
 	
 	private var currentRequest: URLRequest
 	private var currentTask: URLSessionDataTask?
