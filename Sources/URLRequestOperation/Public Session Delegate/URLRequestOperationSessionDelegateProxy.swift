@@ -41,8 +41,8 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 	public final override func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
 		/* We do _not_ call super for that one; instead we will call the “task delegate” ourselves.
 		 * We do this because the task delegate might return another response disposition than simply allow and we must merge that disposition with the one of the original delegate. */
-		if let d = delegates.taskDelegateForTask(dataTask) {
-			d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition1 in
+		if let d = delegates.taskDelegateForTask(dataTask), d.responds(to: #selector(URLSessionDataDelegate.urlSession(_:dataTask:didReceive:completionHandler:))) {
+			d.urlSession!(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition1 in
 				guard responseDisposition1 != .cancel else {
 					/* No need to call the original delegate if we already know we want to cancel the task. */
 					return completionHandler(.cancel)
