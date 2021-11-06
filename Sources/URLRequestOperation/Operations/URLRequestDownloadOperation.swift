@@ -154,14 +154,14 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	
 #if canImport(ObjectiveC)
 	public override func responds(to aSelector: Selector!) -> Bool {
-		if #available(macOS 12.0, *), session.delegate?.responds(to: aSelector) ?? false {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), session.delegate?.responds(to: aSelector) ?? false {
 			return true
 		}
 		return super.responds(to: aSelector)
 	}
 	
 	public override func forwardingTarget(for aSelector: Selector!) -> Any? {
-		if #available(macOS 12.0, *), session.delegate?.responds(to: aSelector) ?? false {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), session.delegate?.responds(to: aSelector) ?? false {
 			return session.delegate
 		}
 		return super.forwardingTarget(for: aSelector)
@@ -285,7 +285,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	/* TODO: Resume data init. */
 	private func task(for request: URLRequest) -> URLSessionDownloadTask {
 		let task: URLSessionDownloadTask
-		if #available(macOS 12.0, *) {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
 			if session.delegate is URLRequestOperation {
 #if canImport(os)
 				Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }

@@ -55,7 +55,7 @@ let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperatio
 //t2.resume()
 //Thread.sleep(forTimeInterval: 1)
 //
-//if #available(macOS 12.0, *) {
+//if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
 //	let delegate = SessionDelegate(id: 2)
 //	let t3 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!)
 //	t3.delegate = delegate
