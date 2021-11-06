@@ -123,14 +123,14 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	
 #if canImport(ObjectiveC)
 	public override func responds(to aSelector: Selector!) -> Bool {
-		if #available(macOS 12.0, *), session.delegate?.responds(to: aSelector) ?? false {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), session.delegate?.responds(to: aSelector) ?? false {
 			return true
 		}
 		return super.responds(to: aSelector)
 	}
 	
 	public override func forwardingTarget(for aSelector: Selector!) -> Any? {
-		if #available(macOS 12.0, *), session.delegate?.responds(to: aSelector) ?? false {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), session.delegate?.responds(to: aSelector) ?? false {
 			return session.delegate
 		}
 		return super.forwardingTarget(for: aSelector)
@@ -159,7 +159,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			return completionHandler(.cancel)
 		}
 		
-		if #available(macOS 12.0, *), let d = session.delegate as? URLSessionDataDelegate {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), dataTask.delegate === self, let d = session.delegate as? URLSessionDataDelegate {
 			d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition in
 				switch responseDisposition {
 					case .allow, .cancel, .becomeDownload, .becomeStream: ()
@@ -192,7 +192,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			currentData = newData
 		}()
 		
-		if #available(macOS 12.0, *) {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), dataTask.delegate === self {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: data)
 		}
 	}
@@ -208,7 +208,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 //			delegate.delegates.setTaskDelegate(self, forTask: streamTask)
 //		}
 		
-		if #available(macOS 12.0, *) {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), dataTask.delegate === self {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
 		}
 	}
@@ -223,7 +223,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 //			delegate.delegates.setTaskDelegate(self, forTask: downloadTask)
 //		}
 		
-		if #available(macOS 12.0, *) {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), dataTask.delegate === self {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
 		}
 	}
@@ -241,7 +241,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		currentData = nil
 		currentTask = nil
 		
-		if #available(macOS 12.0, *) {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), task.delegate === self {
 			(session.delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
 		}
 	}
@@ -265,7 +265,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	
 	private func task(for request: URLRequest) -> URLSessionDataTask {
 		let task: URLSessionDataTask
-		if #available(macOS 12.0, *) {
+		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
 			if session.delegate is URLRequestOperation {
 #if canImport(os)
 				Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }
