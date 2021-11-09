@@ -127,7 +127,7 @@ public final class MultipartParser {
 	}
 	
 	private func readByte() -> UInt8? {
-		try? streamReader.readType()
+		try? streamReader.readType() as UInt8
 	}
 	
 	private func parsePreamble(boundaryMatchIndex: Int) -> State {
