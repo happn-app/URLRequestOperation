@@ -18,7 +18,7 @@ import XCTest
 
 
 
-class ReachabilityTests: XCTestCase {
+class ReachabilityTests : XCTestCase {
 	
 #if canImport(SystemConfiguration)
 	
