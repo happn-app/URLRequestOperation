@@ -84,8 +84,8 @@ public struct FormDataDecoder {
 	 - Parameter boundary: Multipart boundary to used in the decoding.
 	 - Throws: Any errors decoding the model with `Codable` or parsing the data.
 	 - Returns: An instance of the decoded type `D`. */
-	public func decode<D: Decodable>(_ decodable: D.Type, from data: [UInt8], boundary: String) throws -> D {
-		try decode(D.self, from: DataReader(data: Data(data)), boundary: boundary)
+	public func decode<D: Decodable>(_ decodable: D.Type, from data: Data, boundary: String) throws -> D {
+		try decode(D.self, from: DataReader(data: data), boundary: boundary)
 	}
 	
 	/**
