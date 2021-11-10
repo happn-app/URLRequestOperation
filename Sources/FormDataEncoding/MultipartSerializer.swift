@@ -42,7 +42,7 @@ public final class MultipartSerializer {
 	 
 	 ```
 	 let data = try MultipartSerializer().serialize(parts: [part], boundary: "123")
-	 print(data) // multipart-encoded
+	 print(data) /* multipart-encoded */
 	 ```
 	 
 	 - Parameter parts: One or more `MultipartPart`s to serialize into `Data`.
