@@ -102,9 +102,9 @@ public final class MultipartParser {
 				}
 				headers.add(name: name, value: value.trimmingCharacters(in: CharacterSet(charactersIn: " \t")))
 			}
-			let body = try streamReader.readData(upTo: [newLineAndBoundary], matchingMode: .anyMatchWins, includeDelimiter: false)
-			_ = try streamReader.readData(size: body.delimiter.count)
-			res.append(MultipartPart(headers: headers, body: body.data))
+			let (body, delimiter) = try streamReader.readData(upTo: [newLineAndBoundary], matchingMode: .anyMatchWins, includeDelimiter: false)
+			_ = try streamReader.readData(size: delimiter.count)
+			res.append(MultipartPart(headers: headers, body: body))
 		}
 		/* Read the CRLF after the end of last part to go to beginning of epilogue. */
 		guard try streamReader.readData(size: Self.crlf.count) == Self.crlf else {
