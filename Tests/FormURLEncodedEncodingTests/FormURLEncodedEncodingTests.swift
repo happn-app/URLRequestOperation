@@ -23,7 +23,7 @@ class FormURLEncodedEncodingTests : XCTestCase {
 		let date = Date()
 		let value = ["hello": date]
 		let encoder = FormURLEncodedEncoder()
-		XCTAssertEqual(try encoder.encode(value), "hello=\(date)")
+		XCTAssertEqual(try encoder.encode(value), "hello=\(date.timeIntervalSince1970)")
 	}
 	
 }
