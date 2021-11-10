@@ -69,7 +69,7 @@ public final class MultipartParser {
 	 Parse the given stream.
 	 
 	 The stream next read will start at the beginning of the epilogue when this method is successful. */
-	public func parse(_ streamReader: StreamReader, ignoreAdditionalData: Bool = false) throws -> [MultipartPart] {
+	public func parse(_ streamReader: StreamReader) throws -> [MultipartPart] {
 		var res = [MultipartPart]()
 		/* Read preamble first. Usually empty. Ignored (as per RFC 1341). */
 		_ = try streamReader.readData(upTo: [boundary], matchingMode: .anyMatchWins, includeDelimiter: true)
