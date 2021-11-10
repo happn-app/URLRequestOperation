@@ -33,11 +33,11 @@ extension HTTPHeaders {
 	
 	func getParameter(_ name: String, _ key: String) -> String? {
 		return self.headerParts(name: name).flatMap {
-			$0.filter { $0.hasPrefix("\(key)=") }
+			$0.filter{ $0.hasPrefix("\(key)=") }
 			.first?
 			.split(separator: "=")
 			.last
-			.flatMap { $0 .trimmingCharacters(in: .quotes)}
+			.flatMap{ $0.trimmingCharacters(in: .quotes)}
 		}
 	}
 	
@@ -49,7 +49,7 @@ extension HTTPHeaders {
 	) {
 		var current: [String]
 		if let existing = self.headerParts(name: name) {
-			current = existing.filter { !$0.hasPrefix("\(key)=") }
+			current = existing.filter{ !$0.hasPrefix("\(key)=") }
 		} else {
 			current = [defaultValue]
 		}
@@ -64,9 +64,9 @@ extension HTTPHeaders {
 	func headerParts(name: String) -> [String]? {
 		return self[name]
 			.first
-			.flatMap {
+			.flatMap{
 				$0.split(separator: ";")
-					.map { $0.trimmingCharacters(in: .whitespaces) }
+					.map{ $0.trimmingCharacters(in: .whitespaces) }
 			}
 	}
 }

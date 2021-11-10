@@ -27,9 +27,23 @@ class Bob : Equatable, Encodable, Decodable, MultipartPartConvertible {
 class FormDataEncoderTests : XCTestCase {
 	
 	func testBasicEncode() throws {
+		let toEncode = ["Hello": "World"]
+		let encoded = try FormDataEncoder().encode(toEncode, boundary: "123")
+		let decoded = try FormDataDecoder().decode([String: String].self, from: encoded, boundary: "123")
+		XCTAssertEqual(toEncode, decoded)
+	}
+	
+	func testEncodeBob() throws {
 		let toEncode = ["Hello": Bob()]
 		let encoded = try FormDataEncoder().encode(toEncode, boundary: "123")
 		let decoded = try FormDataDecoder().decode([String: Bob].self, from: encoded, boundary: "123")
+		XCTAssertEqual(toEncode, decoded)
+	}
+	
+	func testEmptyEncode() throws {
+		let toEncode: [String] = []
+		let encoded = try FormDataEncoder().encode(toEncode, boundary: "123")
+		let decoded = try FormDataDecoder().decode([String].self, from: encoded, boundary: "123")
 		XCTAssertEqual(toEncode, decoded)
 	}
 	

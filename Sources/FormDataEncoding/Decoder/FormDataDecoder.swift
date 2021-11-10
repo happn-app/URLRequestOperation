@@ -102,26 +102,7 @@ public struct FormDataDecoder {
 	 - Returns: An instance of the decoded type `D`. */
 	public func decode<D: Decodable>(_ decodable: D.Type, from stream: StreamReader, boundary: String) throws -> D {
 		let parser = MultipartParser(boundary: boundary)
-		
-		var parts = [MultipartPart]()
-		var headers = HTTPHeaders()
-		var body = Data()
-		
-		parser.onHeader = { (field, value) in
-			headers.replaceOrAdd(name: field, value: value)
-		}
-		parser.onBody = { new in
-			body.append(new)
-		}
-		parser.onPartComplete = {
-			let part = MultipartPart(headers: headers, body: body)
-			headers = [:]
-			body = Data()
-			parts.append(part)
-		}
-		
-		try parser.execute(stream)
-		let data = MultipartFormData(parts: parts, nestingDepth: nestingDepth)
+		let data = MultipartFormData(parts: try parser.parse(stream), nestingDepth: nestingDepth)
 		let decoder = Decoder(codingPath: [], data: data, userInfo: userInfo)
 		return try decoder.decode()
 	}

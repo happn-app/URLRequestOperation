@@ -28,7 +28,7 @@ import Foundation
 
 
 /** A single part of a `multipart`-encoded message. */
-public struct MultipartPart: Equatable {
+public struct MultipartPart : Equatable {
 	
 	/** The part’s headers. */
 	public var headers: HTTPHeaders
