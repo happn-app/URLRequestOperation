@@ -7,7 +7,7 @@ import XCTest
 
 class Bob : Equatable, Encodable, Decodable, MultipartPartConvertible {
 	
-	static func == (lhs: Bob, rhs: Bob) -> Bool {
+	static func ==(lhs: Bob, rhs: Bob) -> Bool {
 		return true
 	}
 	

@@ -76,7 +76,7 @@ private class WeakElementBox<ElementType : AnyObject> {
 
 extension WeakElementBox: Equatable where ElementType: Equatable {
 	
-	static func == (lhs: WeakElementBox<ElementType>, rhs: WeakElementBox<ElementType>) -> Bool {
+	static func ==(lhs: WeakElementBox<ElementType>, rhs: WeakElementBox<ElementType>) -> Bool {
 		return lhs.element == rhs.element
 	}
 	

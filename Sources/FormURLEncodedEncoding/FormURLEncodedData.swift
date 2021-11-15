@@ -66,7 +66,7 @@ enum URLQueryFragment : ExpressibleByStringLiteral, Equatable {
 	/**
 	 Do comparison and hashing using the decoded version as there are multiple ways something can be encoded.
 	 Certain characters that are not typically encoded could have been encoded making string comparisons between two encodings not work. */
-	static func == (lhs: URLQueryFragment, rhs: URLQueryFragment) -> Bool {
+	static func ==(lhs: URLQueryFragment, rhs: URLQueryFragment) -> Bool {
 		do {
 			return try lhs.asUrlDecoded() == rhs.asUrlDecoded()
 		} catch {
