@@ -70,7 +70,7 @@ extension FormDataDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
 	}
 	
 	mutating func decoderAtIndex() throws -> FormDataDecoder.Decoder {
-		defer { currentIndex += 1 }
+		defer {currentIndex += 1}
 		return try decoder.nested(at: index, with: getValue())
 	}
 	
