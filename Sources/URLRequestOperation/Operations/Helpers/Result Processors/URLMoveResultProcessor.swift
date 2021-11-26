@@ -34,17 +34,21 @@ public struct URLMoveResultProcessor : ResultProcessor {
 	public let destinationURL: URL
 	public let moveBehavior: MoveBehavior
 	
+	public let processingQueue: GenericQueue
+	
 	public let fileManager: FileManager
 	
-	public init(destinationURL: URL, moveBehavior: MoveBehavior = .failIfDestinationExists, fileManager: FileManager = .default) {
+	public init(destinationURL: URL, moveBehavior: MoveBehavior = .failIfDestinationExists, processingQueue: GenericQueue = NoQueue(), fileManager: FileManager = .default) {
 		self.destinationURL = destinationURL
 		self.moveBehavior = moveBehavior
+		
+		self.processingQueue = processingQueue
 		
 		self.fileManager = fileManager
 	}
 	
 	public func transform(source: URL, urlResponse: URLResponse, handler: @escaping (Result<URL, Error>) -> Void) {
-		do {
+		processingQueue.execute{ handler(Result{
 			var destinationURL = destinationURL.absoluteURL
 			let destinationFolderURL = destinationURL.deletingLastPathComponent()
 			
@@ -73,10 +77,8 @@ public struct URLMoveResultProcessor : ResultProcessor {
 			}
 			
 			try fileManager.moveItem(at: source, to: destinationURL)
-			handler(.success(destinationURL))
-		} catch {
-			handler(.failure(error))
-		}
+			return destinationURL
+		})}
 	}
 	
 }
