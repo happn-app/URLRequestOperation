@@ -34,11 +34,11 @@ public struct URLMoveResultProcessor : ResultProcessor {
 	public let destinationURL: URL
 	public let moveBehavior: MoveBehavior
 	
-	public let processingQueue: GenericQueue
+	public let processingQueue: BlockDispatcher
 	
 	public let fileManager: FileManager
 	
-	public init(destinationURL: URL, moveBehavior: MoveBehavior = .failIfDestinationExists, processingQueue: GenericQueue = NoQueue(), fileManager: FileManager = .default) {
+	public init(destinationURL: URL, moveBehavior: MoveBehavior = .failIfDestinationExists, processingQueue: BlockDispatcher = SyncBlockDispatcher(), fileManager: FileManager = .default) {
 		self.destinationURL = destinationURL
 		self.moveBehavior = moveBehavior
 		
