@@ -23,14 +23,14 @@ public struct DecodeDataResultProcessor<ResultType> : ResultProcessor {
 	
 	public let decoder: (Data) throws -> ResultType
 	
-	public let processingQueue: GenericQueue
+	public let processingQueue: BlockDispatcher
 	
-	public init(jsonDecoder: JSONDecoder, processingQueue: GenericQueue = NoQueue()) where ResultType : Decodable {
+	public init(jsonDecoder: JSONDecoder, processingQueue: BlockDispatcher = SyncBlockDispatcher()) where ResultType : Decodable {
 		self.decoder = { try jsonDecoder.decode(ResultType.self, from: $0) }
 		self.processingQueue = processingQueue
 	}
 	
-	public init(decoder: @escaping (Data) throws -> ResultType, processingQueue: GenericQueue = NoQueue()) {
+	public init(decoder: @escaping (Data) throws -> ResultType, processingQueue: BlockDispatcher = SyncBlockDispatcher()) {
 		self.decoder = decoder
 		self.processingQueue = processingQueue
 	}

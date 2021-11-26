@@ -22,9 +22,9 @@ public struct URLToFileHandleResultProcessor : ResultProcessor {
 	public typealias SourceType = URL
 	public typealias ResultType = FileHandle
 	
-	public let processingQueue: GenericQueue
+	public let processingQueue: BlockDispatcher
 	
-	public init(processingQueue: GenericQueue = NoQueue()) {
+	public init(processingQueue: BlockDispatcher = SyncBlockDispatcher()) {
 		self.processingQueue = processingQueue
 	}
 	

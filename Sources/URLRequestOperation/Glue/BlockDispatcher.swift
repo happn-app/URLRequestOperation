@@ -19,14 +19,14 @@ import RetryingOperation
 
 
 
-public protocol GenericQueue {
+public protocol BlockDispatcher {
 	
 	func execute(_ work: @escaping () -> Void)
 	
 }
 
 
-public struct NoQueue : GenericQueue {
+public struct SyncBlockDispatcher : BlockDispatcher {
 	
 	public init() {}
 	
@@ -37,7 +37,7 @@ public struct NoQueue : GenericQueue {
 }
 
 
-extension OperationQueue : GenericQueue {
+extension OperationQueue : BlockDispatcher {
 	
 	public func execute(_ work: @escaping () -> Void) {
 		addOperation(work)
@@ -46,7 +46,7 @@ extension OperationQueue : GenericQueue {
 }
 
 
-extension DispatchQueue : GenericQueue {
+extension DispatchQueue : BlockDispatcher {
 	
 	public func execute(_ work: @escaping () -> Void) {
 		async(execute: work)
