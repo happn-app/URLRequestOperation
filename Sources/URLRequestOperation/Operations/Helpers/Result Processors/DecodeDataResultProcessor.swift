@@ -1,0 +1,42 @@
+/*
+Copyright 2021 happn
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. */
+
+import Foundation
+
+
+
+public struct DecodeDataResultProcessor<ResultType> : ResultProcessor {
+	
+	public typealias SourceType = Data
+	
+	public let decoder: (Data) throws -> ResultType
+	
+	public let processingQueue: GenericQueue
+	
+	public init(jsonDecoder: JSONDecoder, processingQueue: GenericQueue = NoQueue()) where ResultType : Decodable {
+		self.decoder = { try jsonDecoder.decode(ResultType.self, from: $0) }
+		self.processingQueue = processingQueue
+	}
+	
+	public init(decoder: @escaping (Data) throws -> ResultType, processingQueue: GenericQueue = NoQueue()) {
+		self.decoder = decoder
+		self.processingQueue = processingQueue
+	}
+	
+	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping (Result<ResultType, Error>) -> Void) {
+		processingQueue.execute{ handler(Result{ try decoder(source) }) }
+	}
+	
+}
