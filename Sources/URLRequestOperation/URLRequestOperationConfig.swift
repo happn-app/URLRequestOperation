@@ -56,7 +56,8 @@ public enum URLRequestOperationConfig {
 		return Logger(label: "com.happn.URLRequestOperation")
 	}()
 	
-	/** When data has been fetched from a server, if it is a valid UTF-8 string, should we log it?
+	/**
+	 When data has been fetched from a server, if it is a valid UTF-8 string, should we log it?
 	 Set to true for debug purpose. */
 	public static var logFetchedStrings = false
 	/** Log everything URL Session related in the file at the given URL. */
