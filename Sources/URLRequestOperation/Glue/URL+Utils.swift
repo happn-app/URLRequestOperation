@@ -21,7 +21,7 @@ import FormURLEncodedEncoding
 
 internal extension URL {
 	
-	func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters, encoder: FormURLEncodedEncoder = .init()) throws -> URL {
+	func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
 		let encoded: String = try encoder.encode(parameters)
 		/* We do the URL/URLComponents trip, because otherwise it’s annoying to manage the fragment.
 		 * If the fragment were not there, I’d have simply appended the encoded parameters to the URL, w/ a “?” or a “&” before depending on whether query is nil. */

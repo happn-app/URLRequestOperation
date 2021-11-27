@@ -25,7 +25,7 @@ public extension URLRequestDataOperation {
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable>(
 		urlRequest: URLRequest, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
-		decoders: [HTTPContentDecoder] = [JSONDecoder()],
+		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		let resultProcessor = HTTPStatusCodeCheckResultProcessor()
@@ -49,7 +49,7 @@ public extension URLRequestDataOperation {
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable>(
 		baseURL: URL, path: String, method: String = "GET", session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
-		decoders: [HTTPContentDecoder] = [JSONDecoder()],
+		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
@@ -63,7 +63,7 @@ public extension URLRequestDataOperation {
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable, URLParamtersType : Encodable>(
 		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
-		parameterEncoder: FormURLEncodedEncoder = .init(), decoders: [HTTPContentDecoder] = [JSONDecoder()],
+		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
@@ -77,7 +77,7 @@ public extension URLRequestDataOperation {
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable, HTTPBodyType : Encodable>(
 		baseURL: URL, path: String, method: String = "POST", httpBody: HTTPBodyType?, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
-		bodyEncoder: HTTPContentEncoder = JSONEncoder(), decoders: [HTTPContentDecoder] = [JSONDecoder()],
+		bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
@@ -91,7 +91,7 @@ public extension URLRequestDataOperation {
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable, URLParamtersType : Encodable, HTTPBodyType : Encodable>(
 		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
-		parameterEncoder: FormURLEncodedEncoder = .init(), bodyEncoder: HTTPContentEncoder = JSONEncoder(), decoders: [HTTPContentDecoder] = [JSONDecoder()],
+		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		let url = baseURL.appendingPathComponent(path)
