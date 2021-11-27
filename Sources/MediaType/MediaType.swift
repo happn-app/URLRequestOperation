@@ -106,7 +106,6 @@ public struct MediaType : Hashable, RawRepresentable {
 	}
 	
 	public var rawValue: String {
-#warning("Quoted string for parameter value if cannot be represented raw")
 		return type.lowercased() + "/" + subtype.lowercased() + parameters.reduce("", { $0 + ";" + $1.key.lowercased() + "=" + $1.value.quotedIfNeeded() })
 	}
 	
@@ -171,7 +170,16 @@ public struct MediaType : Hashable, RawRepresentable {
 internal extension String {
 	
 	func quotedIfNeeded() -> String {
-		return self
+		var quote = ""
+		var escaped = self
+		var range = escaped.startIndex..<escaped.endIndex
+		while let found = escaped.rangeOfCharacter(from: .qdtext.inverted, options: .backwards, range: range) {
+			quote = #"""#
+			escaped.replaceSubrange(found, with: "\\" + escaped[found])
+			range = escaped.startIndex..<found.lowerBound
+		}
+		
+		return quote + escaped + quote
 	}
 	
 }
