@@ -15,6 +15,8 @@ limitations under the License. */
 
 import Foundation
 
+import MediaType
+
 
 
 /** All of the errors thrown by the module should have this type. */
@@ -23,10 +25,20 @@ public enum URLRequestOperationError : Error {
 	case operationNotFinished
 	case operationCancelled
 	
-	/** Error from ``HTTPStatusCodeURLResponseValidator`` if status code is not one of the expected values. */
-	case unexpectedStatusCode(Int?)
+	/** Error from ``HTTPStatusCodeURLResponseValidator`` or ``HTTPStatusCodeCheckResultProcessor`` if status code is not one of the expected values. */
+	case unexpectedStatusCode(Int?, httpBody: Data?)
 	
+	/** Error from ``URLMoveResultProcessor`` if the destination file already exists and the move behavior is ``failIfDestinationExists`` */
 	case downloadDestinationExists
+	
+	/** Error from an ``HTTPContentDecoder`` when given object has unsupported media type. */
+	case invalidMediaType(MediaType)
+	
+	/** Error from ``DecodeHTTPContentResultProcessor`` if URL response does not have or have an invalid content type (or is not an HTTP URL response). */
+	case noOrInvalidContentType(URLResponse)
+	
+	/** Error from ``DecodeHTTPContentResultProcessor`` if no decoders are configured for the content type in the response. */
+	case noDecoderForContentType(MediaType)
 	
 	/**
 	 One of these cases that should never happen:

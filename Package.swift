@@ -31,9 +31,10 @@ let package = Package(
 		.testTarget(name: "FormURLEncodedEncodingTests", dependencies: ["FormURLEncodedEncoding"]),
 		
 		.target(name: "URLRequestOperation", dependencies: [
-			.product(name: "Logging", package: "swift-log"),
+			.product(name: "Logging",           package: "swift-log"),
 			.product(name: "RetryingOperation", package: "RetryingOperation"),
-			.product(name: "SemiSingleton", package: "SemiSingleton")
+			.product(name: "SemiSingleton",     package: "SemiSingleton"),
+			.target(name: "MediaType")
 		]),
 		.executableTarget(name: "URLRequestOperationManualTest", dependencies: ["URLRequestOperation"]),
 		.testTarget(name: "URLRequestOperationTests", dependencies: ["URLRequestOperation"])

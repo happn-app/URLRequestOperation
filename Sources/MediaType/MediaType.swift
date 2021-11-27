@@ -17,6 +17,7 @@ import Foundation
 
 
 
+/** Represent a media type ([RFC 7231, section 3.1.1.1](https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.1.1)). */
 public struct MediaType : Hashable, RawRepresentable {
 	
 	public typealias RawValue = String

@@ -47,18 +47,17 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	}
 	
 	/**
-	 Init an ``URLRequestOperation``.
+	 Inits an ``URLRequestOperation``.
 	 
 	 If the session’s delegate is an ``URLRequestOperationSessionDelegateProxy`` (ObjC runtime only) or an ``URLRequestOperationSessionDelegate``,
 	 ``URLRequestOperation`` will create an `URLSessionTask` that will use the delegate to get the data.
 	 Otherwise a handler-based task will be created. */
 	public init(
-		request: URLRequest, session: URLSession = .shared,
-		requestProcessors: [RequestProcessor] = [],
-		urlResponseValidators: [URLResponseValidator] = [],
+		request: URLRequest, session: URLSession,
+		requestProcessors: [RequestProcessor],
+		urlResponseValidators: [URLResponseValidator],
 		resultProcessor: AnyResultProcessor<Data, ResultType>,
-		retryProviders: [RetryProvider] = [],
-		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
+		retryProviders: [RetryProvider]
 	) {
 #if DEBUG
 		self.urlOperationIdentifier = opIdQueue.sync{
@@ -78,16 +77,6 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		self.urlResponseValidators = urlResponseValidators
 		self.resultProcessor = resultProcessor
 		self.retryProviders = retryProviders
-	}
-	
-	public convenience init(
-		request: URLRequest, session: URLSession = .shared,
-		requestProcessors: [RequestProcessor] = [],
-		urlResponseValidators: [URLResponseValidator] = [],
-		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
-		retryProviders: [RetryProvider] = []
-	) where ResultType == Data {
-		self.init(request: request, session: session, requestProcessors: requestProcessors, urlResponseValidators: urlResponseValidators, resultProcessor: resultProcessor, retryProviders: retryProviders, nonConvenience: ())
 	}
 	
 	public override func startBaseOperation(isRetry: Bool) {
