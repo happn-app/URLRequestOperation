@@ -6,6 +6,7 @@ let package = Package(
 	name: "URLRequestOperation",
 	products: [
 		.library(name: "URLRequestOperation", targets: ["URLRequestOperation"]),
+		.library(name: "MediaType", targets: ["MediaType"]),
 		.library(name: "FormDataEncoding", targets: ["FormDataEncoding"]),
 		.library(name: "FormURLEncodedEncoding", targets: ["FormURLEncodedEncoding"])
 	],
@@ -17,6 +18,9 @@ let package = Package(
 		.package(url: "https://github.com/happn-tech/SemiSingleton.git", from: "2.0.3")
 	],
 	targets: [
+		.target(name: "MediaType"),
+		.testTarget(name: "MediaTypeTests", dependencies: ["MediaType"]),
+		
 		.target(name: "FormDataEncoding", dependencies: [
 			.product(name: "OrderedCollections", package: "swift-collections"),
 			.product(name: "StreamReader",       package: "stream-reader")
