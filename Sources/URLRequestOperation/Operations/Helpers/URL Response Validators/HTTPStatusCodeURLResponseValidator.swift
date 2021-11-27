@@ -12,10 +12,10 @@ public struct HTTPStatusCodeURLResponseValidator : URLResponseValidator {
 	
 	public func validate(urlResponse: URLResponse) -> Error? {
 		guard let code = (urlResponse as? HTTPURLResponse)?.statusCode else {
-			return Err.unexpectedStatusCode(nil)
+			return Err.unexpectedStatusCode(nil, httpBody: nil)
 		}
 		guard expectedCodes.contains(code) else {
-			return Err.unexpectedStatusCode(code)
+			return Err.unexpectedStatusCode(code, httpBody: nil)
 		}
 		return nil
 	}

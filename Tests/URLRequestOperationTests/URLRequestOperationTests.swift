@@ -24,6 +24,26 @@ import XCTest
 
 class URLRequestOperationTests: XCTestCase {
 	
+	@available(macOS 12.0.0, *)
+	func testSimpleAPIGet() async throws {
+		struct Todo : Decodable {
+			var userId: Int
+			var id: Int
+			var title: String
+			var completed: Bool
+		}
+		struct Empty : Decodable {}
+		let request = URLRequest(url: URL(string: "https://jsonplaceholder.typicode.com/todos/4")!)
+		let op = URLRequestDataOperation<APIResult<Todo, Empty>>.forAPIRequest(urlRequest: request)
+		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<Todo, Empty>>, Error>) in
+			op.completionBlock = {
+				continuation.resume(with: op.result)
+			}
+			op.start()
+		}
+		print(res)
+	}
+	
 //	func testFetchFrostLandConstant() {
 //		let op = URLRequestOperation(url: URL(string: "https://frostland.fr/constant.txt")!)
 //		op.start()

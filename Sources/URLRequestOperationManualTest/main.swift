@@ -75,7 +75,9 @@ let q = OperationQueue()
 let request = URLRequest(url: URL(string: "https://frostland.fr/http-tests/200-empty")!, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 0.5)
 let operation1 = URLRequestDataOperation<Data>(
 	request: request, session: session,
+	requestProcessors: [],
 	urlResponseValidators: [HTTPStatusCodeURLResponseValidator(expectedCodes: Set(arrayLiteral: 500))],
+	resultProcessor: .identity(),
 	retryProviders: [
 		UnretriedErrorsRetryProvider(isBlacklistedError: { $0 is URLRequestOperationError }),
 		NetworkErrorRetryProvider(maximumNumberOfRetries: 5)
