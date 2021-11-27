@@ -28,4 +28,9 @@ class MediaTypeTests : XCTestCase {
 		XCTAssertEqual(ex1.subtype, "html")
 	}
 	
+	func testQuotesInParameters() throws {
+		let mediaType = try XCTUnwrap(MediaType(rawValue: #"unknown/bob;user="I am \"Bob\", you know?";name="\"Bob\"";age="42";sex=m"#))
+		XCTAssertEqual(mediaType.rawValue, #"unknown/bob;user="I am \"Bob\", you know?";name="\"Bob\"";age=42;sex=m"#)
+	}
+	
 }
