@@ -24,7 +24,7 @@ import XCTest
 
 class URLRequestOperationTests : XCTestCase {
 	
-	@available(macOS 12.0.0, *)
+	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 	func testSimpleAPIGet() async throws {
 		struct Todo : Decodable {
 			var userId: Int

@@ -68,11 +68,18 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 		/* We now know the request CAN be retried (idempotent and maximum number of retries not exceeded, task not cancelled). */
 		currentNumberOfRetries += 1
 		let host = request.url?.host
+#if canImport(SystemConfiguration)
 		return ([
 			RetryingOperation.TimerRetryHelper(retryDelay: Self.exponentialBackoffTimeForIndex(currentNumberOfRetries - 1), retryingOperation: operation),
 			allowReachabilityObserver ? ReachabilityRetryHelper(host: host, operation: operation) : nil,
 			allowOtherSuccessObserver ? OtherSuccessRetryHelper(host: host, operation: operation) : nil
 		] as [RetryHelper?]).compactMap{ $0 }
+#else
+		return ([
+			RetryingOperation.TimerRetryHelper(retryDelay: Self.exponentialBackoffTimeForIndex(currentNumberOfRetries - 1), retryingOperation: operation),
+			allowOtherSuccessObserver ? OtherSuccessRetryHelper(host: host, operation: operation) : nil
+		] as [RetryHelper?]).compactMap{ $0 }
+#endif
 	}
 	
 }
