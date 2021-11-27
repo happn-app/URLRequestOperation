@@ -34,6 +34,7 @@ let package = Package(
 			.product(name: "Logging",           package: "swift-log"),
 			.product(name: "RetryingOperation", package: "RetryingOperation"),
 			.product(name: "SemiSingleton",     package: "SemiSingleton"),
+			.target(name: "FormURLEncodedEncoding"),
 			.target(name: "MediaType")
 		]),
 		.executableTarget(name: "URLRequestOperationManualTest", dependencies: ["URLRequestOperation"]),

@@ -15,30 +15,18 @@ limitations under the License. */
 
 import Foundation
 
+import FormURLEncodedEncoding
 import MediaType
 
 
 
-extension JSONEncoder : HTTPContentEncoder {
+extension FormURLEncodedEncoder : HTTPContentEncoder {
 	
 	public func encode<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable {
-		return try (encode(value), MediaType(rawValue: "application/json")!)
-	}
-	
-}
-
-
-extension JSONDecoder : HTTPContentDecoder {
-	
-	public func canDecode(mediaType: MediaType) -> Bool {
-		return mediaType.type == "application" && mediaType.subtype == "json"
-	}
-	
-	public func decode<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
-		guard canDecode(mediaType: mediaType) else {
-			throw Err.invalidMediaType(mediaType)
-		}
-		return try decode(type, from: data)
+		let encodedString: String = try encode(value)
+		/* MediaType for form url encoded does not have a charset; content is expected to be UTF-8.
+		 * https://stackoverflow.com/a/16829056 */
+		return (Data(encodedString.utf8), MediaType(rawValue: "application/x-www-form-urlencoded")!)
 	}
 	
 }
