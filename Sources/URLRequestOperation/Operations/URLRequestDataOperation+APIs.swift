@@ -14,9 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License. */
 
 import Foundation
-#if canImport(os)
-import os.log
-#endif
 
 import FormURLEncodedEncoding
 
@@ -24,17 +21,7 @@ import FormURLEncodedEncoding
 
 public extension URLRequestDataOperation {
 	
-//	convenience init(
-//		request: URLRequest, session: URLSession = .shared,
-//		requestProcessors: [RequestProcessor] = [],
-//		urlResponseValidators: [URLResponseValidator] = [],
-//		resultProcessor: AnyResultProcessor<Data, Data> = .identity(),
-//		retryProviders: [RetryProvider] = []
-//	) where ResultType == Data {
-//		self.init(request: request, session: session, requestProcessors: requestProcessors, urlResponseValidators: urlResponseValidators, resultProcessor: resultProcessor, retryProviders: retryProviders)
-//	}
-	
-	/* Designated for API */
+	/* Designated for APIs */
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable>(
 		urlRequest: URLRequest, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
