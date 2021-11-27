@@ -33,21 +33,22 @@ public extension URLRequestDataOperation {
 //	}
 	
 	/* Designated for API */
-	static func forAPIRequest<APIResultType : Decodable, APIErrorType : Decodable>(
+	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable>(
+		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		urlRequest: URLRequest, decoders: [HTTPContentDecoder] = [JSONDecoder()], session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	) -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APIResultType, APIErrorType> {
+	) -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		let resultProcessor = HTTPStatusCodeCheckResultProcessor()
 			.flatMap(
-				DecodeHTTPContentResultProcessor<APIResultType>(decoders: decoders, processingQueue: SyncBlockDispatcher())
-					.map{ v in APIResult<APIResultType, APIErrorType>.success(v) }
+				DecodeHTTPContentResultProcessor<APISuccessType>(decoders: decoders, processingQueue: SyncBlockDispatcher())
+					.map{ v in APIResult<APISuccessType, APIErrorType>.success(v) }
 			)
 			.flatMapError(
 				RecoverHTTPStatusCodeCheckErrorResultProcessor()
 					.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: SyncBlockDispatcher()))
-					.map{ APIResult<APIResultType, APIErrorType>.failure($0) }
+					.map{ APIResult<APISuccessType, APIErrorType>.failure($0) }
 			)
-		return URLRequestDataOperation<APIResult<APIResultType, APIErrorType>>(
+		return URLRequestDataOperation<APIResult<APISuccessType, APIErrorType>>(
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [/* URL Response Validators do not make much sense for an API call */],
 			resultProcessor: resultProcessor,
