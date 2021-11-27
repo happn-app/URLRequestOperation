@@ -20,7 +20,7 @@ import Foundation
 internal extension HTTPURLResponse {
 	
 	func hpn_value(forHTTPHeaderField headerName: String) -> String? {
-		if #available(macOS 10.15, *) {
+		if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *) {
 			return value(forHTTPHeaderField: headerName)
 		} else {
 			/* If the OS is too old, we do the comparison manually… */
