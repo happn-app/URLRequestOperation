@@ -41,6 +41,11 @@ public enum URLRequestOperationError : Error {
 	case noDecoderForContentType(MediaType)
 	
 	/**
+	 From one of ``URLRequestDataOperation`` initializers, if there is an issue converting between `URL` and `URLComponents`.
+	 This error should never happen, but technically can (if I understand correctly such failure can occur because `URL` and `URLComponents` do not parse URLs using the same RFCs). */
+	case conversionBetweenURLAndURLComponents
+	
+	/**
 	 One of these cases that should never happen:
 	 - URL response **and** error are `nil` from underlying session task;
 	 - Task’s response is `nil` in `urlSession(:downloadTask:didFinishDownloadingTo:)`.

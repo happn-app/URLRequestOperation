@@ -34,7 +34,35 @@ class URLRequestOperationTests : XCTestCase {
 		}
 		struct Empty : Decodable {}
 		let request = URLRequest(url: URL(string: "https://jsonplaceholder.typicode.com/todos/4")!)
-		let op = URLRequestDataOperation.forAPIRequest(successType: Todo.self, errorType: Empty.self, urlRequest: request)
+		let op = URLRequestDataOperation.forAPIRequest(urlRequest: request, successType: Todo.self, errorType: Empty.self)
+		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<Todo, Empty>>, Error>) in
+			op.completionBlock = {
+				continuation.resume(with: op.result)
+			}
+			op.start()
+		}
+		print(res)
+	}
+	
+	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+	func testSimpleAPIPost() async throws {
+		struct Todo : Decodable {
+			var userId: Int
+			var id: Int
+			var title: String
+			var completed: Bool
+		}
+		struct TodoCreation : Encodable {
+			var userId: Int
+			var title: String
+			var completed: Bool
+		}
+		struct Empty : Decodable {}
+		let op = try URLRequestDataOperation.forAPIRequest(
+			baseURL: URL(string: "https://jsonplaceholder.typicode.com")!, path: "todos", method: "POST",
+			httpBody: TodoCreation(userId: 42, title: "I did it!", completed: true),
+			successType: Todo.self, errorType: Empty.self
+		)
 		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<Todo, Empty>>, Error>) in
 			op.completionBlock = {
 				continuation.resume(with: op.result)

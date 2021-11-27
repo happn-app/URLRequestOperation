@@ -21,7 +21,6 @@ import MediaType
 
 public protocol HTTPContentEncoder {
 	
-	func canEncode(mediaType: MediaType) -> Bool
 	func encode<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable
 	
 }
