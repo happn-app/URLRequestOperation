@@ -20,6 +20,8 @@ import OSLog
 
 import Logging
 
+import FormURLEncodedEncoding
+
 
 
 /**
@@ -55,6 +57,10 @@ public enum URLRequestOperationConfig {
 #endif
 		return Logger(label: "com.happn.URLRequestOperation")
 	}()
+	
+	public static var defaultAPIResponseDecoders: [HTTPContentDecoder] = [JSONDecoder()]
+	public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = JSONEncoder()
+	public static var defaultAPIRequestParametersEncoder: URLQueryEncoder = FormURLEncodedEncoder()
 	
 	/**
 	 When data has been fetched from a server, if it is a valid UTF-8 string, should we log it?
