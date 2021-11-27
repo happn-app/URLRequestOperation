@@ -18,7 +18,7 @@ import XCTest
 
 
 
-class IPUtilsTests: XCTestCase {
+class IPUtilsTests : XCTestCase {
 	
 	func testSockaddrToString() {
 		let ipstr = "9.9.9.9"

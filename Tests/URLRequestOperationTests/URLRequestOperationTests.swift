@@ -22,7 +22,7 @@ import XCTest
 
 
 
-class URLRequestOperationTests: XCTestCase {
+class URLRequestOperationTests : XCTestCase {
 	
 	@available(macOS 12.0.0, *)
 	func testSimpleAPIGet() async throws {
@@ -34,7 +34,7 @@ class URLRequestOperationTests: XCTestCase {
 		}
 		struct Empty : Decodable {}
 		let request = URLRequest(url: URL(string: "https://jsonplaceholder.typicode.com/todos/4")!)
-		let op = URLRequestDataOperation<APIResult<Todo, Empty>>.forAPIRequest(urlRequest: request)
+		let op = URLRequestDataOperation.forAPIRequest(successType: Todo.self, errorType: Empty.self, urlRequest: request)
 		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<Todo, Empty>>, Error>) in
 			op.completionBlock = {
 				continuation.resume(with: op.result)
