@@ -43,7 +43,14 @@ public struct MediaType : Hashable, RawRepresentable {
 	
 	public var parameters: [Parameter]
 	
-	/** We do not allow obs-text chars in parameter (%x80-FF) */
+	/**
+	 Parse a media type.
+	 
+	 - Important: We do not allow obs-text chars in parameter values (%x80-FF) even thought the RFC does.
+	 The rationale for this is `String` works with grapheme clusters and not bytes.
+	 We cannot access the original bytes in the media-type!
+	 So we simply do not allow obs-text in quoted strings.
+	 RFC says parser should not allow them anymore anyway. */
 	public init?(rawValue: String) {
 		/* Syntax (from https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.1.1):
 		 * media-type = type "/" subtype *( OWS ";" OWS parameter )
