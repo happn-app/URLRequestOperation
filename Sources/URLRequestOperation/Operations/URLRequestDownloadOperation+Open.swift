@@ -39,7 +39,7 @@ public extension URLRequestDownloadOperation {
 		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	) throws -> URLRequestDownloadOperation<ResultType> where ResultType == FileHandle {
+	) -> URLRequestDownloadOperation<ResultType> where ResultType == FileHandle {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		return Self.forReadingFile(
