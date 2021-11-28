@@ -21,7 +21,7 @@ import MediaType
 
 extension JSONEncoder : HTTPContentEncoder {
 	
-	public func encode<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable {
+	public func encodeForHTTPContent<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable {
 		return try (encode(value), MediaType(rawValue: "application/json")!)
 	}
 	
@@ -30,12 +30,12 @@ extension JSONEncoder : HTTPContentEncoder {
 
 extension JSONDecoder : HTTPContentDecoder {
 	
-	public func canDecode(mediaType: MediaType) -> Bool {
+	public func canDecodeHTTPContent(mediaType: MediaType) -> Bool {
 		return mediaType.type == "application" && mediaType.subtype == "json"
 	}
 	
-	public func decode<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
-		guard canDecode(mediaType: mediaType) else {
+	public func decodeHTTPContent<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
+		guard canDecodeHTTPContent(mediaType: mediaType) else {
 			throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid media type \(mediaType)", underlyingError: nil))
 		}
 		return try decode(type, from: data)

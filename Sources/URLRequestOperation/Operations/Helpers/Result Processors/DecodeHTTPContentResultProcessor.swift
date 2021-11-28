@@ -46,13 +46,13 @@ public struct DecodeHTTPContentResultProcessor<ResultType : Decodable> : ResultP
 		else {
 			return handler(.failure(MyErr.noOrInvalidContentType(urlResponse)))
 		}
-		guard let decoder = decoders.first(where: { $0.canDecode(mediaType: contentType) }) else {
+		guard let decoder = decoders.first(where: { $0.canDecodeHTTPContent(mediaType: contentType) }) else {
 			return handler(.failure(MyErr.noDecoderForContentType(contentType)))
 		}
 		
 		/* Now we process stuff, let’s jump to the processing queue. */
 		processingQueue.execute{ handler(Result{
-			return try decoder.decode(ResultType.self, from: source, mediaType: contentType)
+			return try decoder.decodeHTTPContent(ResultType.self, from: source, mediaType: contentType)
 		}.mapError{ MyErr.dataConversionFailed(source, $0) })}
 	}
 	
