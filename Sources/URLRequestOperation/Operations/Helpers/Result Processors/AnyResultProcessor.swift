@@ -34,6 +34,10 @@ public extension ResultProcessor {
 		return AnyResultProcessor<SourceType, NewProcessor.ResultType>(recoveringErrorFrom: self, with: newProcessor)
 	}
 	
+	func dispatched(to dispatcher: BlockDispatcher) -> AnyResultProcessor<SourceType, ResultType> {
+		return AnyResultProcessor<SourceType, ResultType>(dispatching: self, to: dispatcher)
+	}
+	
 	var erased: AnyResultProcessor<SourceType, ResultType> {
 		return .init(self)
 	}
@@ -47,27 +51,35 @@ public struct AnyResultProcessor<SourceType, ResultType> : ResultProcessor {
 		return AnyResultProcessor<T, T>(transformHandler: { s, _, h in h(.success(s)) })
 	}
 	
-	public init<RP : ResultProcessor>(_ p: RP) where RP.SourceType == Self.SourceType, RP.ResultType == Self.ResultType {
-		self.transformHandler = p.transform
+	public init<RP : ResultProcessor>(_ rp: RP) where RP.SourceType == Self.SourceType, RP.ResultType == Self.ResultType {
+		self.transformHandler = rp.transform
+	}
+	
+	public init<RP : ResultProcessor>(dispatching rp: RP, to dispatcher: BlockDispatcher) where RP.SourceType == Self.SourceType, RP.ResultType == Self.ResultType {
+		self.transformHandler = { s, u, h in
+			dispatcher.execute{
+				rp.transform(source: s, urlResponse: u, handler: h)
+			}
+		}
 	}
 	
 	/* map */
-	public init<RP : ResultProcessor>(transformingSuccessOf p1: RP, with transform: @escaping (RP.ResultType) -> ResultType)
+	public init<RP : ResultProcessor>(transformingSuccessOf rp: RP, with transform: @escaping (RP.ResultType) -> ResultType)
 	where RP.SourceType == Self.SourceType {
 		self.transformHandler = { source, response, handler in
-			p1.transform(source: source, urlResponse: response, handler: { result in
+			rp.transform(source: source, urlResponse: response, handler: { result in
 				handler(result.map(transform))
 			})
 		}
 	}
 	
 	/* flatMap */
-	public init<RP1 : ResultProcessor, RP2 : ResultProcessor>(combining p1: RP1, and p2: RP2)
+	public init<RP1 : ResultProcessor, RP2 : ResultProcessor>(combining rp1: RP1, and rp2: RP2)
 	where RP1.SourceType == Self.SourceType, RP1.ResultType == RP2.SourceType, RP2.ResultType == Self.ResultType {
 		self.transformHandler = { source, response, handler in
-			p1.transform(source: source, urlResponse: response, handler: { result in
+			rp1.transform(source: source, urlResponse: response, handler: { result in
 				switch result {
-					case .success(let v): p2.transform(source: v, urlResponse: response, handler: handler)
+					case .success(let v): rp2.transform(source: v, urlResponse: response, handler: handler)
 					case .failure(let e): handler(.failure(e))
 				}
 			})
@@ -75,15 +87,15 @@ public struct AnyResultProcessor<SourceType, ResultType> : ResultProcessor {
 	}
 	
 	/* flatMapError */
-	public init<RP1 : ResultProcessor, RP2 : ResultProcessor>(recoveringErrorFrom p1: RP1, with p2: RP2)
+	public init<RP1 : ResultProcessor, RP2 : ResultProcessor>(recoveringErrorFrom rp1: RP1, with rp2: RP2)
 	where RP1.SourceType == Self.SourceType, RP1.ResultType == Self.ResultType,
 			RP2.SourceType == Error,           RP2.ResultType == Self.ResultType
 	{
 		self.transformHandler = { source, response, handler in
-			p1.transform(source: source, urlResponse: response, handler: { result in
+			rp1.transform(source: source, urlResponse: response, handler: { result in
 				switch result {
 					case .success: handler(result)
-					case .failure(let e): p2.transform(source: e, urlResponse: response, handler: handler)
+					case .failure(let e): rp2.transform(source: e, urlResponse: response, handler: handler)
 				}
 			})
 		}
