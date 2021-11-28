@@ -332,7 +332,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 					self.runRequestProcessors(currentRequest: success, requestProcessors: Array(requestProcessors.dropFirst()), handler: handler)
 					
 				case .failure(let failure):
-					self.endBaseOperation(result: .failure(failure))
+					self.endBaseOperation(result: .failure(Err.requestProcessorError(failure)))
 			}
 		})
 	}
@@ -344,7 +344,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		
 		for validator in urlResponseValidators {
 			if let e = validator.validate(urlResponse: urlResponse) {
-				return e
+				return Err.responseValidatorError(e)
 			}
 		}
 		return nil
@@ -382,7 +382,11 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			return baseOperationEnded()
 		}
 		resultProcessor.transform(source: data, urlResponse: response, handler: { result in
-			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) })
+			self.endBaseOperation(
+				result: result
+					.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) }
+					.mapError{ Err.resultProcessorError($0) }
+			)
 		})
 	}
 	

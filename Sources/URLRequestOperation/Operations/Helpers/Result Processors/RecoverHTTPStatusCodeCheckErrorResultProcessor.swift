@@ -17,6 +17,7 @@ import Foundation
 
 
 
+/** Rethrows the error in input, unless it’s an ``Err.UnexpectedStatusCode`` error. */
 public struct RecoverHTTPStatusCodeCheckErrorResultProcessor : ResultProcessor {
 	
 	public typealias SourceType = Error
@@ -25,9 +26,8 @@ public struct RecoverHTTPStatusCodeCheckErrorResultProcessor : ResultProcessor {
 	public func transform(source: Error, urlResponse: URLResponse, handler: @escaping (Result<Data, Error>) -> Void) {
 		handler(Result{
 			guard
-				let urlOpError = source as? Err,
-				case let .unexpectedStatusCode(_, dataInError) = urlOpError,
-				let data = dataInError
+				let statusCodeError = (source as? Err)?.postProcessError as? Err.UnexpectedStatusCode,
+				let data = statusCodeError.httpBody
 			else {
 				throw source
 			}

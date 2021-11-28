@@ -17,6 +17,7 @@ import Foundation
 
 
 
+/** Throws ``URLToFileHandleResultProcessorError`` errors. */
 public struct URLToFileHandleResultProcessor : ResultProcessor {
 	
 	public typealias SourceType = URL
@@ -31,7 +32,16 @@ public struct URLToFileHandleResultProcessor : ResultProcessor {
 	public func transform(source: URL, urlResponse: URLResponse, handler: @escaping (Result<FileHandle, Error>) -> Void) {
 		processingQueue.execute{ handler(Result{
 			try FileHandle(forReadingFrom: source)
-		})}
+		}.mapError{ MyErr.cannotOpenFile($0) })}
 	}
 	
 }
+
+
+public enum URLToFileHandleResultProcessorError : Error {
+	
+	case cannotOpenFile(Error)
+	
+}
+
+private typealias MyErr = URLToFileHandleResultProcessorError

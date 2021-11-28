@@ -36,7 +36,7 @@ extension JSONDecoder : HTTPContentDecoder {
 	
 	public func decode<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
 		guard canDecode(mediaType: mediaType) else {
-			throw Err.invalidMediaType(mediaType)
+			throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid media type \(mediaType)", underlyingError: nil))
 		}
 		return try decode(type, from: data)
 	}

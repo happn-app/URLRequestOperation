@@ -25,37 +25,59 @@ public enum URLRequestOperationError : Error {
 	case operationNotFinished
 	case operationCancelled
 	
-	/** Error from ``HTTPStatusCodeURLResponseValidator`` or ``HTTPStatusCodeCheckResultProcessor`` if status code is not one of the expected values. */
-	case unexpectedStatusCode(Int?, httpBody: Data?)
+	/** All errors from request processors are wrapped in this error. */
+	case requestProcessorError(Error)
+	/** All errors from response validators are wrapped in this error. */
+	case responseValidatorError(Error)
+	/** All errors from result processors are wrapped in this error. */
+	case resultProcessorError(Error)
 	
-	/** Error from ``URLMoveResultProcessor`` if the destination file already exists and the move behavior is ``failIfDestinationExists`` */
-	case downloadDestinationExists
-	
-	/** Error from an ``HTTPContentDecoder`` when given object has unsupported media type. */
-	case invalidMediaType(MediaType)
-	
-	/** Error from ``DecodeHTTPContentResultProcessor`` if URL response does not have or have an invalid content type (or is not an HTTP URL response). */
-	case noOrInvalidContentType(URLResponse)
-	
-	/** Error from ``DecodeHTTPContentResultProcessor`` if no decoders are configured for the content type in the response. */
-	case noDecoderForContentType(MediaType)
+	public var postProcessError: Error? {
+		switch self {
+			case .responseValidatorError(let e): return e
+			case .resultProcessorError(let e): return e
+			default: return nil
+		}
+	}
 	
 	/**
-	 From one of ``URLRequestDataOperation`` initializers, if there is an issue converting between `URL` and `URLComponents`.
+	 When there is an issue converting between `URL` and `URLComponents`.
+	 Thrown by the  `URL` extension method ``addingQueryParameters(from:, encoder:)``.
+	 
 	 This error should never happen, but technically can (if I understand correctly such failure can occur because `URL` and `URLComponents` do not parse URLs using the same RFCs). */
 	case conversionBetweenURLAndURLComponents
 	
-	/** Error for `forImage` init of ``URLRequestDataOperation``. */
-	case cannotConvertToImage(Data)
-	
 	/**
-	 One of these cases that should never happen:
+	 One of these cases that should never happen happened:
 	 - URL response **and** error are `nil` from underlying session task;
 	 - Task’s response is `nil` in `urlSession(:downloadTask:didFinishDownloadingTo:)`.
 	 
 	 We provide this in order to avoid crashing instead if one of these do happen.
 	 In debug mode, we do crash (assertion failure). */
 	case invalidURLSessionContract
+	
+	
+	/* MARK: -
+	 * Most of the time the classes/structs declare their own errors in their file directly,
+	 * but the following structure are re-used and are thus grouped together here. */
+	
+	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
+	public struct DataConversionFailed : Error {
+		
+		var data: Data
+		var underlyingError: Error?
+		
+	}
+	
+	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
+	public struct UnexpectedStatusCode : Error {
+		
+		var expected: Set<Int>
+		var actual: Int?
+		
+		var httpBody: Data?
+		
+	}
 	
 }
 
