@@ -41,7 +41,7 @@ public extension URLRequestDownloadOperation {
 		destination: URL, moveBehavior: URLMoveResultProcessor.MoveBehavior = .failIfDestinationExists,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	) throws -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
+	) -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		return Self.forSavingFile(

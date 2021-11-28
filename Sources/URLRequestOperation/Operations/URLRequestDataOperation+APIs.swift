@@ -56,9 +56,13 @@ public extension URLRequestDataOperation {
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
-		return try Self.forAPIRequest(
-			baseURL: baseURL, path: path, method: method, urlParameters: nil as Int8?, httpBody: nil as Int8?, headers: headers, cachePolicy: cachePolicy, session: session,
+	) -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
+		let url = baseURL.appendingPathComponent(path)
+		var request = URLRequest(url: url, cachePolicy: cachePolicy)
+		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
+		request.httpMethod = method
+		return Self.forAPIRequest(
+			urlRequest: request, session: session,
 			successType: successType, errorType: errorType,
 			decoders: decoders,
 			requestProcessors: requestProcessors, retryProviders: retryProviders
