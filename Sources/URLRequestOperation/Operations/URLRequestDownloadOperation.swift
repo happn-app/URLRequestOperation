@@ -135,9 +135,20 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	}
 	
 	public override func startBaseOperation(isRetry: Bool) {
-		let task = task(for: currentRequest)
-		currentTask = task
-		task.resume()
+		assert(currentTask == nil)
+		assert(downloadStatus.isStatusWaiting)
+		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		
+		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
+			guard !self.isCancelled else {
+				return self.baseOperationEnded()
+			}
+			
+			let task = self.task(for: request)
+			self.currentRequest = request
+			self.currentTask = task
+			task.resume()
+		})
 	}
 	
 	public override var isAsynchronous: Bool {
@@ -331,6 +342,27 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			}
 		}
 		return task
+	}
+	
+	/* Handler is only called in case of success */
+	private func runRequestProcessors(currentRequest: URLRequest, requestProcessors: [RequestProcessor], handler: @escaping (URLRequest) -> Void) {
+		guard !isCancelled else {
+			return baseOperationEnded()
+		}
+		
+		guard let processor = requestProcessors.first else {
+			return handler(currentRequest)
+		}
+		
+		processor.transform(urlRequest: currentRequest, handler: { result in
+			switch result {
+				case .success(let success):
+					self.runRequestProcessors(currentRequest: success, requestProcessors: Array(requestProcessors.dropFirst()), handler: handler)
+					
+				case .failure(let failure):
+					self.endBaseOperation(result: .failure(Err.requestProcessorError(failure)))
+			}
+		})
 	}
 	
 	private func runResponseValidators(urlResponse: URLResponse) -> Error? {
