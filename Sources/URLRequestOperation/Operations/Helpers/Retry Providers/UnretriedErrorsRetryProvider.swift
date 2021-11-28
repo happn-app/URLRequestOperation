@@ -57,6 +57,15 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 		}
 	}
 	
+	public static func forFileHandleFromDownload() -> UnretriedErrorsRetryProvider {
+		return Self{ err in
+			guard let postProcessError = (err as? Err)?.postProcessError else {
+				return false
+			}
+			return postProcessError is URLToFileHandleResultProcessorError
+		}
+	}
+	
 	public let isBlacklistedError: (Error) -> Bool
 	
 	public init(isBlacklistedError: @escaping (Error) -> Bool) {
