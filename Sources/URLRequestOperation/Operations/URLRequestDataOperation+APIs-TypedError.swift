@@ -111,7 +111,7 @@ public extension URLRequestDataOperation {
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
 		if let httpBody = httpBody {
-			let (data, contentType) = try bodyEncoder.encode(httpBody)
+			let (data, contentType) = try bodyEncoder.encodeForHTTPContent(httpBody)
 			request.setValue(contentType.rawValue, forHTTPHeaderField: "content-type")
 			request.httpBody = data
 		}

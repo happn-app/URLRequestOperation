@@ -22,7 +22,7 @@ import MediaType
 
 extension FormURLEncodedEncoder : HTTPContentEncoder {
 	
-	public func encode<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable {
+	public func encodeForHTTPContent<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable {
 		let encodedString: String = try encode(value)
 		/* MediaType for form url encoded does not have a charset; content is expected to be UTF-8.
 		 * https://stackoverflow.com/a/16829056 */
@@ -35,12 +35,12 @@ extension FormURLEncodedEncoder : HTTPContentEncoder {
 /* Mostly useless, but we keep for symmetry */
 extension FormURLEncodedDecoder : HTTPContentDecoder {
 	
-	public func canDecode(mediaType: MediaType) -> Bool {
+	public func canDecodeHTTPContent(mediaType: MediaType) -> Bool {
 		return mediaType.type == "application" && mediaType.subtype == "x-www-form-urlencoded"
 	}
 	
-	public func decode<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
-		guard canDecode(mediaType: mediaType) else {
+	public func decodeHTTPContent<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
+		guard canDecodeHTTPContent(mediaType: mediaType) else {
 			throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid media type \(mediaType)", underlyingError: nil))
 		}
 		guard let string = String(data: data, encoding: .utf8) else {
