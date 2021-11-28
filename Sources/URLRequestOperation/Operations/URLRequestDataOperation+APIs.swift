@@ -96,7 +96,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable, URLParamtersType : Encodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, session: URLSession = .shared,
+		baseURL: URL, path: String, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
