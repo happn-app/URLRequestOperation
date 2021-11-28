@@ -19,12 +19,13 @@ import Foundation
 
 public extension URLRequestDownloadOperation {
 	
+	/* Designated for saving */
 	static func forSavingFile(
 		request: URLRequest, session: URLSession = .shared,
 		destination: URL, moveBehavior: URLMoveResultProcessor.MoveBehavior = .failIfDestinationExists,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	) throws -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
+	) -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
 		return URLRequestDownloadOperation(
 			request: request, session: session,
 			task: nil,
@@ -35,38 +36,20 @@ public extension URLRequestDownloadOperation {
 		)
 	}
 	
-//	public convenience init(
-//		request: URLRequest, session: URLSession = .shared,
-//		requestProcessors: [RequestProcessor] = [],
-//		urlResponseValidators: [URLResponseValidator] = [],
-//		resultProcessor: AnyResultProcessor<URL, FileHandle> = URLToFileHandleResultProcessor().erased,
-//		retryProviders: [RetryProvider] = []
-//	) where ResultType == FileHandle {
-//		self.init(
-//			request: request, session: session,
-//			task: nil,
-//			requestProcessors: requestProcessors,
-//			urlResponseValidators: urlResponseValidators,
-//			resultProcessor: resultProcessor,
-//			retryProviders: retryProviders
-//		)
-//	}
-//	
-//	public convenience init(
-//		request: URLRequest, session: URLSession = .shared,
-//		requestProcessors: [RequestProcessor] = [],
-//		urlResponseValidators: [URLResponseValidator] = [],
-//		resultProcessor: AnyResultProcessor<URL, ResultType>,
-//		retryProviders: [RetryProvider] = []
-//	) {
-//		self.init(
-//			request: request, session: session,
-//			task: nil,
-//			requestProcessors: requestProcessors,
-//			urlResponseValidators: urlResponseValidators,
-//			resultProcessor: resultProcessor,
-//			retryProviders: retryProviders
-//		)
-//	}
+	static func forSavingFile(
+		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		destination: URL, moveBehavior: URLMoveResultProcessor.MoveBehavior = .failIfDestinationExists,
+		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
+		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	) throws -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
+		var request = URLRequest(url: url, cachePolicy: cachePolicy)
+		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
+		return Self.forSavingFile(
+			request: request, session: session,
+			destination: destination, moveBehavior: moveBehavior,
+			resultProcessingDispatcher: resultProcessingDispatcher,
+			requestProcessors: requestProcessors, retryProviders: retryProviders
+		)
+	}
 	
 }
