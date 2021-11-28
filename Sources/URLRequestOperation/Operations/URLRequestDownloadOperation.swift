@@ -54,45 +54,10 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	
 	public convenience init(
 		request: URLRequest, session: URLSession = .shared,
-		destination: URL, moveBehavior: URLMoveResultProcessor.MoveBehavior = .failIfDestinationExists,
-		requestProcessors: [RequestProcessor] = [],
-		urlResponseValidators: [URLResponseValidator] = [],
-		retryProviders: [RetryProvider] = []
-	) where ResultType == URL {
-		self.init(
-			request: request, session: session,
-			task: nil,
-			requestProcessors: requestProcessors,
-			urlResponseValidators: urlResponseValidators,
-			resultProcessor: URLMoveResultProcessor(destinationURL: destination, moveBehavior: moveBehavior).erased,
-			retryProviders: retryProviders
-		)
-	}
-	
-	public convenience init(
-		request: URLRequest, session: URLSession = .shared,
-		requestProcessors: [RequestProcessor] = [],
-		urlResponseValidators: [URLResponseValidator] = [],
-		resultProcessor: AnyResultProcessor<URL, FileHandle> = URLToFileHandleResultProcessor().erased,
-		retryProviders: [RetryProvider] = []
-	) where ResultType == FileHandle {
-		self.init(
-			request: request, session: session,
-			task: nil,
-			requestProcessors: requestProcessors,
-			urlResponseValidators: urlResponseValidators,
-			resultProcessor: resultProcessor,
-			retryProviders: retryProviders
-		)
-	}
-	
-	public convenience init(
-		request: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
 		urlResponseValidators: [URLResponseValidator] = [],
 		resultProcessor: AnyResultProcessor<URL, ResultType>,
-		retryProviders: [RetryProvider] = [],
-		nonConvenience: Void /* Avoids an inifinite recursion in convenience init; maybe private annotation @_disfavoredOverload would do too, idk. */
+		retryProviders: [RetryProvider] = []
 	) {
 		self.init(
 			request: request, session: session,
