@@ -21,6 +21,8 @@ import FormURLEncodedEncoding
 
 public extension URLRequestDataOperation {
 	
+	/* TODO: Headers */
+	
 	/* Designated for APIs */
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable>(
 		urlRequest: URLRequest, session: URLSession = .shared,
