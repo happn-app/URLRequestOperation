@@ -15,6 +15,23 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 		}
 	}
 	
+	public static func forHTTPContentDecoding() -> UnretriedErrorsRetryProvider {
+		return Self{ err in
+			if let err = err as? Err {
+				switch err {
+					case .invalidMediaType:        return true
+					case .noOrInvalidContentType:  return true
+					case .noDecoderForContentType: return true
+					default: (/*nop*/)
+				}
+			}
+			if err is DecodingError {
+				return true
+			}
+			return false
+		}
+	}
+	
 	public static func forImageConversion() -> UnretriedErrorsRetryProvider {
 		return Self{ err in
 			switch err as? Err {

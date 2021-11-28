@@ -46,7 +46,7 @@ public extension URLRequestDataOperation {
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [/* URL Response Validators do not make much sense for an API call */],
 			resultProcessor: resultProcessor,
-			retryProviders: retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forHTTPContentDecoding()] + retryProviders
 		)
 	}
 	
