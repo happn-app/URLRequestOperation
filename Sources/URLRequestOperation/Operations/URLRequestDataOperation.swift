@@ -53,11 +53,11 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	 ``URLRequestOperation`` will create an `URLSessionTask` that will use the delegate to get the data.
 	 Otherwise a handler-based task will be created. */
 	public init(
-		request: URLRequest, session: URLSession,
-		requestProcessors: [RequestProcessor],
-		urlResponseValidators: [URLResponseValidator],
+		request: URLRequest, session: URLSession = .shared,
+		requestProcessors: [RequestProcessor] = [],
+		urlResponseValidators: [URLResponseValidator] = [],
 		resultProcessor: AnyResultProcessor<Data, ResultType>,
-		retryProviders: [RetryProvider]
+		retryProviders: [RetryProvider] = []
 	) {
 #if DEBUG
 		self.urlOperationIdentifier = opIdQueue.sync{
@@ -77,6 +77,23 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		self.urlResponseValidators = urlResponseValidators
 		self.resultProcessor = resultProcessor
 		self.retryProviders = retryProviders
+	}
+	
+	public convenience init(
+		url: URL, headers: [String: String?] = [:], session: URLSession = .shared,
+		requestProcessors: [RequestProcessor] = [],
+		urlResponseValidators: [URLResponseValidator] = [],
+		resultProcessor: AnyResultProcessor<Data, ResultType>,
+		retryProviders: [RetryProvider] = []
+	) {
+		var request = URLRequest(url: url)
+		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
+		self.init(
+			request: request, session: session,
+			requestProcessors: requestProcessors, urlResponseValidators: urlResponseValidators,
+			resultProcessor: resultProcessor,
+			retryProviders: retryProviders
+		)
 	}
 	
 	public override func startBaseOperation(isRetry: Bool) {
