@@ -45,6 +45,32 @@ class URLRequestOperationTests : XCTestCase {
 	}
 	
 	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+	func testSimpleAPIGetWithParameters() async throws {
+		struct Todo : Decodable {
+			var userId: Int
+			var id: Int
+			var title: String
+			var completed: Bool
+		}
+		struct Empty : Decodable {}
+		struct Params : Encodable {
+			var page: Int
+		}
+		let op = try URLRequestDataOperation.forAPIRequest(
+			baseURL: URL(string: "https://jsonplaceholder.typicode.com")!, path: "todos",
+			urlParameters: Params(page: 1),
+			successType: [Todo].self, errorType: Empty.self
+		)
+		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<[Todo], Empty>>, Error>) in
+			op.completionBlock = {
+				continuation.resume(with: op.result)
+			}
+			op.start()
+		}
+		print(res)
+	}
+	
+	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 	func testSimpleAPIPost() async throws {
 		struct Todo : Decodable {
 			var userId: Int
