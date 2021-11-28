@@ -26,8 +26,10 @@ public extension URLRequestDataOperation {
 		urlRequest: URLRequest, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
+		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
+		/* TODO: Is this the best dispatch? */
 		let resultProcessor = HTTPStatusCodeCheckResultProcessor()
 			.flatMap(
 				DecodeHTTPContentResultProcessor<APISuccessType>(decoders: decoders, processingQueue: SyncBlockDispatcher())
@@ -38,6 +40,8 @@ public extension URLRequestDataOperation {
 					.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: SyncBlockDispatcher()))
 					.map{ APIResult<APISuccessType, APIErrorType>.failure($0) }
 			)
+			.dispatched(to: resultProcessingDispatcher)
+		
 		return URLRequestDataOperation<APIResult<APISuccessType, APIErrorType>>(
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [/* URL Response Validators do not make much sense for an API call */],
@@ -50,6 +54,7 @@ public extension URLRequestDataOperation {
 		baseURL: URL, path: String, method: String = "GET", session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
+		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
@@ -64,6 +69,7 @@ public extension URLRequestDataOperation {
 		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
+		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
@@ -78,6 +84,7 @@ public extension URLRequestDataOperation {
 		baseURL: URL, path: String, method: String = "POST", httpBody: HTTPBodyType?, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
+		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
@@ -92,6 +99,7 @@ public extension URLRequestDataOperation {
 		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
+		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		let url = baseURL.appendingPathComponent(path)
