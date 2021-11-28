@@ -32,16 +32,19 @@ class URLRequestOperationTests : XCTestCase {
 			var title: String
 			var completed: Bool
 		}
-		struct Empty : Decodable {}
 		let request = URLRequest(url: URL(string: "https://jsonplaceholder.typicode.com/todos/4")!)
-		let op = URLRequestDataOperation.forAPIRequest(urlRequest: request, successType: Todo.self, errorType: Empty.self)
-		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<Todo, Empty>>, Error>) in
-			op.completionBlock = {
-				continuation.resume(with: op.result)
+		let op = URLRequestDataOperation.forAPIRequest(urlRequest: request, successType: Todo.self)
+		do {
+			let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<Todo>, Error>) in
+				op.completionBlock = {
+					continuation.resume(with: op.result)
+				}
+				op.start()
 			}
-			op.start()
+			print(res)
+		} catch {
+			XCTFail("Got error \(error)")
 		}
-		print(res)
 	}
 	
 	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
@@ -61,7 +64,7 @@ class URLRequestOperationTests : XCTestCase {
 			urlParameters: Params(page: 1),
 			successType: [Todo].self, errorType: Empty.self
 		)
-		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<[Todo], Empty>>, Error>) in
+		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<[Todo]>, Error>) in
 			op.completionBlock = {
 				continuation.resume(with: op.result)
 			}
@@ -89,7 +92,7 @@ class URLRequestOperationTests : XCTestCase {
 			httpBody: TodoCreation(userId: 42, title: "I did it!", completed: true),
 			successType: Todo.self, errorType: Empty.self
 		)
-		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<APIResult<Todo, Empty>>, Error>) in
+		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<Todo>, Error>) in
 			op.completionBlock = {
 				continuation.resume(with: op.result)
 			}

@@ -39,6 +39,15 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 		}
 	}
 	
+	public static func forAPIError<APIErrorType>(errorType: APIErrorType.Type = APIErrorType.self) -> UnretriedErrorsRetryProvider {
+		return Self{ err in
+			guard let postProcessError = (err as? Err)?.postProcessError else {
+				return false
+			}
+			return postProcessError is Err.APIResultErrorWrapper<APIErrorType>
+		}
+	}
+	
 	public static func forDataConversion() -> UnretriedErrorsRetryProvider {
 		return Self{ err in
 			guard let postProcessError = (err as? Err)?.postProcessError else {

@@ -22,6 +22,15 @@ import MediaType
 /** All of the errors thrown by the module should have this type. */
 public enum URLRequestOperationError : Error {
 	
+	/** Directly access the response validator or result processor error if any. */
+	public var postProcessError: Error? {
+		switch self {
+			case .responseValidatorError(let e): return e
+			case .resultProcessorError(let e): return e
+			default: return nil
+		}
+	}
+	
 	case operationNotFinished
 	case operationCancelled
 	
@@ -31,14 +40,6 @@ public enum URLRequestOperationError : Error {
 	case responseValidatorError(Error)
 	/** All errors from result processors are wrapped in this error. */
 	case resultProcessorError(Error)
-	
-	public var postProcessError: Error? {
-		switch self {
-			case .responseValidatorError(let e): return e
-			case .resultProcessorError(let e): return e
-			default: return nil
-		}
-	}
 	
 	/**
 	 When there is an issue converting between `URL` and `URLComponents`.
@@ -61,6 +62,7 @@ public enum URLRequestOperationError : Error {
 	 * Most of the time the classes/structs declare their own errors in their file directly,
 	 * but the following structure are re-used and are thus grouped together here. */
 	
+	
 	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
 	public struct DataConversionFailed : Error {
 		
@@ -76,6 +78,19 @@ public enum URLRequestOperationError : Error {
 		var actual: Int?
 		
 		var httpBody: Data?
+		
+	}
+	
+	/** A wrapper for an API Error. */
+	public struct APIResultErrorWrapper<APIError> : Error {
+		
+		public var urlResponse: URLResponse
+		public var error: APIError
+		
+		public init(urlResponse: URLResponse, error: APIError) {
+			self.urlResponse = urlResponse
+			self.error = error
+		}
 		
 	}
 	
