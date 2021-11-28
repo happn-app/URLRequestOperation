@@ -33,12 +33,24 @@ public extension URLRequestDataOperation {
 		urlRequest: URLRequest, session: URLSession = .shared,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	) -> URLRequestDataOperation<Image> {
+	) -> URLRequestDataOperation<ResultType> where ResultType == Image {
 		return URLRequestDataOperation<Image>(
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
 			resultProcessor: DecodeDataResultProcessor(decoder: dataToImage, processingQueue: resultProcessingDispatcher).erased,
 			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes(), UnretriedErrorsRetryProvider.forImageConversion()] + retryProviders
+		)
+	}
+	
+	static func forImage(
+		url: URL, session: URLSession = .shared,
+		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
+		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	) -> URLRequestDataOperation<ResultType> where ResultType == Image {
+		return Self.forImage(
+			urlRequest: URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad), session: session,
+			resultProcessingDispatcher: resultProcessingDispatcher,
+			requestProcessors: requestProcessors, retryProviders: retryProviders
 		)
 	}
 	
