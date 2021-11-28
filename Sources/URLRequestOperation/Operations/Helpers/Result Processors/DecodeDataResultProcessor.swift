@@ -17,6 +17,7 @@ import Foundation
 
 
 
+/** Throws ``Err.DataConversionFailed`` errors. */
 public struct DecodeDataResultProcessor<ResultType> : ResultProcessor {
 	
 	public typealias SourceType = Data
@@ -36,7 +37,7 @@ public struct DecodeDataResultProcessor<ResultType> : ResultProcessor {
 	}
 	
 	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping (Result<ResultType, Error>) -> Void) {
-		processingQueue.execute{ handler(Result{ try decoder(source) }) }
+		processingQueue.execute{ handler(Result{ try decoder(source) }.mapError{ Err.DataConversionFailed(data: source, underlyingError: $0) }) }
 	}
 	
 }

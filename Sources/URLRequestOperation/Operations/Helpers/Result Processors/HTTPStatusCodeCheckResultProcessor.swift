@@ -17,6 +17,7 @@ import Foundation
 
 
 
+/** Throws ``Err.UnexpectedStatusCode`` errors. */
 public struct HTTPStatusCodeCheckResultProcessor : ResultProcessor {
 	
 	public typealias SourceType = Data
@@ -31,10 +32,10 @@ public struct HTTPStatusCodeCheckResultProcessor : ResultProcessor {
 	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping (Result<ResultType, Error>) -> Void) {
 		handler(Result{
 			guard let code = (urlResponse as? HTTPURLResponse)?.statusCode else {
-				throw Err.unexpectedStatusCode(nil, httpBody: source)
+				throw Err.UnexpectedStatusCode(expected: expectedCodes, actual: nil, httpBody: source)
 			}
 			guard expectedCodes.contains(code) else {
-				throw Err.unexpectedStatusCode(code, httpBody: source)
+				throw Err.UnexpectedStatusCode(expected: expectedCodes, actual: code, httpBody: source)
 			}
 			return source
 		})

@@ -38,7 +38,7 @@ public extension URLRequestDataOperation {
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
 			resultProcessor: DecodeDataResultProcessor(decoder: dataToImage, processingQueue: resultProcessingDispatcher).erased,
-			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes(), UnretriedErrorsRetryProvider.forImageConversion()] + retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes(), UnretriedErrorsRetryProvider.forDataConversion()] + retryProviders
 		)
 	}
 	
@@ -58,7 +58,7 @@ public extension URLRequestDataOperation {
 	
 	private static func dataToImage(_ data: Data) throws -> Image {
 		guard let image = Image(data: data) else {
-			throw Err.cannotConvertToImage(data)
+			throw Err.DataConversionFailed(data: data, underlyingError: nil)
 		}
 		return image
 	}

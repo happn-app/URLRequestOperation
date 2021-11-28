@@ -86,6 +86,7 @@ let operation1 = URLRequestDataOperation<Data>(
 let operation2 = URLRequestDownloadOperation<FileHandle>(
 	request: request, session: session,
 	urlResponseValidators: [HTTPStatusCodeURLResponseValidator(expectedCodes: Set(arrayLiteral: 500))],
+	resultProcessor: URLToFileHandleResultProcessor().erased,
 	retryProviders: [
 		NetworkErrorRetryProvider(maximumNumberOfRetries: 1, allowReachabilityObserver: false)
 	]

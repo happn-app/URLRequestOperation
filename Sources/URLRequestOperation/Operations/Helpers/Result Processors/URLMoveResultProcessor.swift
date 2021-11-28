@@ -17,6 +17,7 @@ import Foundation
 
 
 
+/** Throws ``URLMoveResultProcessorError`` errors. */
 public struct URLMoveResultProcessor : ResultProcessor {
 	
 	public enum MoveBehavior {
@@ -52,15 +53,15 @@ public struct URLMoveResultProcessor : ResultProcessor {
 			var destinationURL = destinationURL.absoluteURL
 			let destinationFolderURL = destinationURL.deletingLastPathComponent()
 			
-			try fileManager.createDirectory(at: destinationFolderURL, withIntermediateDirectories: true, attributes: nil)
+			try MyErr.wrapInFileManagerError{ try fileManager.createDirectory(at: destinationFolderURL, withIntermediateDirectories: true, attributes: nil) }
 			
 			if fileManager.fileExists(atPath: destinationURL.path) {
 				switch moveBehavior {
 					case .failIfDestinationExists:
-						throw Err.downloadDestinationExists
+						throw MyErr.downloadDestinationExists
 						
 					case .overwriteDestination:
-						try fileManager.removeItem(at: destinationURL)
+						try MyErr.wrapInFileManagerError{ try fileManager.removeItem(at: destinationURL) }
 						
 					case .findNonExistingFilenameInFolder:
 						var i = 1
@@ -76,9 +77,26 @@ public struct URLMoveResultProcessor : ResultProcessor {
 				}
 			}
 			
-			try fileManager.moveItem(at: source, to: destinationURL)
+			try MyErr.wrapInFileManagerError{ try fileManager.moveItem(at: source, to: destinationURL) }
 			return destinationURL
 		})}
 	}
 	
 }
+
+
+public enum URLMoveResultProcessorError : Error {
+	
+	/** The destination file already exists and the move behavior is ``failIfDestinationExists`` */
+	case downloadDestinationExists
+	
+	case fileManagerError(Error)
+	
+	static func wrapInFileManagerError<T>(_ block: () throws -> T) throws -> T {
+		do    {return try block()}
+		catch {throw Self.fileManagerError(error)}
+	}
+	
+}
+
+private typealias MyErr = URLMoveResultProcessorError

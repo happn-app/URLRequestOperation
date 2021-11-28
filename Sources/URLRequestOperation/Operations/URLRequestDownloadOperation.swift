@@ -192,7 +192,9 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		resultProcessor.transform(source: location, urlResponse: response, handler: { res in
 			session.delegateQueue.addOperation{
 				assert(self.currentResult == nil)
-				let res = res.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) }
+				let res = res
+					.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) }
+					.mapError{ Err.resultProcessorError($0) as Error }
 				guard self.downloadStatus.doingResultProcessor() else {
 					self.currentResult = res
 					return
@@ -338,7 +340,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		
 		for validator in urlResponseValidators {
 			if let e = validator.validate(urlResponse: urlResponse) {
-				return e
+				return Err.responseValidatorError(e)
 			}
 		}
 		return nil
@@ -361,7 +363,11 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		}
 		
 		resultProcessor.transform(source: url, urlResponse: response, handler: { result in
-			self.endBaseOperation(result: result.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) })
+			self.endBaseOperation(
+				result: result
+					.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) }
+					.mapError{ Err.resultProcessorError($0) }
+			)
 		})
 	}
 	
