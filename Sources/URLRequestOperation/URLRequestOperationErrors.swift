@@ -45,6 +45,9 @@ public enum URLRequestOperationError : Error {
 	 This error should never happen, but technically can (if I understand correctly such failure can occur because `URL` and `URLComponents` do not parse URLs using the same RFCs). */
 	case conversionBetweenURLAndURLComponents
 	
+	/** Error for `forImage` init of ``URLRequestDataOperation``. */
+	case cannotConvertToImage(Data)
+	
 	/**
 	 One of these cases that should never happen:
 	 - URL response **and** error are `nil` from underlying session task;
