@@ -24,6 +24,10 @@ public extension ResultProcessor {
 		return AnyResultProcessor<SourceType, NewResult>(transformingSuccessOf: self, with: transform)
 	}
 	
+	func flatMap<NewResult>(_ flatMapHandler: @escaping (ResultType, URLResponse) -> Result<NewResult, Error>) -> AnyResultProcessor<SourceType, NewResult> {
+		return flatMap(AnyResultProcessor<ResultType, NewResult>{ result, urlResponse, handler in handler(flatMapHandler(result, urlResponse)) })
+	}
+	
 	func flatMap<NewProcessor : ResultProcessor>(_ newProcessor: NewProcessor) -> AnyResultProcessor<SourceType, NewProcessor.ResultType>
 	where NewProcessor.SourceType == ResultType {
 		return AnyResultProcessor<SourceType, NewProcessor.ResultType>(combining: self, and: newProcessor)
@@ -60,6 +64,15 @@ public struct AnyResultProcessor<SourceType, ResultType> : ResultProcessor {
 			dispatcher.execute{
 				rp.transform(source: s, urlResponse: u, handler: h)
 			}
+		}
+	}
+	
+	public init<RP : ResultProcessor>(transformingSuccessOf rp: RP, toErrorWith transform: @escaping (RP.ResultType) -> Error)
+	where RP.SourceType == Self.SourceType, RP.ResultType == Self.ResultType {
+		self.transformHandler = { source, response, handler in
+			rp.transform(source: source, urlResponse: response, handler: { result in
+				handler(result.flatMap{ .failure(transform($0)) })
+			})
 		}
 	}
 	
