@@ -6,7 +6,7 @@ public struct HTTPStatusCodeURLResponseValidator : URLResponseValidator {
 	
 	public let expectedCodes: Set<Int>
 	
-	public init(expectedCodes: Set<Int> = Set(200..<300)) {
+	public init(expectedCodes: Set<Int> = Set(200..<400)) {
 		self.expectedCodes = expectedCodes
 	}
 	
