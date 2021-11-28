@@ -43,12 +43,14 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forImage(
-		url: URL, session: URLSession = .shared,
+		url: URL, headers: [String: String?] = [:], session: URLSession = .shared,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType == Image {
+		var request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		return Self.forImage(
-			urlRequest: URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad), session: session,
+			urlRequest: request, session: session,
 			resultProcessingDispatcher: resultProcessingDispatcher,
 			requestProcessors: requestProcessors, retryProviders: retryProviders
 		)
