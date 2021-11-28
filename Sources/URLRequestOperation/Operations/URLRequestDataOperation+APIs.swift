@@ -53,14 +53,14 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable>(
-		baseURL: URL, path: String, method: String = "GET", session: URLSession = .shared,
+		baseURL: URL, path: String, method: String = "GET", headers: [String: String?] = [:], session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
-			baseURL: baseURL, path: path, method: method, urlParameters: nil as Int8?, httpBody: nil as Int8?, session: session,
+			baseURL: baseURL, path: path, method: method, urlParameters: nil as Int8?, httpBody: nil as Int8?, headers: headers, session: session,
 			successType: successType, errorType: errorType,
 			decoders: decoders,
 			requestProcessors: requestProcessors, retryProviders: retryProviders
@@ -68,14 +68,14 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable, URLParamtersType : Encodable>(
-		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, session: URLSession = .shared,
+		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
-			baseURL: baseURL, path: path, method: method, urlParameters: urlParameters, httpBody: nil as Int8?, session: session,
+			baseURL: baseURL, path: path, method: method, urlParameters: urlParameters, httpBody: nil as Int8?, headers: headers, session: session,
 			successType: successType, errorType: errorType,
 			parameterEncoder: parameterEncoder, decoders: decoders,
 			requestProcessors: requestProcessors, retryProviders: retryProviders
@@ -83,14 +83,14 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String, method: String = "POST", httpBody: HTTPBodyType?, session: URLSession = .shared,
+		baseURL: URL, path: String, method: String = "POST", httpBody: HTTPBodyType?, headers: [String: String?] = [:], session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		return try Self.forAPIRequest(
-			baseURL: baseURL, path: path, method: method, urlParameters: nil as Int8?, httpBody: httpBody, session: session,
+			baseURL: baseURL, path: path, method: method, urlParameters: nil as Int8?, httpBody: httpBody, headers: headers, session: session,
 			successType: successType, errorType: errorType,
 			bodyEncoder: bodyEncoder, decoders: decoders,
 			requestProcessors: requestProcessors, retryProviders: retryProviders
@@ -98,7 +98,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APISuccessType : Decodable, APIErrorType : Decodable, URLParamtersType : Encodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, session: URLSession = .shared,
+		baseURL: URL, path: String, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], session: URLSession = .shared,
 		successType: APISuccessType.Type = APISuccessType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
@@ -106,6 +106,7 @@ public extension URLRequestDataOperation {
 	) throws -> URLRequestDataOperation<ResultType> where ResultType == APIResult<APISuccessType, APIErrorType> {
 		let url = baseURL.appendingPathComponent(path)
 		var request = try URLRequest(url: urlParameters.flatMap{ try url.addingQueryParameters(from: $0, encoder: parameterEncoder) } ?? url)
+		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
 		if let httpBody = httpBody {
 			let (data, contentType) = try bodyEncoder.encode(httpBody)
