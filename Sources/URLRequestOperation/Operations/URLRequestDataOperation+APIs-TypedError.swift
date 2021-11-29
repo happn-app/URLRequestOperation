@@ -29,15 +29,13 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		/* TODO: Is this the best dispatch? */
 		let resultProcessor = HTTPStatusCodeCheckResultProcessor()
-			.flatMap(DecodeHTTPContentResultProcessor<ResultType>(decoders: decoders, processingQueue: SyncBlockDispatcher()))
+			.flatMap(DecodeHTTPContentResultProcessor<ResultType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
 			.flatMapError(
 				RecoverHTTPStatusCodeCheckErrorResultProcessor()
-					.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: SyncBlockDispatcher()))
+					.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
 					.flatMap{ Result<ResultType, Error>.failure(Err.APIResultErrorWrapper(urlResponse: $1, error: $0)) }
 			)
-			.dispatched(to: resultProcessingDispatcher)
 		
 		return URLRequestDataOperation<ResultType>(
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
