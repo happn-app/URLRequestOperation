@@ -120,6 +120,10 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		
 		super.init()
 		
+		/* From tests I’ve done, it seems assessing unreachability because network is down seems to be synchronous,
+		 * so setting was reachable as soon as the reachability observer is instantiated makes sense. */
+		wasReachable = currentlyReachable
+		
 		let container = WeakReachabilityObserverContainer(observer: self)
 		var context = SCNetworkReachabilityContext(version: 0, info: unsafeBitCast(container, to: UnsafeMutableRawPointer.self), retain: reachabilityRetainForReachabilityObserver, release: reachabilityReleaseForReachabilityObserver, copyDescription: nil)
 		guard SCNetworkReachabilitySetCallback(reachabilityRef, reachabilityCallbackForReachabilityObserver, &context) else {
@@ -171,12 +175,8 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		/* No need to release the reachability ref: it is implicitly bridged. */
 	}
 	
-	public var currentlyReachable: Bool {
-		guard let currentReachabilityFlags = currentReachabilityFlags() else {
-			/* If we cannot get the reachability flags, we assume we’re reachable. */
-			return true
-		}
-		return ReachabilityObserver.isReachableWithFlags(currentReachabilityFlags)
+	public var currentlyReachable: Bool? {
+		return currentReachabilityFlags().flatMap{ ReachabilityObserver.isReachableWithFlags($0) }
 	}
 	
 	public func currentReachabilityFlags() -> SCNetworkReachabilityFlags? {
@@ -220,7 +220,7 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		}
 	}
 	
-	private var wasReachable: Bool? = nil
+	private var wasReachable: Bool?
 	
 	private let subscribersLock = NSLock()
 	private let subscribers = NSHashTable<ReachabilitySubscriber>.weakObjects()

@@ -25,7 +25,7 @@ class ReachabilityTests : XCTestCase {
 	func testQuad9Reachability() {
 		do {
 			let reachability = try ReachabilityObserver.reachabilityObserver(forIPv4AddressStr: "9.9.9.9")
-			XCTAssertTrue(reachability.currentlyReachable)
+			XCTAssertTrue(reachability.currentlyReachable ?? false)
 		} catch {
 			XCTFail("Error thrown during test: \(error)")
 		}
