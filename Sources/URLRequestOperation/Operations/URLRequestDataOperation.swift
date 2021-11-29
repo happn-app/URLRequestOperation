@@ -209,6 +209,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		assert(dataTask === self.currentTask)
 		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
+#warning("TODO")
 //		currentTask = streamTask
 //		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
 //			delegate.delegates.setTaskDelegate(self, forTask: streamTask)
@@ -224,6 +225,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		assert(dataTask === self.currentTask)
 		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
+#warning("TODO")
 //		currentTask = downloadTask
 //		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
 //			delegate.delegates.setTaskDelegate(self, forTask: downloadTask)
