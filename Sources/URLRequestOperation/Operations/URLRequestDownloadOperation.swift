@@ -104,6 +104,9 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		assert(downloadStatus.isStatusWaiting)
 		assert(Self.isNotFinishedOrCancelledError(result.failure))
 		
+#warning("TODO: Properly manage resume data")
+		resumeData = nil
+		
 		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
 			guard !self.isCancelled else {
 				return self.baseOperationEnded()
@@ -344,8 +347,15 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	}
 	
 	private func taskEnded(url: URL?, response: URLResponse?, error: Error?) {
+		if let rd = (error as NSError?)?.userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
+			resumeData = rd
+		}
+		
 		if let error = error {
 			return endBaseOperation(result: .failure(error))
+		} else {
+			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
+			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
 		}
 		
 		guard let response = response, let url = url else {
