@@ -62,6 +62,9 @@ public enum URLRequestOperationConfig {
 	public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = JSONEncoder()
 	public static var defaultAPIRequestParametersEncoder: URLQueryEncoder = FormURLEncodedEncoder()
 	
+	public static var networkRetryProviderDefaultNumberOfRetries: Int? = 7
+	public static var networkRetryProviderBackoffTable: [TimeInterval] = [1, 3, 15, 27, 42, 60, 60 * 60, 6 * 60 * 60]
+	
 	/**
 	 When data has been fetched from a server, if it is a valid UTF-8 string, should we log it?
 	 Set to true for debug purpose. */

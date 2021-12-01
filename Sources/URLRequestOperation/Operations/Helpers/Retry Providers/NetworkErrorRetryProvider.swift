@@ -12,12 +12,7 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 	public static let idempotentHTTPMethods = Set(arrayLiteral: "GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE")
 	
 	public static func exponentialBackoffTimeForIndex(_ idx: Int) -> TimeInterval {
-		/* First retry is after one second max;
-		 * next retry is after three seconds max;
-		 * next retry is after one minute max;
-		 * next retry is after one hour max;
-		 * next retry (and all subsequent retries) are after six hours max. */
-		let retryDelays: [TimeInterval] = [1, 3, 60, 60 * 60, 6 * 60 * 60]
+		let retryDelays: [TimeInterval] = Conf.networkRetryProviderBackoffTable
 		
 		let idx = max(0, min(idx, retryDelays.count - 1))
 		return TimeInterval.random(in: 0..<retryDelays[idx])
@@ -40,7 +35,7 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 	public private(set) var currentNumberOfRetries: Int = 0
 	
 	public init(
-		maximumNumberOfRetries: Int? = nil,
+		maximumNumberOfRetries: Int? = URLRequestOperationConfig.networkRetryProviderDefaultNumberOfRetries,
 		alsoRetryNonIdempotentRequests: Bool = false,
 		allowOtherSuccessObserver: Bool = true,
 		allowReachabilityObserver: Bool = true
