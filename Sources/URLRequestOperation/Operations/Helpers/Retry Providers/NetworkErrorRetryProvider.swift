@@ -4,6 +4,7 @@ import RetryingOperation
 
 
 
+#warning("TODO (maybe): Add way to reset the number of retries. Not sure how to do this though. A possible solution might be to listen to a global notification, and have the helpers generate said notification.")
 /**
  A retry provider that can provide a retry helper for exponential backoff retry,
  with potential early retry on reachability and “other success on same domain”. */
