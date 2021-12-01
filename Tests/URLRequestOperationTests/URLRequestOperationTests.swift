@@ -24,6 +24,21 @@ import XCTest
 
 class URLRequestOperationTests : XCTestCase {
 	
+	func testRetryCount() {
+		class TryCounter : RequestProcessor {
+			var count = 0
+			func transform(urlRequest: URLRequest, handler: @escaping (Result<URLRequest, Error>) -> Void) {
+				count += 1
+				handler(.success(urlRequest))
+			}
+		}
+		let counter = TryCounter()
+		let op = URLRequestDataOperation.forData(url: URL(string: "https://no.invalid")!, requestProcessors: [counter], retryProviders: [NetworkErrorRetryProvider(maximumNumberOfRetries: 1)])
+		op.start()
+		op.waitUntilFinished()
+		XCTAssertEqual(counter.count, 2)
+	}
+	
 	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 	func testSimpleAPIGet() async throws {
 		struct Todo : Decodable {
