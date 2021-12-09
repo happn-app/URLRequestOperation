@@ -46,7 +46,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APIErrorType : Decodable>(
-		baseURL: URL, path: String?, method: String = "GET", headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String? = nil, method: String = "GET", headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
@@ -65,7 +65,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APIErrorType : Decodable, URLParamtersType : Encodable>(
-		baseURL: URL, path: String?, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String? = nil, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
@@ -80,7 +80,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APIErrorType : Decodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String?, method: String = "POST", httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String? = nil, method: String = "POST", httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
@@ -95,7 +95,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APIErrorType : Decodable, URLParamtersType : Encodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String?, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String? = nil, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
