@@ -31,6 +31,10 @@ public enum URLRequestOperationError : Error {
 		}
 	}
 	
+	public var unexpectedStatusCodeError: UnexpectedStatusCode? {
+		return postProcessError as? UnexpectedStatusCode
+	}
+	
 	case operationNotFinished
 	case operationCancelled
 	
