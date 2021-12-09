@@ -66,18 +66,18 @@ public enum URLRequestOperationError : Error {
 	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
 	public struct DataConversionFailed : Error {
 		
-		var data: Data
-		var underlyingError: Error?
+		public var data: Data
+		public var underlyingError: Error?
 		
 	}
 	
 	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
 	public struct UnexpectedStatusCode : Error {
 		
-		var expected: Set<Int>
-		var actual: Int?
+		public var expected: Set<Int>
+		public var actual: Int?
 		
-		var httpBody: Data?
+		public var httpBody: Data?
 		
 	}
 	
