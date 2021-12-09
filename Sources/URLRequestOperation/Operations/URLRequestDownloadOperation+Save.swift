@@ -37,11 +37,12 @@ public extension URLRequestDownloadOperation {
 	}
 	
 	static func forSavingFile(
-		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String? = nil, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		destination: URL, moveBehavior: URLMoveResultProcessor.MoveBehavior = .failIfDestinationExists,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
+		let url = path.flatMap{ baseURL.appendingPathComponent($0) } ?? baseURL
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		return Self.forSavingFile(
