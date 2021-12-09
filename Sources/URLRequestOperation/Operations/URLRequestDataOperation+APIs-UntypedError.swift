@@ -41,13 +41,13 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest(
-		baseURL: URL, path: String, method: String = "GET", headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String?, method: String = "GET", headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let url = baseURL.appendingPathComponent(path)
+		let url = path.flatMap{ baseURL.appendingPathComponent($0) } ?? baseURL
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
@@ -60,7 +60,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<URLParamtersType : Encodable>(
-		baseURL: URL, path: String, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String?, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
@@ -75,7 +75,7 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<HTTPBodyType : Encodable>(
-		baseURL: URL, path: String, method: String = "POST", httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String?, method: String = "POST", httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self,
 		bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
@@ -90,13 +90,13 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<URLParamtersType : Encodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		baseURL: URL, path: String?, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let url = baseURL.appendingPathComponent(path)
+		let url = path.flatMap{ baseURL.appendingPathComponent($0) } ?? baseURL
 		var request = try URLRequest(
 			url: urlParameters.flatMap{ try url.addingQueryParameters(from: $0, encoder: parameterEncoder) } ?? url,
 			cachePolicy: cachePolicy
