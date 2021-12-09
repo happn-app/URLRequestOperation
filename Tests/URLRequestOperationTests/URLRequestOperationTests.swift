@@ -33,7 +33,7 @@ class URLRequestOperationTests : XCTestCase {
 			}
 		}
 		let counter = TryCounter()
-		let op = URLRequestDataOperation.forData(url: URL(string: "https://no.invalid")!, requestProcessors: [counter], retryProviders: [NetworkErrorRetryProvider(maximumNumberOfRetries: 1)])
+		let op = URLRequestDataOperation.forData(baseURL: URL(string: "https://no.invalid")!, requestProcessors: [counter], retryProviders: [NetworkErrorRetryProvider(maximumNumberOfRetries: 1)])
 		op.start()
 		op.waitUntilFinished()
 		XCTAssertEqual(counter.count, 2)
