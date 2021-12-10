@@ -86,8 +86,8 @@ public extension URLRequestDataOperation {
 	
 	/* Note: The `url` param should be named `baseURL` because the effective URL will be modified by the URL parameters.
 	 *       However doing this is inconvenient it makes the method signature incompatible with other conveniences in this file. */
-	static func forAPIRequest<APIErrorType : Decodable, URLParamtersType : Encodable>(
-		url: URL, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+	static func forAPIRequest<APIErrorType : Decodable, URLParametersType : Encodable>(
+		url: URL, method: String = "GET", urlParameters: URLParametersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
@@ -118,8 +118,8 @@ public extension URLRequestDataOperation {
 	
 	/* Note: The `url` param should be named `baseURL` because the effective URL will be modified by the URL parameters.
 	 *       However doing this is inconvenient it makes the method signature incompatible with other conveniences in this file. */
-	static func forAPIRequest<APIErrorType : Decodable, URLParamtersType : Encodable, HTTPBodyType : Encodable>(
-		url: URL, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+	static func forAPIRequest<APIErrorType : Decodable, URLParametersType : Encodable, HTTPBodyType : Encodable>(
+		url: URL, method: String = "POST", urlParameters: URLParametersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
