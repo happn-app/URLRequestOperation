@@ -26,13 +26,35 @@ internal extension URL {
 		/* We do the URL/URLComponents trip, because otherwise it’s annoying to manage the fragment.
 		 * If the fragment were not there, I’d have simply appended the encoded parameters to the URL, w/ a “?” or a “&” before depending on whether query is nil. */
 		guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
-			throw Err.conversionBetweenURLAndURLComponents
+			throw Err.failedConversionBetweenURLAndURLComponents
 		}
 		components.percentEncodedQuery = (components.percentEncodedQuery.flatMap{ $0 + "&" } ?? "") + encoded
 		guard let ret = components.url else {
-			throw Err.conversionBetweenURLAndURLComponents
+			throw Err.failedConversionBetweenURLAndURLComponents
 		}
 		return ret
+	}
+	
+	func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters?, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
+		guard let parameters = parameters else {
+			return self
+		}
+		return try addingQueryParameters(from: parameters, encoder: encoder)
+	}
+	
+	/** Simply calls `appendingPathComponent` if path is non-nil, else returns self. */
+	func appendingPath(_ path: String?) -> URL {
+		path.flatMap{ appendingPathComponent($0) } ?? self
+	}
+	
+	/** Throws if any of the given component contains a path separator. */
+	func appendingPathComponentsSafely(_ components: [String]) throws -> URL {
+		/* Let’s check the given path is valid (does not contain a path separator).
+		 * Note: We hardcode the path separator for now, but we shouldn’t. */
+		if let invalid = components.first(where: { $0.range(of: "/") != nil }) {
+			throw Err.invalidPathComponent(invalid)
+		}
+		return components.reduce(self, { reduced, new in reduced.appendingPathComponent(new) })
 	}
 	
 }
