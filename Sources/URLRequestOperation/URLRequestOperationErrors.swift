@@ -47,10 +47,17 @@ public enum URLRequestOperationError : Error {
 	
 	/**
 	 When there is an issue converting between `URL` and `URLComponents`.
-	 Thrown by the  `URL` extension method ``addingQueryParameters(from:, encoder:)``.
+	 Thrown by the  `URL` extension method ``addingQueryParameters(from:, encoder:)`` (but you don’t have access to that).
+	 Can also be thrown by creating an `URLRequest*Operation` via one of the convenient method that allows specifying some query parameters to add to the base URL.
 	 
 	 This error should never happen, but technically can (if I understand correctly such failure can occur because `URL` and `URLComponents` do not parse URLs using the same RFCs). */
-	case conversionBetweenURLAndURLComponents
+	case failedConversionBetweenURLAndURLComponents
+	/**
+	 Thrown by ``addingPathComponentsSafely(_:)``, if (at least) one of the path component is invalid (but you don’t have access to that method).
+	 Can also be thrown by creating an `URLRequest*Operation` via one of the convenient method that allows passing a path components to add to the base URL.
+	 
+	 For now the only way a path component is invalid is if it contains the path separator (`/`). */
+	case invalidPathComponent(String)
 	
 	/**
 	 One of these cases that should never happen happened:

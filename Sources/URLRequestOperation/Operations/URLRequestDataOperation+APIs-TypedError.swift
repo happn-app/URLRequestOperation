@@ -19,6 +19,19 @@ import FormURLEncodedEncoding
 
 
 
+/* In all of these convenient methods, I’d have liked to have an array of path components instead of a path to add to the base URL.
+ * A great advantage of doing this is we can check each component to be a valid path component (does not contain a forward slash) and fail if one is not.
+ * Ideally, I’d want the path components to be defined as a variadic string, so we can do this:
+ *    try URLRequestDataOperation.forAPIRequest(baseURL: amazingURL, path: "api", "v1", "user", userID)
+ * for instance.
+ * However this poses multiple issues:
+ *    - First variadic arguments cannot be forwarded to another function in Swift (a proposal was submitted https://forums.swift.org/t/26718 but never landed).
+ *      In itself this is an implementation issue only. We’d simply have to declare the array version and the variadic version, and we’d be good.
+ *      In practice this is annoying.
+ *    - The methods all become throwing! Because indeed, if one of the path component is invalid, we have to reject that input.
+ *      If the path is not set, I’d like the method to be non-throwing, of course.
+ *      Which means one more overload variant to do… */
+
 public extension URLRequestDataOperation {
 	
 	/* Designated for APIs w/ an error type */
@@ -52,7 +65,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let url = path.flatMap{ baseURL.appendingPathComponent($0) } ?? baseURL
+		let url = baseURL.appendingPath(path)
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
@@ -101,11 +114,11 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let url = path.flatMap{ baseURL.appendingPathComponent($0) } ?? baseURL
-		var request = try URLRequest(
-			url: urlParameters.flatMap{ try url.addingQueryParameters(from: $0, encoder: parameterEncoder) } ?? url,
-			cachePolicy: cachePolicy
-		)
+		let url = try baseURL
+			.appendingPath(path)
+			.addingQueryParameters(from: urlParameters, encoder: parameterEncoder)
+		
+		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
 		if let httpBody = httpBody {
