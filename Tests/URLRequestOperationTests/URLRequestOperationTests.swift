@@ -33,7 +33,7 @@ class URLRequestOperationTests : XCTestCase {
 			}
 		}
 		let counter = TryCounter()
-		let op = URLRequestDataOperation.forData(baseURL: URL(string: "https://no.invalid")!, requestProcessors: [counter], retryProviders: [NetworkErrorRetryProvider(maximumNumberOfRetries: 1)])
+		let op = URLRequestDataOperation.forData(url: URL(string: "https://no.invalid")!, requestProcessors: [counter], retryProviders: [NetworkErrorRetryProvider(maximumNumberOfRetries: 1)])
 		op.start()
 		op.waitUntilFinished()
 		XCTAssertEqual(counter.count, 2)
@@ -75,7 +75,7 @@ class URLRequestOperationTests : XCTestCase {
 			var page: Int
 		}
 		let op = try URLRequestDataOperation.forAPIRequest(
-			baseURL: URL(string: "https://jsonplaceholder.typicode.com")!, path: "todos",
+			url: URL(string: "https://jsonplaceholder.typicode.com")!.appendingPathComponentsSafely("todos"),
 			urlParameters: Params(page: 1),
 			successType: [Todo].self, errorType: Empty.self
 		)
@@ -103,7 +103,7 @@ class URLRequestOperationTests : XCTestCase {
 		}
 		struct Empty : Decodable {}
 		let op = try URLRequestDataOperation.forAPIRequest(
-			baseURL: URL(string: "https://jsonplaceholder.typicode.com")!, path: "todos", method: "POST",
+			url: URL(string: "https://jsonplaceholder.typicode.com")!.appendingPathComponentsSafely("todos"), method: "POST",
 			httpBody: TodoCreation(userId: 42, title: "I did it!", completed: true),
 			successType: Todo.self, errorType: Empty.self
 		)

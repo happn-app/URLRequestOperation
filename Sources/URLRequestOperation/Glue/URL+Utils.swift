@@ -19,9 +19,9 @@ import FormURLEncodedEncoding
 
 
 
-internal extension URL {
+extension URL {
 	
-	func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
+	internal func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
 		let encoded: String = try encoder.encode(parameters)
 		/* We do the URL/URLComponents trip, because otherwise it’s annoying to manage the fragment.
 		 * If the fragment were not there, I’d have simply appended the encoded parameters to the URL, w/ a “?” or a “&” before depending on whether query is nil. */
@@ -35,20 +35,20 @@ internal extension URL {
 		return ret
 	}
 	
-	func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters?, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
+	internal func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters?, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
 		guard let parameters = parameters else {
 			return self
 		}
 		return try addingQueryParameters(from: parameters, encoder: encoder)
 	}
 	
-	/** Simply calls `appendingPathComponent` if path is non-nil, else returns self. */
-	func appendingPath(_ path: String?) -> URL {
-		path.flatMap{ appendingPathComponent($0) } ?? self
+	/** Does **not** check whether the components are valid (like URL’s `appendingPathComponent`). */
+	public func appendingPathComponents(_ components: String...) -> URL {
+		return components.reduce(self, { reduced, new in reduced.appendingPathComponent(new) })
 	}
 	
 	/** Throws if any of the given component contains a path separator. */
-	func appendingPathComponentsSafely(_ components: [String]) throws -> URL {
+	public func appendingPathComponentsSafely(_ components: String...) throws -> URL {
 		/* Let’s check the given path is valid (does not contain a path separator).
 		 * Note: We hardcode the path separator for now, but we shouldn’t. */
 		if let invalid = components.first(where: { $0.range(of: "/") != nil }) {

@@ -19,7 +19,15 @@ import FormURLEncodedEncoding
 
 
 
-/* In all of these convenient methods, I’d have liked to have an array of path components instead of a path to add to the base URL.
+/* Initially, in these convenient methods, instead of passing the URL directly, there was a base URL and a path component.
+ * Now you have to pass the full URL directly (except for query params which can be passed in these convenient methods),
+ * but a convenience _on URL_ has been added in URLRequestOperation: `appendingPathComponentsSafely(_:)`.
+ * This convenience allows adding path components while checking all path components are valid (they do not contain a forward slash).
+ *
+ *
+ * Original thoughts on the subject (before moving to separate convenience):
+ *
+ * In all of these convenient methods, I’d have liked to have an array of path components instead of a path to add to the base URL.
  * A great advantage of doing this is we can check each component to be a valid path component (does not contain a forward slash) and fail if one is not.
  * Ideally, I’d want the path components to be defined as a variadic string, so we can do this:
  *    try URLRequestDataOperation.forAPIRequest(baseURL: amazingURL, path: "api", "v1", "user", userID)
@@ -59,13 +67,12 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APIErrorType : Decodable>(
-		baseURL: URL, path: String? = nil, method: String = "GET", headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		url: URL, method: String = "GET", headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let url = baseURL.appendingPath(path)
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
@@ -77,15 +84,17 @@ public extension URLRequestDataOperation {
 		)
 	}
 	
+	/* Note: The `url` param should be named `baseURL` because the effective URL will be modified by the URL parameters.
+	 *       However doing this is inconvenient it makes the method signature incompatible with other conveniences in this file. */
 	static func forAPIRequest<APIErrorType : Decodable, URLParamtersType : Encodable>(
-		baseURL: URL, path: String? = nil, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		url: URL, method: String = "GET", urlParameters: URLParamtersType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
-			baseURL: baseURL, path: path, method: method, urlParameters: urlParameters, httpBody: nil as Int8?, headers: headers, cachePolicy: cachePolicy, session: session,
+			url: url, method: method, urlParameters: urlParameters, httpBody: nil as Int8?, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType, errorType: errorType,
 			parameterEncoder: parameterEncoder, decoders: decoders,
 			requestProcessors: requestProcessors, retryProviders: retryProviders
@@ -93,31 +102,30 @@ public extension URLRequestDataOperation {
 	}
 	
 	static func forAPIRequest<APIErrorType : Decodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String? = nil, method: String = "POST", httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		url: URL, method: String = "POST", httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
-			baseURL: baseURL, path: path, method: method, urlParameters: nil as Int8?, httpBody: httpBody, headers: headers, cachePolicy: cachePolicy, session: session,
+			url: url, method: method, urlParameters: nil as Int8?, httpBody: httpBody, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType, errorType: errorType,
 			bodyEncoder: bodyEncoder, decoders: decoders,
 			requestProcessors: requestProcessors, retryProviders: retryProviders
 		)
 	}
 	
+	/* Note: The `url` param should be named `baseURL` because the effective URL will be modified by the URL parameters.
+	 *       However doing this is inconvenient it makes the method signature incompatible with other conveniences in this file. */
 	static func forAPIRequest<APIErrorType : Decodable, URLParamtersType : Encodable, HTTPBodyType : Encodable>(
-		baseURL: URL, path: String? = nil, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
+		url: URL, method: String = "POST", urlParameters: URLParamtersType?, httpBody: HTTPBodyType?, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let url = try baseURL
-			.appendingPath(path)
-			.addingQueryParameters(from: urlParameters, encoder: parameterEncoder)
-		
+		let url = try url.addingQueryParameters(from: urlParameters, encoder: parameterEncoder)
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
