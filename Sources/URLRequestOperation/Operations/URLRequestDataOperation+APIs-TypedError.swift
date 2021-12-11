@@ -137,7 +137,7 @@ public extension URLRequestDataOperation {
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let url = try url.addingQueryParameters(from: urlParameters, encoder: parameterEncoder)
+		let url = try url.appendingQueryParameters(from: urlParameters, encoder: parameterEncoder)
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		request.httpMethod = method
