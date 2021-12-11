@@ -21,7 +21,7 @@ import FormURLEncodedEncoding
 
 extension URL {
 	
-	internal func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
+	internal func appendingQueryParameters<Parameters : Encodable>(from parameters: Parameters, encoder: URLQueryEncoder = Conf.defaultAPIRequestParametersEncoder) throws -> URL {
 		let encoded: String = try encoder.encode(parameters)
 		/* We do the URL/URLComponents trip, because otherwise it’s annoying to manage the fragment.
 		 * If the fragment were not there, I’d have simply appended the encoded parameters to the URL, w/ a “?” or a “&” before depending on whether query is nil. */
@@ -35,11 +35,11 @@ extension URL {
 		return ret
 	}
 	
-	internal func addingQueryParameters<Parameters : Encodable>(from parameters: Parameters?, encoder: URLQueryEncoder = FormURLEncodedEncoder()) throws -> URL {
+	public func appendingQueryParameters<Parameters : Encodable>(from parameters: Parameters?, encoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder) throws -> URL {
 		guard let parameters = parameters else {
 			return self
 		}
-		return try addingQueryParameters(from: parameters, encoder: encoder)
+		return try appendingQueryParameters(from: parameters, encoder: encoder)
 	}
 	
 	/** Does **not** check whether the components are valid (like URL’s `appendingPathComponent`). */
