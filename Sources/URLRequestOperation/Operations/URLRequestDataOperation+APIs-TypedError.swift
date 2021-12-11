@@ -48,15 +48,19 @@ public extension URLRequestDataOperation {
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
-		let resultProcessor = HTTPStatusCodeCheckResultProcessor()
-			.flatMap(DecodeHTTPContentResultProcessor<ResultType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
-			.flatMapError(
-				RecoverHTTPStatusCodeCheckErrorResultProcessor()
-					.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
-					.flatMap{ Result<ResultType, Error>.failure(Err.APIResultErrorWrapper(urlResponse: $1, error: $0)) }
-			)
+		let resultProcessor = resultProcessorModifier(
+			HTTPStatusCodeCheckResultProcessor()
+				.flatMap(DecodeHTTPContentResultProcessor<ResultType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
+				.flatMapError(
+					RecoverHTTPStatusCodeCheckErrorResultProcessor()
+						.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
+						.flatMap{ throw Err.APIResultErrorWrapper(urlResponse: $1, error: $0) }
+				)
+		)
 		
 		return URLRequestDataOperation<ResultType>(
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
@@ -71,7 +75,9 @@ public extension URLRequestDataOperation {
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
@@ -80,7 +86,7 @@ public extension URLRequestDataOperation {
 			urlRequest: request, session: session,
 			successType: successType, errorType: errorType,
 			decoders: decoders,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
 		)
 	}
 	
@@ -91,13 +97,15 @@ public extension URLRequestDataOperation {
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
 			url: url, method: method, urlParameters: urlParameters, httpBody: nil as Int8?, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType, errorType: errorType,
 			parameterEncoder: parameterEncoder, decoders: decoders,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
 		)
 	}
 	
@@ -106,13 +114,15 @@ public extension URLRequestDataOperation {
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
 			url: url, method: method, urlParameters: nil as Int8?, httpBody: httpBody, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType, errorType: errorType,
 			bodyEncoder: bodyEncoder, decoders: decoders,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
 		)
 	}
 	
@@ -123,7 +133,9 @@ public extension URLRequestDataOperation {
 		successType: ResultType.Type = ResultType.self, errorType: APIErrorType.Type = APIErrorType.self,
 		parameterEncoder: URLQueryEncoder = URLRequestOperationConfig.defaultAPIRequestParametersEncoder, bodyEncoder: HTTPContentEncoder = URLRequestOperationConfig.defaultAPIRequestBodyEncoder, decoders: [HTTPContentDecoder] = URLRequestOperationConfig.defaultAPIResponseDecoders,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		let url = try url.addingQueryParameters(from: urlParameters, encoder: parameterEncoder)
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
@@ -138,7 +150,7 @@ public extension URLRequestDataOperation {
 			urlRequest: request, session: session,
 			successType: successType, errorType: errorType,
 			decoders: decoders,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
 		)
 	}
 	
