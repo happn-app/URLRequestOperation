@@ -98,6 +98,17 @@ public enum URLRequestOperationError : Error {
 		public var urlResponse: URLResponse
 		public var error: APIError
 		
+		/** Convenience to get the APIResultErrorWrapper from any Error (the error has to be an URLRequestOperationError, of course). */
+		public static func get(from error: Error) -> Self? {
+			switch error as? Err {
+				case .resultProcessorError(let e)?:
+					return e as? Self
+					
+				default:
+					return nil
+			}
+		}
+		
 		public init(urlResponse: URLResponse, error: APIError) {
 			self.urlResponse = urlResponse
 			self.error = error
