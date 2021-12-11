@@ -90,6 +90,12 @@ public enum URLRequestOperationError : Error {
 		
 		public var httpBody: Data?
 		
+		public init(expected: Set<Int>, actual: Int? = nil, httpBody: Data? = nil) {
+			self.expected = expected
+			self.actual = actual
+			self.httpBody = httpBody
+		}
+		
 	}
 	
 	/** A wrapper for an API Error. */
