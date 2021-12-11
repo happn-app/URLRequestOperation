@@ -108,8 +108,9 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 				return self.baseOperationEnded()
 			}
 			
-			let task = self.task(for: request)
 			self.currentRequest = request
+			
+			let task = self.taskForCurrentRequest()
 			self.currentTask = task
 			task.resume()
 		})
@@ -271,7 +272,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	
 	private var expectedDataSize: Int64?
 	
-	private func task(for request: URLRequest) -> URLSessionDataTask {
+	private func taskForCurrentRequest() -> URLSessionDataTask {
 		let task: URLSessionDataTask
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
 			if session.delegate is URLRequestOperation {

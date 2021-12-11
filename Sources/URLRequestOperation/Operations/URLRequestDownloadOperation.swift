@@ -112,8 +112,9 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 				return self.baseOperationEnded()
 			}
 			
-			let task = self.task(for: request)
 			self.currentRequest = request
+			
+			let task = self.taskForCurrentRequest()
 			self.currentTask = task
 			task.resume()
 		})
@@ -264,7 +265,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	private var currentResult: Result<URLRequestOperationResult<ResultType>, Error>?
 	
 	/* TODO: Resume data init. */
-	private func task(for request: URLRequest) -> URLSessionDownloadTask {
+	private func taskForCurrentRequest() -> URLSessionDownloadTask {
 		let task: URLSessionDownloadTask
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
 			if session.delegate is URLRequestOperation {
