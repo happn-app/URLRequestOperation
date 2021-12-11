@@ -47,8 +47,18 @@ extension URL {
 		return components.reduce(self, { reduced, new in reduced.appendingPathComponent(new) })
 	}
 	
+	/** Shorter name for ``appendingPathComponentsSafely(_:)``. */
+	public func appending(_ components: String...) throws -> URL {
+		try appendingPathComponentsSafely(components)
+	}
+	
 	/** Throws if any of the given component contains a path separator. */
 	public func appendingPathComponentsSafely(_ components: String...) throws -> URL {
+		try appendingPathComponentsSafely(components)
+	}
+	
+	/** Non-variadic variant of ``appendingPathComponentsSafely(_:)``. */
+	public func appendingPathComponentsSafely(_ components: [String]) throws -> URL {
 		/* Let’s check the given path is valid (does not contain a path separator).
 		 * Note: We hardcode the path separator for now, but we shouldn’t. */
 		if let invalid = components.first(where: { $0.range(of: "/") != nil }) {
