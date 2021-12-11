@@ -24,8 +24,8 @@ public extension ResultProcessor {
 		return AnyResultProcessor<SourceType, NewResult>(transformingSuccessOf: self, with: transform)
 	}
 	
-	func flatMap<NewResult>(_ flatMapHandler: @escaping (ResultType, URLResponse) -> Result<NewResult, Error>) -> AnyResultProcessor<SourceType, NewResult> {
-		return flatMap(AnyResultProcessor<ResultType, NewResult>{ result, urlResponse, handler in handler(flatMapHandler(result, urlResponse)) })
+	func flatMap<NewResult>(_ flatMapHandler: @escaping (ResultType, URLResponse) throws -> NewResult) -> AnyResultProcessor<SourceType, NewResult> {
+		return flatMap(AnyResultProcessor<ResultType, NewResult>{ result, urlResponse, handler in handler(Result{ try flatMapHandler(result, urlResponse) }) })
 	}
 	
 	func flatMap<NewProcessor : ResultProcessor>(_ newProcessor: NewProcessor) -> AnyResultProcessor<SourceType, NewProcessor.ResultType>
@@ -33,9 +33,13 @@ public extension ResultProcessor {
 		return AnyResultProcessor<SourceType, NewProcessor.ResultType>(combining: self, and: newProcessor)
 	}
 	
-	func flatMapError<NewProcessor : ResultProcessor>(_ newProcessor: NewProcessor) -> AnyResultProcessor<SourceType, NewProcessor.ResultType>
+	func flatMapError(_ flatMapErrorHandler: @escaping (Error, URLResponse) throws -> ResultType) -> AnyResultProcessor<SourceType, ResultType> {
+		return flatMapError(AnyResultProcessor<Error, ResultType>{ error, urlResponse, handler in handler(Result{ try flatMapErrorHandler(error, urlResponse) }) })
+	}
+	
+	func flatMapError<NewProcessor : ResultProcessor>(_ newProcessor: NewProcessor) -> AnyResultProcessor<SourceType, ResultType>
 	where NewProcessor.SourceType == Error, NewProcessor.ResultType == ResultType {
-		return AnyResultProcessor<SourceType, NewProcessor.ResultType>(recoveringErrorFrom: self, with: newProcessor)
+		return AnyResultProcessor<SourceType, ResultType>(recoveringErrorFrom: self, with: newProcessor)
 	}
 	
 	func dispatched(to dispatcher: BlockDispatcher) -> AnyResultProcessor<SourceType, ResultType> {
