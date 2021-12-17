@@ -196,7 +196,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		
 		if error == nil {
 			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
-			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
+			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: urlOperationIdentifier, userInfo: userInfo)
 		}
 		
 		guard downloadStatus.doingDidComplete() else {
@@ -356,7 +356,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			return endBaseOperation(result: .failure(error))
 		} else {
 			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
-			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
+			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: urlOperationIdentifier, userInfo: userInfo)
 		}
 		
 		guard let response = response, let url = url else {
@@ -409,7 +409,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			/* If the operation is successful, let’s notify the people who care about it. */
 			if result.failure == nil {
 				let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
-				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: nil, userInfo: userInfo)
+				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: urlOperationIdentifier, userInfo: userInfo)
 			}
 		}
 		baseOperationEnded(retryHelpers: retryHelpers)
