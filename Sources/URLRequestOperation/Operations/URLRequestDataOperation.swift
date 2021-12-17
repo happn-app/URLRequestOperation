@@ -158,7 +158,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		
 		/* We successfully got some data from the server; let’s notify the people who care about it. */
 		let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
-		NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
+		NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: urlOperationIdentifier, userInfo: userInfo)
 		
 		let error = runResponseValidators(urlResponse: response)
 		guard error == nil, !isCancelled else {
@@ -358,7 +358,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		if let response = response, error == nil {
 			/* We successfully got some data from the server; let’s notify the people who care about it. */
 			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
-			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: nil, userInfo: userInfo)
+			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: urlOperationIdentifier, userInfo: userInfo)
 			taskEnded(data: data, response: response, error: runResponseValidators(urlResponse: response))
 		} else {
 			taskEnded(data: data, response: response, error: error)
@@ -423,7 +423,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			/* If the operation is successful, let’s notify the people who care about it. */
 			if result.failure == nil {
 				let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
-				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: nil, userInfo: userInfo)
+				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: urlOperationIdentifier, userInfo: userInfo)
 			}
 		}
 		baseOperationEnded(retryHelpers: retryHelpers)

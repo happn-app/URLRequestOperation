@@ -22,17 +22,19 @@ import RetryingOperation
 #if DEBUG
 internal let opIdQueue = DispatchQueue(label: "com.happn.URLRequestOperation.OperationID")
 internal var latestURLOperationIdentifier = -1
+
+public typealias URLRequestOperationID = Int
+#else
+public typealias URLRequestOperationID = UUID
 #endif
+
 
 public protocol URLRequestOperation : RetryingOperation {
 	
-#if DEBUG
-	var urlOperationIdentifier: Int {get}
-#else
-	var urlOperationIdentifier: UUID {get}
-#endif
+	var urlOperationIdentifier: URLRequestOperationID {get}
 	
 }
+
 
 internal extension URLRequestOperation {
 	
