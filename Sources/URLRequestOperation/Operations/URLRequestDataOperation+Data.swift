@@ -21,26 +21,31 @@ public extension URLRequestDataOperation {
 	
 	static func forData(
 		urlRequest: URLRequest, session: URLSession = .shared,
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDataRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Data {
 		return URLRequestDataOperation<Data>(
 			request: urlRequest, session: session,
 			requestProcessors: requestProcessors,
 			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
 			resultProcessor: .identity(),
-			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes()] + retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes)] + retryProviders
 		)
 	}
 	
 	static func forData(
 		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDataRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Data {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		return Self.forData(
 			urlRequest: request, session: session,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	

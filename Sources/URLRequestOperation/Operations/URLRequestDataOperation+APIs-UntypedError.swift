@@ -29,7 +29,8 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultAPIRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultAPIRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		let resultProcessor = resultProcessorModifier(
 			HTTPStatusCodeCheckResultProcessor()
@@ -40,7 +41,7 @@ public extension URLRequestDataOperation {
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [/* URL Response Validators do not make much sense for an API call */],
 			resultProcessor: resultProcessor,
-			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes(), UnretriedErrorsRetryProvider.forHTTPContentDecoding()] + retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes), UnretriedErrorsRetryProvider.forHTTPContentDecoding()] + retryProviders
 		)
 	}
 	
@@ -51,7 +52,8 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultAPIRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultAPIRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
@@ -60,7 +62,8 @@ public extension URLRequestDataOperation {
 			urlRequest: request, session: session,
 			successType: successType,
 			decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	
@@ -73,13 +76,15 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultAPIRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultAPIRetryProviders
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
 			url: url, method: method, urlParameters: urlParameters, httpBody: nil as Int8?, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType,
 			parameterEncoder: parameterEncoder, decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	
@@ -90,13 +95,15 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultAPIRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultAPIRetryProviders
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
 			url: url, method: method, urlParameters: nil as Int8?, httpBody: httpBody, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType,
 			bodyEncoder: bodyEncoder, decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	
@@ -109,7 +116,8 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultAPIRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultAPIRetryProviders
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		let url = try url.appendingQueryParameters(from: urlParameters, encoder: parameterEncoder)
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
@@ -124,7 +132,8 @@ public extension URLRequestDataOperation {
 			urlRequest: request, session: session,
 			successType: successType,
 			decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	

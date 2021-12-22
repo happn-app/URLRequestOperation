@@ -61,6 +61,21 @@ public enum URLRequestOperationConfig {
 	public static var defaultAPIResponseDecoders: [HTTPContentDecoder] = [JSONDecoder()]
 	public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = JSONEncoder()
 	public static var defaultAPIRequestParametersEncoder: URLQueryEncoder = FormURLEncodedEncoder()
+	/** Before these retry providers, there will always be retry providers to block content decoding or unexpected status code errors. */
+	public static var defaultAPIRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	public static var defaultAPIRetryableStatusCodes: Set<Int> = [503]
+	
+	/** Before these retry providers, there will always be retry providers to block unexpected status code errors. */
+	public static var defaultDataRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	public static var defaultDataRetryableStatusCodes: Set<Int> = [503]
+	
+	/** Before these retry providers, there will always be retry providers to block image conversion failure or unexpected status code errors. */
+	public static var defaultImageRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	public static var defaultImageRetryableStatusCodes: Set<Int> = [503]
+	
+	/** Before these retry providers, there will always be retry providers to block download specific error or unexpected status code errors. */
+	public static var defaultDownloadRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	public static var defaultDownloadRetryableStatusCodes: Set<Int> = [503]
 	
 	public static var networkRetryProviderDefaultNumberOfRetries: Int? = 7
 	public static var networkRetryProviderBackoffTable: [TimeInterval] = [1, 3, 15, 27, 42, 60, 60 * 60, 6 * 60 * 60]
