@@ -87,6 +87,9 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 			return nil
 		}
 		
+		/* TODO: Properly handle 503 (where the Retry-After header should be sent to tell when to retry)
+		 *       Note: We might want to do this in a separate retry provider. */
+		
 		/* We now know the request CAN be retried (idempotent and maximum number of retries not exceeded, task not cancelled). */
 		Self.syncQ.sync{ currentNumberOfRetriesPerOperation[operation.urlOperationIdentifier, default: 0] += 1 }
 		let host = request.url?.host

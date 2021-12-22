@@ -23,7 +23,9 @@ public extension URLRequestDownloadOperation {
 	static func forReadingFile(
 		request: URLRequest, session: URLSession = .shared,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDownloadRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDownloadRetryProviders
 	) -> URLRequestDownloadOperation<ResultType> where ResultType == FileHandle {
 		return URLRequestDownloadOperation(
 			request: request, session: session,
@@ -31,21 +33,24 @@ public extension URLRequestDownloadOperation {
 			requestProcessors: requestProcessors,
 			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
 			resultProcessor: URLToFileHandleResultProcessor(processingQueue: resultProcessingDispatcher).erased,
-			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes(), UnretriedErrorsRetryProvider.forFileHandleFromDownload()] + retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes), UnretriedErrorsRetryProvider.forFileHandleFromDownload()] + retryProviders
 		)
 	}
 	
 	static func forReadingFile(
 		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDownloadRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDownloadRetryProviders
 	) -> URLRequestDownloadOperation<ResultType> where ResultType == FileHandle {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		return Self.forReadingFile(
 			request: request, session: session,
 			resultProcessingDispatcher: resultProcessingDispatcher,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	

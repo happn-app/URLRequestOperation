@@ -50,6 +50,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		isAPIErrorRetryable: @escaping (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		let resultProcessor = resultProcessorModifier(
@@ -66,7 +67,7 @@ public extension URLRequestDataOperation {
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [/* URL Response Validators do not make much sense for an API call */],
 			resultProcessor: resultProcessor,
-			retryProviders: [UnretriedErrorsRetryProvider.forAPIError(errorType: APIErrorType.self), UnretriedErrorsRetryProvider.forHTTPContentDecoding()] + retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forAPIError(isRetryableBlock: isAPIErrorRetryable), UnretriedErrorsRetryProvider.forHTTPContentDecoding()] + retryProviders
 		)
 	}
 	
@@ -77,6 +78,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		isAPIErrorRetryable: @escaping (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
@@ -86,7 +88,8 @@ public extension URLRequestDataOperation {
 			urlRequest: request, session: session,
 			successType: successType, errorType: errorType,
 			decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			isAPIErrorRetryable: isAPIErrorRetryable, retryProviders: retryProviders
 		)
 	}
 	
@@ -99,13 +102,15 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		isAPIErrorRetryable: @escaping (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
 			url: url, method: method, urlParameters: urlParameters, httpBody: nil as Int8?, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType, errorType: errorType,
 			parameterEncoder: parameterEncoder, decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			isAPIErrorRetryable: isAPIErrorRetryable, retryProviders: retryProviders
 		)
 	}
 	
@@ -116,13 +121,15 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		isAPIErrorRetryable: @escaping (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
 			url: url, method: method, urlParameters: nil as Int8?, httpBody: httpBody, headers: headers, cachePolicy: cachePolicy, session: session,
 			successType: successType, errorType: errorType,
 			bodyEncoder: bodyEncoder, decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			isAPIErrorRetryable: isAPIErrorRetryable, retryProviders: retryProviders
 		)
 	}
 	
@@ -135,6 +142,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
+		isAPIErrorRetryable: @escaping (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		let url = try url.appendingQueryParameters(from: urlParameters, encoder: parameterEncoder)
@@ -150,7 +158,8 @@ public extension URLRequestDataOperation {
 			urlRequest: request, session: session,
 			successType: successType, errorType: errorType,
 			decoders: decoders,
-			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier, retryProviders: retryProviders
+			requestProcessors: requestProcessors, resultProcessorModifier: resultProcessorModifier,
+			isAPIErrorRetryable: isAPIErrorRetryable, retryProviders: retryProviders
 		)
 	}
 	

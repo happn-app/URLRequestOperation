@@ -32,27 +32,32 @@ public extension URLRequestDataOperation {
 	static func forImage(
 		urlRequest: URLRequest, session: URLSession = .shared,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultImageRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultImageRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Image {
 		return URLRequestDataOperation<Image>(
 			request: urlRequest, session: session, requestProcessors: requestProcessors,
 			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
 			resultProcessor: DecodeDataResultProcessor(decoder: dataToImage, processingQueue: resultProcessingDispatcher).erased,
-			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes(), UnretriedErrorsRetryProvider.forDataConversion()] + retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes), UnretriedErrorsRetryProvider.forDataConversion()] + retryProviders
 		)
 	}
 	
 	static func forImage(
 		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultImageRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultImageRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Image {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
 		return Self.forImage(
 			urlRequest: request, session: session,
 			resultProcessingDispatcher: resultProcessingDispatcher,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	

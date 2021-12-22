@@ -24,7 +24,9 @@ public extension URLRequestDownloadOperation {
 		request: URLRequest, session: URLSession = .shared,
 		destination: URL, moveBehavior: URLMoveResultProcessor.MoveBehavior = .failIfDestinationExists,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDownloadRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDownloadRetryProviders
 	) -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
 		return URLRequestDownloadOperation(
 			request: request, session: session,
@@ -32,7 +34,7 @@ public extension URLRequestDownloadOperation {
 			requestProcessors: requestProcessors,
 			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
 			resultProcessor: URLMoveResultProcessor(destinationURL: destination, moveBehavior: moveBehavior, processingQueue: resultProcessingDispatcher).erased,
-			retryProviders: [UnretriedErrorsRetryProvider.forStatusCodes(), UnretriedErrorsRetryProvider.forDownload()] + retryProviders
+			retryProviders: [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes), UnretriedErrorsRetryProvider.forDownload()] + retryProviders
 		)
 	}
 	
@@ -40,7 +42,9 @@ public extension URLRequestDownloadOperation {
 		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		destination: URL, moveBehavior: URLMoveResultProcessor.MoveBehavior = .failIfDestinationExists,
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
-		requestProcessors: [RequestProcessor] = [], retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+		requestProcessors: [RequestProcessor] = [],
+		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDownloadRetryableStatusCodes,
+		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDownloadRetryProviders
 	) -> URLRequestDownloadOperation<ResultType> where ResultType == URL {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
 		for (key, val) in headers {request.setValue(val, forHTTPHeaderField: key)}
@@ -48,7 +52,8 @@ public extension URLRequestDownloadOperation {
 			request: request, session: session,
 			destination: destination, moveBehavior: moveBehavior,
 			resultProcessingDispatcher: resultProcessingDispatcher,
-			requestProcessors: requestProcessors, retryProviders: retryProviders
+			requestProcessors: requestProcessors,
+			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
 		)
 	}
 	
