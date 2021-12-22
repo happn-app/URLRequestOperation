@@ -248,7 +248,6 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		expectedDataSize = nil
 		currentResponse = nil
 		currentData = nil
-		currentTask = nil
 		
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), task.delegate === self {
 			(session.delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
@@ -366,6 +365,9 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	}
 	
 	private func taskEnded(data: Data?, response: URLResponse?, error: Error?) {
+		assert(currentTask != nil)
+		currentTask = nil
+		
 		if let error = error {
 			return endBaseOperation(result: .failure(error))
 		}
