@@ -179,6 +179,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 					self.currentResult = res
 					return
 				}
+				self.currentTask = nil
 				self.endBaseOperation(result: res)
 				assert(self.downloadStatus.isStatusWaiting)
 			}
@@ -207,6 +208,8 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			return
 		}
 		
+		currentTask = nil
+		
 		guard !isCancelled else {
 			return baseOperationEnded()
 		}
@@ -215,7 +218,6 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		endBaseOperation(result: currentResult ?? .failure(error!))
 		assert(downloadStatus.isStatusWaiting)
 		currentResult = nil
-		currentTask = nil
 	}
 	
 	/* ***************
