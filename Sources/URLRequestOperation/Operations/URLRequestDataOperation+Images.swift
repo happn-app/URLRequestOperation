@@ -63,9 +63,20 @@ public extension URLRequestDataOperation {
 	
 	private static func dataToImage(_ data: Data) throws -> Image {
 		guard let image = Image(data: data) else {
-			throw Err.DataConversionFailed(data: data, underlyingError: nil)
+			throw ImageConversionError(data: data)
 		}
 		return image
+	}
+	
+}
+
+
+public struct ImageConversionError : Error {
+	
+	public let data: Data
+	
+	public init(data: Data) {
+		self.data = data
 	}
 	
 }
