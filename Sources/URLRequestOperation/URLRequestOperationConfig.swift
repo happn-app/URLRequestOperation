@@ -73,6 +73,11 @@ public enum URLRequestOperationConfig {
 	public static var defaultImageRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	public static var defaultImageRetryableStatusCodes: Set<Int> = [503]
 	
+	public static var defaultStringEncoding: String.Encoding = .utf8
+	/** Before these retry providers, there will always be retry providers to block string conversion failure or unexpected status code errors. */
+	public static var defaultStringRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	public static var defaultStringRetryableStatusCodes: Set<Int> = [503]
+	
 	/** Before these retry providers, there will always be retry providers to block download specific error or unexpected status code errors. */
 	public static var defaultDownloadRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	public static var defaultDownloadRetryableStatusCodes: Set<Int> = [503]

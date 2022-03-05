@@ -39,7 +39,6 @@ class URLRequestOperationTests : XCTestCase {
 		XCTAssertEqual(counter.count, 2)
 	}
 	
-	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 	func testSimpleAPIGet() async throws {
 		struct Todo : Decodable {
 			var userId: Int
@@ -62,7 +61,6 @@ class URLRequestOperationTests : XCTestCase {
 		}
 	}
 	
-	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 	func testSimpleAPIGetWithParameters() async throws {
 		struct Todo : Decodable {
 			var userId: Int
@@ -88,7 +86,6 @@ class URLRequestOperationTests : XCTestCase {
 		print(res)
 	}
 	
-	@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 	func testSimpleAPIPost() async throws {
 		struct Todo : Decodable {
 			var userId: Int
@@ -116,15 +113,19 @@ class URLRequestOperationTests : XCTestCase {
 		print(res)
 	}
 	
-//	func testFetchFrostLandConstant() {
-//		let op = URLRequestOperation(url: URL(string: "https://frostland.fr/constant.txt")!)
-//		op.start()
-//		op.waitUntilFinished()
-//		XCTAssertNil(op.finalError)
-//		XCTAssertEqual(op.statusCode, 200)
-//		XCTAssertEqual(op.fetchedData, Data("42".utf8))
-//	}
-//
+	func testFetchFrostLandStringConstant() async throws {
+		let op = URLRequestDataOperation.forString(url: URL(string: "https://frostland.fr/constant.txt")!)
+		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<String>, Error>) in
+			op.completionBlock = {
+				continuation.resume(with: op.result)
+			}
+			op.start()
+		}
+		let httpURLResponse = try XCTUnwrap(res.urlResponse as? HTTPURLResponse)
+		XCTAssertEqual(httpURLResponse.statusCode, 200)
+		XCTAssertEqual(res.result, "42")
+	}
+	
 //	func testFetchInvalidHost() {
 //		let op = URLRequestOperation(config: URLRequestOperation.Config(request: URLRequest(url: URL(string: "https://invalid.frostland.fr/")!), session: nil, maximumNumberOfRetries: 1))
 //		op.start()
