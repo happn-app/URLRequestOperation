@@ -15,12 +15,13 @@ limitations under the License. */
 
 import Foundation
 
-#if canImport(AppKit)
-import AppKit
-public typealias Image = NSImage
-#elseif canImport(UIKit)
+/* UIKit check first for Mac Catalyst case. */
+#if canImport(UIKit)
 import UIKit
 public typealias Image = UIImage
+#elseif canImport(AppKit)
+import AppKit
+public typealias Image = NSImage
 #endif
 
 
