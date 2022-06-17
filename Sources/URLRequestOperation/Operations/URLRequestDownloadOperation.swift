@@ -272,7 +272,10 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 	/* TODO: Resume data init. */
 	private func taskForCurrentRequest() -> URLSessionDownloadTask {
 		let task: URLSessionDownloadTask
+#if !canImport(FoundationNetworking)
+		/* macOS. */
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
+			/* Tasks can have delegates. */
 			if session.delegate is URLRequestOperation {
 #if canImport(os)
 				Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }
@@ -283,6 +286,8 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 			task = currentTask ?? session.downloadTask(with: currentRequest)
 			task.delegate = self
 		} else {
+			/* Tasks cannot have delegates.
+			 * DO remember to copy this block if modified in the Linux version. */
 			if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
 				task = currentTask ?? session.downloadTask(with: currentRequest)
 				delegate.delegates.setTaskDelegate(self, forTask: task)
@@ -315,6 +320,28 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 				task = session.downloadTask(with: currentRequest, completionHandler: taskEnded)
 			}
 		}
+#else
+		/* LINUX! This is a COPY of the else part of the if in the Apple-version, minux the canImport(os). */
+		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
+			task = currentTask ?? session.downloadTask(with: currentRequest)
+			delegate.delegates.setTaskDelegate(self, forTask: task)
+		} else {
+			if session.delegate != nil {
+				if session.delegate is URLRequestOperation {
+					/* Session’s delegate is an URLRequestOperation. */
+					Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+				} else {
+					/* Session’s delegate is non-nil, but it’s not an URLRequestOperationSessionDelegate. */
+					Conf.logger?.warning("Creating task for an URLRequestDownloadOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+				}
+			} else {
+				/* Session’s delegate is nil. */
+				Conf.logger?.warning("Creating task for an URLRequestDownloadOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+			}
+			assert(currentTask == nil)
+			task = session.downloadTask(with: currentRequest, completionHandler: taskEnded)
+		}
+#endif
 		return task
 	}
 	

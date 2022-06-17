@@ -169,6 +169,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			return completionHandler(.cancel)
 		}
 		
+#if !canImport(FoundationNetworking)
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), dataTask.delegate === self, let d = session.delegate as? URLSessionDataDelegate {
 			d.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition in
 				switch responseDisposition {
@@ -184,6 +185,10 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		} else {
 			completionHandler(.allow)
 		}
+#else
+		/* LINUX! This is a COPY of the else part of the if in the Apple-version. */
+		completionHandler(.allow)
+#endif
 	}
 	
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
@@ -202,11 +207,14 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			currentData = newData
 		}()
 		
+#if !canImport(FoundationNetworking)
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), dataTask.delegate === self {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: data)
 		}
+#endif
 	}
 	
+#if !canImport(FoundationNetworking)
 	@available(macOS 10.11, *)
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
 		assert(session === self.session)
@@ -223,6 +231,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
 		}
 	}
+#endif
 	
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
 		assert(session === self.session)
@@ -235,9 +244,11 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 //			delegate.delegates.setTaskDelegate(self, forTask: downloadTask)
 //		}
 		
+#if !canImport(FoundationNetworking)
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), dataTask.delegate === self {
 			(session.delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
 		}
+#endif
 	}
 	
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -252,9 +263,11 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		currentResponse = nil
 		currentData = nil
 		
+#if !canImport(FoundationNetworking)
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *), task.delegate === self {
 			(session.delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
 		}
+#endif
 	}
 	
 	/* ***************
@@ -276,7 +289,10 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	
 	private func taskForCurrentRequest() -> URLSessionDataTask {
 		let task: URLSessionDataTask
+#if !canImport(FoundationNetworking)
+		/* macOS. */
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
+			/* Tasks can have delegates. */
 			if session.delegate is URLRequestOperation {
 #if canImport(os)
 				Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }
@@ -287,6 +303,8 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			task = session.dataTask(with: currentRequest)
 			task.delegate = self
 		} else {
+			/* Tasks cannot have delegates.
+			 * DO remember to copy this block if modified in the Linux version. */
 			if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
 				task = session.dataTask(with: currentRequest)
 				delegate.delegates.setTaskDelegate(self, forTask: task)
@@ -318,6 +336,27 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 				task = session.dataTask(with: currentRequest, completionHandler: taskEndedHandler)
 			}
 		}
+#else
+		/* LINUX! This is a COPY of the else part of the if in the Apple-version, minux the canImport(os). */
+		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
+			task = session.dataTask(with: currentRequest)
+			delegate.delegates.setTaskDelegate(self, forTask: task)
+		} else {
+			if session.delegate != nil {
+				if session.delegate is URLRequestOperation {
+					/* Session’s delegate is an URLRequestOperation. */
+					Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+				} else {
+					/* Session’s delegate is non-nil, but it’s not an URLRequestOperationSessionDelegate. */
+					Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least).", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+				}
+			} else {
+				/* Session’s delegate is nil. */
+				Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+			}
+			task = session.dataTask(with: currentRequest, completionHandler: taskEndedHandler)
+		}
+#endif
 		return task
 	}
 	

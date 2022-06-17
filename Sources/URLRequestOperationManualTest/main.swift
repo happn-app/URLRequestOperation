@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License. */
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 import URLRequestOperation
 
@@ -43,7 +46,14 @@ class SessionDelegate : NSObject, URLSessionTaskDelegate, URLSessionDataDelegate
 
 /* ************************************************************ */
 
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperationSessionDelegateProxy(SessionDelegate(id: 1)), delegateQueue: nil)
+#else
+let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperationSessionDelegate(), delegateQueue: nil)
+/* This one crashes on Linux for whatever reason:
+ *    Metadata allocator corruption: allocation is NULL. curState: {(nil), 33872} - curStateReRead: {(nil), 33872} - newState: {0x30, 33824} - allocatedNewPage: false - requested size: 48 - sizeWithHeader: 48 - alignment: 8 - Tag: 14 */
+//let session = URLSession(configuration: .ephemeral, delegate: SessionDelegate(id: 1), delegateQueue: nil)
+#endif
 
 //let t1 = session.dataTask(with: URL(string: "https://frostland.fr/constant.txt")!)
 //t1.resume()
