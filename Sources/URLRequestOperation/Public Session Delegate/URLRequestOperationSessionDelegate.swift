@@ -43,7 +43,11 @@ open class URLRequestOperationSessionDelegate : NSObject, URLSessionDataDelegate
 	
 	/** Method is open, but super must be called to call the URLRequestOperation delegate. */
 	open func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
+#if !canImport(FoundationNetworking)
 		delegates.taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
+#else
+		delegates.taskDelegateForTask(dataTask)?.urlSession(session, dataTask: dataTask, didBecome: downloadTask)
+#endif
 	}
 	
 	/** Method is open, but super must be called to call the URLRequestOperation delegate. */
