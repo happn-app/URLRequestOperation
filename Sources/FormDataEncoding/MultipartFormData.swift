@@ -25,11 +25,11 @@
 
 import Foundation
 
-import OrderedCollections
+@preconcurrency import OrderedCollections
 
 
 
-enum MultipartFormData: Equatable {
+enum MultipartFormData : Sendable, Equatable {
 	
 	typealias Keyed = OrderedDictionary<String, MultipartFormData>
 	

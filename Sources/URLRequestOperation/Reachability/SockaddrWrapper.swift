@@ -22,7 +22,7 @@ import Logging
 
 
 
-public enum SockAddrConversionError : Int, Error {
+public enum SockAddrConversionError : Int, Error, Sendable {
 	
 	case noError = 0
 	
@@ -35,7 +35,7 @@ public enum SockAddrConversionError : Int, Error {
 }
 
 
-public class SockAddrWrapper : Hashable, CustomStringConvertible {
+public final class SockAddrWrapper : Sendable, Hashable, CustomStringConvertible {
 	
 #if !os(Linux)
 	let len: Int /* Original type is __uint8_t */

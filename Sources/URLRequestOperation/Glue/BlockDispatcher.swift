@@ -26,7 +26,7 @@ public protocol BlockDispatcher {
 }
 
 
-public struct SyncBlockDispatcher : BlockDispatcher {
+public struct SyncBlockDispatcher : BlockDispatcher, Sendable {
 	
 	public init() {}
 	

@@ -46,10 +46,10 @@ import Foundation
 public struct FormURLEncodedEncoder {
 	
 	/** Used to capture URLForm Coding Configuration used for encoding. */
-	public struct Configuration {
+	public struct Configuration : Sendable {
 		
 		/** Supported array encodings. */
-		public enum ArrayEncoding {
+		public enum ArrayEncoding : Sendable {
 			
 			/**
 			 Arrays are serialized as separate values with bracket suffixed keys.
@@ -70,7 +70,7 @@ public struct FormURLEncodedEncoder {
 		}
 		
 		/** Supported date formats */
-		public enum DateEncodingStrategy {
+		public enum DateEncodingStrategy : Sendable {
 			
 			/** Seconds since 1 January 1970 00:00:00 UTC (Unix Timestamp) */
 			case secondsSince1970
@@ -78,7 +78,7 @@ public struct FormURLEncodedEncoder {
 			@available(macOS 10.12, *)
 			case iso8601
 			/** Using custom callback */
-			case custom((Date, Encoder) throws -> Void)
+			case custom(@Sendable (Date, any Encoder) throws -> Void)
 			
 		}
 		

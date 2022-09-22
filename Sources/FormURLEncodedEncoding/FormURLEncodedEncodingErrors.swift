@@ -2,7 +2,7 @@ import Foundation
 
 
 
-public enum FormURLEncodedEncodingError : Error {
+public enum FormURLEncodedEncodingError : Error, Sendable {
 	
 	case malformedKey(key: Substring)
 	

@@ -23,7 +23,7 @@ import MediaType
 
 
 /** All of the errors thrown by the module should have this type. */
-public enum URLRequestOperationError : Error {
+public enum URLRequestOperationError : Error, Sendable {
 	
 	/** Directly access the response validator or result processor error if any. */
 	public var postProcessError: Error? {
@@ -78,7 +78,7 @@ public enum URLRequestOperationError : Error {
 	
 	
 	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
-	public struct DataConversionFailed : Error {
+	public struct DataConversionFailed : Error, Sendable {
 		
 		public var data: Data
 		public var underlyingError: Error?
@@ -86,7 +86,7 @@ public enum URLRequestOperationError : Error {
 	}
 	
 	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
-	public struct UnexpectedStatusCode : Error {
+	public struct UnexpectedStatusCode : Error, Sendable {
 		
 		public var expected: Set<Int>
 		public var actual: Int?
@@ -102,7 +102,7 @@ public enum URLRequestOperationError : Error {
 	}
 	
 	/** A wrapper for an API Error. */
-	public struct APIResultErrorWrapper<APIError> : Error {
+	public struct APIResultErrorWrapper<APIError> : Error/* Sendable when APIError is Sendable; declared at the end of this file. */ {
 		
 		public var urlResponse: URLResponse
 		public var error: APIError
@@ -126,5 +126,7 @@ public enum URLRequestOperationError : Error {
 	}
 	
 }
+
+extension URLRequestOperationError.APIResultErrorWrapper : Sendable where APIError : Sendable {}
 
 typealias Err = URLRequestOperationError

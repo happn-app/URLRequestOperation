@@ -30,8 +30,11 @@ import SemiSingleton
 
 
 /* If we can drop @objc in ReachabilitySubscriber, we could drop NSObject’s inheritance.
- * See the ReachabilitySubscriber protocol for more information. */
-public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleInit {
+ * See the ReachabilitySubscriber protocol for more information.
+ *
+ * Dev note: We have an unchecked conformance to Sendable because of wasReachable which is mutable.
+ * We only use/modify this variable in a Lock-protected code, and it’s private, so we should be good. */
+public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleInit, @unchecked Sendable {
 	
 	public static func convertReachabilityFlagsToStr(_ flags: SCNetworkReachabilityFlags) -> String {
 #if os(iOS)
@@ -61,14 +64,14 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 	public typealias SemiSingletonKey = InitInfo
 	public typealias SemiSingletonAdditionalInitInfo = Void
 	
-	public enum InitInfo : Hashable {
+	public enum InitInfo : Sendable, Hashable {
 		
 		case sockaddr(SockAddrWrapper)
 		case host(String)
 		
 	}
 	
-	public enum Error : Int, Swift.Error {
+	public enum Err : Int, Error, Sendable {
 		
 		case noError = 0
 		
@@ -105,14 +108,14 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		switch info {
 			case .host(let host):
 				guard let ref = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, host) else {
-					throw Error.cannotCreateReachability
+					throw Err.cannotCreateReachability
 				}
 				reachabilityRef = ref
 				
 			case .sockaddr(let addr):
 				reachabilityRef = try addr.withUnsafeSockaddrPointer{ ptr in
 					guard let ref = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, ptr) else {
-						throw Error.cannotCreateReachability
+						throw Err.cannotCreateReachability
 					}
 					return ref
 				}
@@ -121,13 +124,13 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		super.init()
 		
 		/* From tests I’ve done, it seems assessing unreachability because network is down seems to be synchronous,
-		 * so setting was reachable as soon as the reachability observer is instantiated makes sense. */
+		 *  so setting was reachable as soon as the reachability observer is instantiated makes sense. */
 		wasReachable = currentlyReachable
 		
 		let container = WeakReachabilityObserverContainer(observer: self)
 		var context = SCNetworkReachabilityContext(version: 0, info: unsafeBitCast(container, to: UnsafeMutableRawPointer.self), retain: reachabilityRetainForReachabilityObserver, release: reachabilityReleaseForReachabilityObserver, copyDescription: nil)
 		guard SCNetworkReachabilitySetCallback(reachabilityRef, reachabilityCallbackForReachabilityObserver, &context) else {
-			throw Error.cannotSetReachabilityCallback
+			throw Err.cannotSetReachabilityCallback
 		}
 		
 		isReachabilityScheduled = SCNetworkReachabilitySetDispatchQueue(reachabilityRef, reachabilityQueue)
@@ -201,7 +204,7 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 	   MARK: - Private
 	   *************** */
 	
-	fileprivate class WeakReachabilityObserverContainer {
+	fileprivate final class WeakReachabilityObserverContainer {
 		weak var reachabilityObserver: ReachabilityObserver?
 		init(observer: ReachabilityObserver) {
 			reachabilityObserver = observer
@@ -249,7 +252,7 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		/* We do not iterate directly on the subscribers hash table.
 		 * Indeed copying the subscribers to a static array is an operation of known complexity.
 		 * If we iterated directly in the lock, we would allow code with unknown complexity to run while we're locked,
-		 * and potentially even trigger a dead-lock. */
+		 *  and potentially even trigger a dead-lock. */
 		let subscribersArray = subscribers.allObjects
 		subscribersLock.unlock()
 		for subscriber in subscribersArray {

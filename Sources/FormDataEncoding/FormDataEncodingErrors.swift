@@ -2,7 +2,7 @@ import Foundation
 
 
 
-public enum FormDataEncodingError : Error {
+public enum FormDataEncodingError : Sendable, Error {
 	
 	case cannotWriteToStream(Error?)
 	case syntaxErrorInSerializedMultipart

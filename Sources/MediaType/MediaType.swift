@@ -18,11 +18,11 @@ import Foundation
 
 
 /** Represent a media type ([RFC 7231, section 3.1.1.1](https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.1.1)). */
-public struct MediaType : Hashable, RawRepresentable {
+public struct MediaType : Sendable, Hashable, RawRepresentable {
 	
 	public typealias RawValue = String
 	
-	public struct Parameter : Hashable {
+	public struct Parameter : Sendable, Hashable {
 		
 		var key: String
 		var value: String

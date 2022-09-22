@@ -337,7 +337,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 			}
 		}
 #else
-		/* LINUX! This is a COPY of the else part of the if in the Apple-version, minux the canImport(os). */
+		/* LINUX! This is a COPY of the else part of the if in the Apple-version, minus the canImport(os). */
 		if let delegate = session.delegate as? URLRequestOperationSessionDelegate {
 			task = session.dataTask(with: currentRequest)
 			delegate.delegates.setTaskDelegate(self, forTask: task)

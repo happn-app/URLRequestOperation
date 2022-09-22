@@ -31,7 +31,7 @@ import Foundation
  Keeps track if the string was percent encoded or not.
  
  Prevents double encoding/double decoding. */
-enum URLQueryFragment : ExpressibleByStringLiteral, Equatable {
+enum URLQueryFragment : Sendable, ExpressibleByStringLiteral, Equatable {
 	
 	init(stringLiteral: String) {
 		self = .urlDecoded(stringLiteral)

@@ -11,11 +11,11 @@ let package = Package(
 		.library(name: "FormURLEncodedEncoding", targets: ["FormURLEncodedEncoding"])
 	],
 	dependencies: [
-		.package(url: "https://github.com/apple/swift-collections", from: "1.0.1"),
+		.package(url: "https://github.com/apple/swift-collections.git", from: "1.0.1"),
 		.package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
 		.package(url: "https://github.com/Frizlab/stream-reader.git", from: "3.2.3"),
 		.package(url: "https://github.com/happn-app/RetryingOperation.git", from: "1.1.6"),
-		.package(url: "https://github.com/happn-app/SemiSingleton.git", from: "2.0.3")
+		.package(url: "https://github.com/happn-app/SemiSingleton.git", from: "2.0.6-beta.1")
 	],
 	targets: [
 		.target(name: "MediaType"),

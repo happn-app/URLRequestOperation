@@ -20,6 +20,7 @@ import FoundationNetworking
 
 
 
+extension URLRequestOperationResult : Sendable where ResultType : Sendable {}
 public struct URLRequestOperationResult<ResultType> {
 	
 	public var finalURLRequest: URLRequest

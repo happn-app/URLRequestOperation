@@ -6,7 +6,7 @@ import Foundation
  Simplified HTTP headers struct.
  
  The original FormDataEncoder/FormDataDecoder from Vapor uses NIO’s `HTTPHeaders` struct, but I’d like to avoid pull NIO in this repo. */
-public struct HTTPHeaders : Equatable, ExpressibleByDictionaryLiteral {
+public struct HTTPHeaders : Sendable, Equatable, ExpressibleByDictionaryLiteral {
 	
 	public init(_ headers: [(String, String)] = []) {
 		self.headers = headers

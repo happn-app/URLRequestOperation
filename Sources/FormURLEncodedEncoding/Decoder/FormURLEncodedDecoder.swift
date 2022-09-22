@@ -44,17 +44,17 @@ import Foundation
 public struct FormURLEncodedDecoder {
 	
 	/** Used to capture URLForm Coding Configuration used for decoding. */
-	public struct Configuration {
+	public struct Configuration : Sendable {
 		
 		/** Supported date formats */
-		public enum DateDecodingStrategy {
+		public enum DateDecodingStrategy : Sendable {
 			
 			/** Seconds since 1 January 1970 00:00:00 UTC (Unix Timestamp) */
 			case secondsSince1970
 			/** ISO 8601 formatted date */
 			case iso8601
 			/** Using custom callback */
-			case custom((Decoder) throws -> Date)
+			case custom(@Sendable (any Decoder) throws -> Date)
 			
 		}
 		
@@ -98,9 +98,7 @@ public struct FormURLEncodedDecoder {
 	 ```
 	 
 	 - Parameter configuration: Defines how decoding is done see `URLEncodedFormCodingConfig` for more information */
-	public init(
-		configuration: Configuration = .init()
-	) {
+	public init(configuration: Configuration = .init()) {
 		self.parser = FormURLEncodedParser()
 		self.configuration = configuration
 	}
