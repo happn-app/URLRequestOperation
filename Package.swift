@@ -2,6 +2,9 @@
 import PackageDescription
 
 
+let swiftSettings: [SwiftSetting] = []
+//let swiftSettings: [SwiftSetting] = [.unsafeFlags(["-Xfrontend", "-warn-concurrency", "-Xfrontend", "-enable-actor-data-race-checks"])]
+
 let package = Package(
 	name: "URLRequestOperation",
 	products: [
@@ -18,17 +21,17 @@ let package = Package(
 		.package(url: "https://github.com/happn-app/SemiSingleton.git", from: "2.1.0-beta.1")
 	],
 	targets: [
-		.target(name: "MediaType"),
-		.testTarget(name: "MediaTypeTests", dependencies: ["MediaType"]),
+		.target(name: "MediaType", swiftSettings: swiftSettings),
+		.testTarget(name: "MediaTypeTests", dependencies: ["MediaType"], swiftSettings: swiftSettings),
 		
 		.target(name: "FormDataEncoding", dependencies: [
 			.product(name: "OrderedCollections", package: "swift-collections"),
 			.product(name: "StreamReader",       package: "stream-reader")
-		]),
-		.testTarget(name: "FormDataEncodingTests", dependencies: ["FormDataEncoding"]),
+		], swiftSettings: swiftSettings),
+		.testTarget(name: "FormDataEncodingTests", dependencies: ["FormDataEncoding"], swiftSettings: swiftSettings),
 		
-		.target(name: "FormURLEncodedEncoding"),
-		.testTarget(name: "FormURLEncodedEncodingTests", dependencies: ["FormURLEncodedEncoding"]),
+		.target(name: "FormURLEncodedEncoding", swiftSettings: swiftSettings),
+		.testTarget(name: "FormURLEncodedEncodingTests", dependencies: ["FormURLEncodedEncoding"], swiftSettings: swiftSettings),
 		
 		.target(name: "URLRequestOperation", dependencies: [
 			.product(name: "Logging",           package: "swift-log"),
@@ -36,8 +39,8 @@ let package = Package(
 			.product(name: "SemiSingleton",     package: "SemiSingleton"),
 			.target(name: "FormURLEncodedEncoding"),
 			.target(name: "MediaType")
-		]),
-		.executableTarget(name: "URLRequestOperationManualTest", dependencies: ["URLRequestOperation"]),
-		.testTarget(name: "URLRequestOperationTests", dependencies: ["URLRequestOperation"])
+		], swiftSettings: swiftSettings),
+		.executableTarget(name: "URLRequestOperationManualTest", dependencies: ["URLRequestOperation"], swiftSettings: swiftSettings),
+		.testTarget(name: "URLRequestOperationTests", dependencies: ["URLRequestOperation"], swiftSettings: swiftSettings)
 	]
 )
