@@ -15,28 +15,24 @@ limitations under the License. */
 
 import Foundation
 
-import RetryingOperation
 
 
+/* We use the same lock for all SafeGlobal instances.
+ * We could use one lock per instance instead but there’s no need AFAICT. */
+private let safeGlobalLock = NSLock()
 
-@available(*, unavailable, message: "Not implemented yet")
-public final class URLRequestStreamOperation : RetryingOperation, URLRequestOperation, @unchecked Sendable {
+@propertyWrapper
+public class SafeGlobal<T> : @unchecked Sendable {
 	
-#if DEBUG
-	public let urlOperationIdentifier: Int
-#else
-	public let urlOperationIdentifier: UUID
-#endif
-	
-	public override init() {
-#if DEBUG
-		self.urlOperationIdentifier = LatestURLOpIDContainer.opIdQueue.sync{
-			LatestURLOpIDContainer.latestURLOperationIdentifier &+= 1
-			return LatestURLOpIDContainer.latestURLOperationIdentifier
-		}
-#else
-		self.urlOperationIdentifier = UUID()
-#endif
+	public var wrappedValue: T {
+		get {safeGlobalLock.withLock{ _wrappedValue }}
+		set {safeGlobalLock.withLock{ _wrappedValue = newValue }}
 	}
+	
+	public init(wrappedValue: T) {
+		self._wrappedValue = wrappedValue
+	}
+	
+	private var _wrappedValue: T
 	
 }

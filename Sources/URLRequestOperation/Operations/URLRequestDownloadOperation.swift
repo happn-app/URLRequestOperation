@@ -81,9 +81,9 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		retryProviders: [RetryProvider] = []
 	) {
 #if DEBUG
-		self.urlOperationIdentifier = opIdQueue.sync{
-			latestURLOperationIdentifier &+= 1
-			return latestURLOperationIdentifier
+		self.urlOperationIdentifier = LatestURLOpIDContainer.opIdQueue.sync{
+			LatestURLOpIDContainer.latestURLOperationIdentifier &+= 1
+			return LatestURLOpIDContainer.latestURLOperationIdentifier
 		}
 #else
 		self.urlOperationIdentifier = UUID()

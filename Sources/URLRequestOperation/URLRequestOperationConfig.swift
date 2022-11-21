@@ -44,12 +44,12 @@ public enum URLRequestOperationConfig {
 	
 #if canImport(os)
 	@available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *)
-	public static let oslog: OSLog? = .default
+	@SafeGlobal public static var oslog: OSLog? = .default
 	/* This retricts availability of Apple’s logging, so we keep the OSLog variant for now, even if it is less convenient. */
 //	@available(macOS 11.0, tvOS 14.0, iOS 14.0, watchOS 7.0, *)
 //	public static var oslog: os.Logger? = .init(.default)
 #endif
-	public static let logger: Logging.Logger? = {
+	@SafeGlobal public static var logger: Logging.Logger? = {
 #if canImport(os)
 		if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 			return nil
@@ -58,39 +58,39 @@ public enum URLRequestOperationConfig {
 		return Logger(label: "com.happn.URLRequestOperation")
 	}()
 	
-	public static var defaultAPIResponseDecoders: [HTTPContentDecoder] = [JSONDecoder()]
-	public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = JSONEncoder()
-	public static var defaultAPIRequestParametersEncoder: URLQueryEncoder = FormURLEncodedEncoder()
+	@SafeGlobal public static var defaultAPIResponseDecoders: [HTTPContentDecoder] = [JSONDecoder()]
+	@SafeGlobal public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = JSONEncoder()
+	@SafeGlobal public static var defaultAPIRequestParametersEncoder: URLQueryEncoder = FormURLEncodedEncoder()
 	/** Before these retry providers, there will always be retry providers to block content decoding or unexpected status code errors. */
-	public static var defaultAPIRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	public static var defaultAPIRetryableStatusCodes: Set<Int> = [503]
+	@SafeGlobal public static var defaultAPIRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	@SafeGlobal public static var defaultAPIRetryableStatusCodes: Set<Int> = [503]
 	
 	/** Before these retry providers, there will always be retry providers to block unexpected status code errors. */
-	public static var defaultDataRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	public static var defaultDataRetryableStatusCodes: Set<Int> = [503]
+	@SafeGlobal public static var defaultDataRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	@SafeGlobal public static var defaultDataRetryableStatusCodes: Set<Int> = [503]
 	
 	/** Before these retry providers, there will always be retry providers to block image conversion failure or unexpected status code errors. */
-	public static var defaultImageRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	public static var defaultImageRetryableStatusCodes: Set<Int> = [503]
+	@SafeGlobal public static var defaultImageRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	@SafeGlobal public static var defaultImageRetryableStatusCodes: Set<Int> = [503]
 	
-	public static var defaultStringEncoding: String.Encoding = .utf8
+	@SafeGlobal public static var defaultStringEncoding: String.Encoding = .utf8
 	/** Before these retry providers, there will always be retry providers to block string conversion failure or unexpected status code errors. */
-	public static var defaultStringRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	public static var defaultStringRetryableStatusCodes: Set<Int> = [503]
+	@SafeGlobal public static var defaultStringRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	@SafeGlobal public static var defaultStringRetryableStatusCodes: Set<Int> = [503]
 	
 	/** Before these retry providers, there will always be retry providers to block download specific error or unexpected status code errors. */
-	public static var defaultDownloadRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
-	public static var defaultDownloadRetryableStatusCodes: Set<Int> = [503]
+	@SafeGlobal public static var defaultDownloadRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
+	@SafeGlobal public static var defaultDownloadRetryableStatusCodes: Set<Int> = [503]
 	
-	public static var networkRetryProviderDefaultNumberOfRetries: Int? = 7
-	public static var networkRetryProviderBackoffTable: [TimeInterval] = [1, 3, 15, 27, 42, 60, 60 * 60, 6 * 60 * 60]
+	@SafeGlobal public static var networkRetryProviderDefaultNumberOfRetries: Int? = 7
+	@SafeGlobal public static var networkRetryProviderBackoffTable: [TimeInterval] = [1, 3, 15, 27, 42, 60, 60 * 60, 6 * 60 * 60] as [TimeInterval]
 	
 	/**
 	 When data has been fetched from a server, if it is a valid UTF-8 string, should we log it?
 	 Set to true for debug purpose. */
-	public static var logFetchedStrings = false
+	@SafeGlobal public static var logFetchedStrings = false
 	/** Log everything URL Session related in the file at the given URL. */
-	public static var debugLogURL: URL?
+	@SafeGlobal public static var debugLogURL: URL?
 	
 }
 

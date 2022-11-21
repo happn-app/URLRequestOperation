@@ -20,8 +20,10 @@ import RetryingOperation
 
 
 #if DEBUG
-internal let opIdQueue = DispatchQueue(label: "com.happn.URLRequestOperation.OperationID")
-internal var latestURLOperationIdentifier = -1
+internal enum LatestURLOpIDContainer {
+	static let opIdQueue = DispatchQueue(label: "com.happn.URLRequestOperation.OperationID")
+	@SafeGlobal static var latestURLOperationIdentifier = -1
+}
 
 public typealias URLRequestOperationID = Int
 #else
