@@ -22,6 +22,7 @@ import XCTest
 
 
 
+@available(tvOS 13.0, iOS 13.0, *)
 class URLRequestOperationTests : XCTestCase {
 	
 	func testRetryCount() {

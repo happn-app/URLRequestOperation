@@ -20,7 +20,7 @@ import Foundation
 import os.log
 #endif
 import SystemConfiguration
-#if os(iOS)
+#if os(tvOS) || os(iOS)
 import UIKit
 #endif
 
@@ -134,14 +134,14 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 		}
 		
 		isReachabilityScheduled = SCNetworkReachabilitySetDispatchQueue(reachabilityRef, reachabilityQueue)
-#if os(iOS)
-		appDidEnterBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil){ [weak self] notif in
+#if os(tvOS) || os(iOS)
+		appDidEnterBackgroundObserver = NotificationCenter.default.addObserver(forName: NotifNameGetter.didEnterBackgroundNotifName, object: nil, queue: nil){ [weak self] notif in
 			guard let strongSelf = self, strongSelf.isReachabilityScheduled else {
 				return
 			}
 			strongSelf.isReachabilityScheduled = !SCNetworkReachabilitySetDispatchQueue(strongSelf.reachabilityRef, nil)
 		}
-		appWillEnterForegroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil){ [weak self] notif in
+		appWillEnterForegroundObserver = NotificationCenter.default.addObserver(forName: NotifNameGetter.willEnterForegroundNotifName, object: nil, queue: nil){ [weak self] notif in
 			guard let strongSelf = self, !strongSelf.isReachabilityScheduled else {
 				return
 			}
@@ -157,9 +157,9 @@ public final class ReachabilityObserver : NSObject, SemiSingletonWithFallibleIni
 			Conf.oslog.flatMap{ os_log("Deiniting a reachability observer with reachability ref %@", log: $0, type: .debug, String(describing: reachabilityRef)) }}
 #endif
 		Conf.logger?.debug("Deiniting a reachability observer with reachability ref \(String(describing: reachabilityRef))")
-#if os(iOS)
-		if let observer = appDidEnterBackgroundObserver  {NotificationCenter.default.removeObserver(observer, name: UIApplication.didEnterBackgroundNotification,  object: nil)}
-		if let observer = appWillEnterForegroundObserver {NotificationCenter.default.removeObserver(observer, name: UIApplication.willEnterForegroundNotification, object: nil)}
+#if os(tvOS) || os(iOS)
+		if let observer = appDidEnterBackgroundObserver  {NotificationCenter.default.removeObserver(observer, name: NotifNameGetter.didEnterBackgroundNotifName,  object: nil)}
+		if let observer = appWillEnterForegroundObserver {NotificationCenter.default.removeObserver(observer, name: NotifNameGetter.willEnterForegroundNotifName, object: nil)}
 #endif
 		if isReachabilityScheduled && !SCNetworkReachabilitySetDispatchQueue(reachabilityRef, nil) {
 #if canImport(os)
