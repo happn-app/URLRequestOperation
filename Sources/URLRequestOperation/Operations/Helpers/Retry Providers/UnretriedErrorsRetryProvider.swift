@@ -51,7 +51,7 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 		}
 	}
 	
-	public static func forAPIError<APIErrorType>(errorType: APIErrorType.Type = APIErrorType.self, isRetryableBlock: @escaping (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false }) -> UnretriedErrorsRetryProvider {
+	public static func forAPIError<APIErrorType>(errorType: APIErrorType.Type = APIErrorType.self, isRetryableBlock: @escaping @Sendable (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false }) -> UnretriedErrorsRetryProvider {
 		return Self{ err in
 			guard let apiErrorWrapper = (err as? Err)?.postProcessError as? Err.APIResultErrorWrapper<APIErrorType> else {
 				return false
@@ -87,9 +87,9 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 		}
 	}
 	
-	public let isBlacklistedError: (Error) -> Bool
+	public let isBlacklistedError: @Sendable (Error) -> Bool
 	
-	public init(isBlacklistedError: @escaping (Error) -> Bool) {
+	public init(isBlacklistedError: @escaping @Sendable (Error) -> Bool) {
 		self.isBlacklistedError = isBlacklistedError
 	}
 	
