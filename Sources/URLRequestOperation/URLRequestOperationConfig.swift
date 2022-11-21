@@ -15,7 +15,7 @@ limitations under the License. */
 
 import Foundation
 #if canImport(OSLog)
-import OSLog
+@preconcurrency import OSLog
 #endif
 
 import Logging

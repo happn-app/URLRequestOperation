@@ -17,14 +17,14 @@ import Foundation
 
 
 
-public protocol URLQueryEncoder {
+public protocol URLQueryEncoder : Sendable {
 	
 	func encode<T>(_ value: T) throws -> String where T : Encodable
 	
 }
 
 
-public protocol URLQueryDecoder {
+public protocol URLQueryDecoder : Sendable {
 	
 	func decode<T>(_ type: T.Type, from string: String) throws -> T where T : Decodable
 	
