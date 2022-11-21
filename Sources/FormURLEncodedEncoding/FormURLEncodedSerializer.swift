@@ -108,9 +108,9 @@ extension String {
 
 
 /** Characters allowed in form-urlencoded data. */
-private var _allowedCharacters: CharacterSet = {
+private let _allowedCharacters: CharacterSet = {
 	var allowed = CharacterSet.urlQueryAllowed
-	/* these symbols are reserved for url-encoded form */
+	/* These symbols are reserved for url-encoded form. */
 	allowed.remove(charactersIn: "?&=[];+")
 	return allowed
 }()
