@@ -23,7 +23,7 @@ import MediaType
 
 
 /** Throws ``DecodeHTTPContentResultProcessorError`` errors. */
-public struct DecodeHTTPContentResultProcessor<ResultType : Decodable> : ResultProcessor {
+public struct DecodeHTTPContentResultProcessor<ResultType : Decodable & Sendable> : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Data
 	
@@ -41,7 +41,7 @@ public struct DecodeHTTPContentResultProcessor<ResultType : Decodable> : ResultP
 		self.processingQueue = processingQueue
 	}
 	
-	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping (Result<ResultType, Error>) -> Void) {
+	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping @Sendable (Result<ResultType, Error>) -> Void) {
 		/* O(n) or less, n being the number of headers in the response + the number of decoders,
 		 * both of which are always small, so outside of processing queue. */
 		guard let httpResponse = urlResponse as? HTTPURLResponse,

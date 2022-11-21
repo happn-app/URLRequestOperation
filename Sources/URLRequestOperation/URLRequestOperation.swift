@@ -29,7 +29,7 @@ public typealias URLRequestOperationID = UUID
 #endif
 
 
-public protocol URLRequestOperation : RetryingOperation {
+public protocol URLRequestOperation : RetryingOperation, Sendable {
 	
 	var urlOperationIdentifier: URLRequestOperationID {get}
 	

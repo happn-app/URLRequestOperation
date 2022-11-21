@@ -10,6 +10,7 @@ public protocol ResultProcessor {
 	associatedtype SourceType
 	associatedtype ResultType
 
-	func transform(source: SourceType, urlResponse: URLResponse, handler: @escaping (Result<ResultType, Error>) -> Void)
+	@Sendable
+	func transform(source: SourceType, urlResponse: URLResponse, handler: @Sendable @escaping (Result<ResultType, Error>) -> Void)
 	
 }

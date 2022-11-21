@@ -44,12 +44,12 @@ public enum URLRequestOperationConfig {
 	
 #if canImport(os)
 	@available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *)
-	public static var oslog: OSLog? = .default
+	public static let oslog: OSLog? = .default
 	/* This retricts availability of Apple’s logging, so we keep the OSLog variant for now, even if it is less convenient. */
 //	@available(macOS 11.0, tvOS 14.0, iOS 14.0, watchOS 7.0, *)
 //	public static var oslog: os.Logger? = .init(.default)
 #endif
-	public static var logger: Logging.Logger? = {
+	public static let logger: Logging.Logger? = {
 #if canImport(os)
 		if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 			return nil

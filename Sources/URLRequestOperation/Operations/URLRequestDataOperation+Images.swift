@@ -62,6 +62,7 @@ public extension URLRequestDataOperation {
 		)
 	}
 	
+	@Sendable
 	private static func dataToImage(_ data: Data) throws -> Image {
 		guard let image = Image(data: data) else {
 			throw ImageConversionError(data: data)

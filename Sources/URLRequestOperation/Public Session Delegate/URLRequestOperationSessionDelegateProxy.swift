@@ -22,9 +22,9 @@ import os.log
 
 #if canImport(ObjectiveC)
 /* Inspired by https://github.com/kean/Pulse/blob/cc6c8dec134b387dbdb6f29ab2f4b0373c442c80/Pulse/Sources/PulseCore/URLSessionProxyDelegate.swift */
-public final class URLRequestOperationSessionDelegateProxy : URLRequestOperationSessionDelegate {
+public final class URLRequestOperationSessionDelegateProxy : URLRequestOperationSessionDelegate, @unchecked Sendable {
 	
-	public var originalDelegate: URLSessionDelegate
+	public let originalDelegate: URLSessionDelegate
 	
 	public init(_ originalDelegate: URLSessionDelegate) {
 		self.originalDelegate = originalDelegate
@@ -38,7 +38,7 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 		return originalDelegate.responds(to: aSelector) ? originalDelegate : super.forwardingTarget(for: aSelector)
 	}
 	
-	public final override func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+	public final override func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
 		/* We do _not_ call super for that one; instead we will call the “task delegate” ourselves.
 		 * We do this because the task delegate might return another response disposition than simply allow and we must merge that disposition with the one of the original delegate. */
 		if let d = delegates.taskDelegateForTask(dataTask), d.responds(to: #selector(URLSessionDataDelegate.urlSession(_:dataTask:didReceive:completionHandler:))) {

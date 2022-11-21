@@ -21,11 +21,11 @@ import FoundationNetworking
 
 
 /** Throws ``Err.DataConversionFailed`` errors. */
-public struct DecodeDataResultProcessor<ResultType> : ResultProcessor {
+public struct DecodeDataResultProcessor<ResultType> : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Data
 	
-	public let decoder: (Data) throws -> ResultType
+	public let decoder: @Sendable (Data) throws -> ResultType
 	
 	public let processingQueue: BlockDispatcher
 	
@@ -34,12 +34,12 @@ public struct DecodeDataResultProcessor<ResultType> : ResultProcessor {
 		self.processingQueue = processingQueue
 	}
 	
-	public init(decoder: @escaping (Data) throws -> ResultType, processingQueue: BlockDispatcher = SyncBlockDispatcher()) {
+	public init(decoder: @escaping @Sendable (Data) throws -> ResultType, processingQueue: BlockDispatcher = SyncBlockDispatcher()) {
 		self.decoder = decoder
 		self.processingQueue = processingQueue
 	}
 	
-	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping (Result<ResultType, Error>) -> Void) {
+	public func transform(source: Data, urlResponse: URLResponse, handler: @Sendable @escaping (Result<ResultType, Error>) -> Void) {
 		processingQueue.execute{ handler(Result{ try decoder(source) }.mapError{ Err.DataConversionFailed(data: source, underlyingError: $0) }) }
 	}
 	

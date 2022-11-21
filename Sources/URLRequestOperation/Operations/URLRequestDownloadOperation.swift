@@ -25,7 +25,7 @@ import RetryingOperation
 
 
 
-public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, URLRequestOperation, URLSessionDownloadDelegate {
+public final class URLRequestDownloadOperation<ResultType : Sendable> : RetryingOperation, URLRequestOperation, URLSessionDownloadDelegate, @unchecked Sendable {
 	
 #if DEBUG
 	public let urlOperationIdentifier: Int
@@ -379,6 +379,7 @@ public final class URLRequestDownloadOperation<ResultType> : RetryingOperation, 
 		return nil
 	}
 	
+	@Sendable
 	private func taskEnded(url: URL?, response: URLResponse?, error: Error?) {
 		if let rd = (error as NSError?)?.userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
 			resumeData = rd

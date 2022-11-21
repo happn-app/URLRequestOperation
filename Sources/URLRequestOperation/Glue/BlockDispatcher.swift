@@ -19,9 +19,9 @@ import RetryingOperation
 
 
 
-public protocol BlockDispatcher {
+public protocol BlockDispatcher : Sendable {
 	
-	func execute(_ work: @escaping () -> Void)
+	func execute(_ work: @Sendable @escaping () -> Void)
 	
 }
 
@@ -30,25 +30,27 @@ public struct SyncBlockDispatcher : BlockDispatcher, Sendable {
 	
 	public init() {}
 	
-	public func execute(_ work: @escaping () -> Void) {
+	public func execute(_ work: @Sendable @escaping () -> Void) {
 		work()
 	}
 	
 }
 
 
-extension OperationQueue : BlockDispatcher {
+/* @unchecked Sendable: https://forums.swift.org/t/sendable-in-foundation/59577 */
+extension OperationQueue : BlockDispatcher, @unchecked Sendable {
 	
-	public func execute(_ work: @escaping () -> Void) {
+	public func execute(_ work: @Sendable @escaping () -> Void) {
 		addOperation(work)
 	}
 	
 }
 
 
-extension DispatchQueue : BlockDispatcher {
+/* @unchecked Sendable: https://forums.swift.org/t/capture-of-self-with-non-sendable-closure/55540/6 */
+extension DispatchQueue : BlockDispatcher, @unchecked Sendable {
 	
-	public func execute(_ work: @escaping () -> Void) {
+	public func execute(_ work: @Sendable @escaping () -> Void) {
 		async(execute: work)
 	}
 	

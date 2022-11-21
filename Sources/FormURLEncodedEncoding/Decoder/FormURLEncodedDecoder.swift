@@ -41,7 +41,7 @@ import Foundation
  `multipart/form-data` is more efficient for sending large data blobs like files.
  
  See [Mozilla's](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST) docs for more information about url-encoded forms. */
-public struct FormURLEncodedDecoder {
+public struct FormURLEncodedDecoder : Sendable {
 	
 	/** Used to capture URLForm Coding Configuration used for decoding. */
 	public struct Configuration : Sendable {

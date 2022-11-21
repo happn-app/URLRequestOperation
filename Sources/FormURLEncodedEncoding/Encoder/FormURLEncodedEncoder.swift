@@ -43,7 +43,7 @@ import Foundation
  See [Mozilla's](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST) docs for more information about url-encoded forms.
  
  - Note: This implementation of the encoder does not support encoding booleans to "flags". */
-public struct FormURLEncodedEncoder {
+public struct FormURLEncodedEncoder : Sendable {
 	
 	/** Used to capture URLForm Coding Configuration used for encoding. */
 	public struct Configuration : Sendable {

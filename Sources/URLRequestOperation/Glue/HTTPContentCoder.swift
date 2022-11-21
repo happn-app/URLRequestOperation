@@ -19,14 +19,14 @@ import MediaType
 
 
 
-public protocol HTTPContentEncoder {
+public protocol HTTPContentEncoder : Sendable {
 	
 	func encodeForHTTPContent<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable
 	
 }
 
 
-public protocol HTTPContentDecoder {
+public protocol HTTPContentDecoder : Sendable {
 	
 	func canDecodeHTTPContent(mediaType: MediaType) -> Bool
 	func decodeHTTPContent<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable

@@ -102,7 +102,7 @@ public enum URLRequestOperationError : Error, Sendable {
 	}
 	
 	/** A wrapper for an API Error. */
-	public struct APIResultErrorWrapper<APIError> : Error/* Sendable when APIError is Sendable; declared at the end of this file. */ {
+	public struct APIResultErrorWrapper<APIError : Sendable> : Error {
 		
 		public var urlResponse: URLResponse
 		public var error: APIError
@@ -126,7 +126,5 @@ public enum URLRequestOperationError : Error, Sendable {
 	}
 	
 }
-
-extension URLRequestOperationError.APIResultErrorWrapper : Sendable where APIError : Sendable {}
 
 typealias Err = URLRequestOperationError

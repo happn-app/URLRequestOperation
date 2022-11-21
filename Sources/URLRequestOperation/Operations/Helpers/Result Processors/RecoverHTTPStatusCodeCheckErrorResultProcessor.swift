@@ -21,12 +21,12 @@ import FoundationNetworking
 
 
 /** Rethrows the error in input, unless it’s an ``Err.UnexpectedStatusCode`` error. */
-public struct RecoverHTTPStatusCodeCheckErrorResultProcessor : ResultProcessor {
+public struct RecoverHTTPStatusCodeCheckErrorResultProcessor : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Error
 	public typealias ResultType = Data
 	
-	public func transform(source: Error, urlResponse: URLResponse, handler: @escaping (Result<Data, Error>) -> Void) {
+	public func transform(source: Error, urlResponse: URLResponse, handler: @escaping @Sendable (Result<Data, Error>) -> Void) {
 		handler(Result{
 			guard
 				let statusCodeError = source as? Err.UnexpectedStatusCode,

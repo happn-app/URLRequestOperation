@@ -21,7 +21,7 @@ import FoundationNetworking
 
 
 /** Throws ``URLToFileHandleResultProcessorError`` errors. */
-public struct URLToFileHandleResultProcessor : ResultProcessor {
+public struct URLToFileHandleResultProcessor : ResultProcessor, Sendable {
 	
 	public typealias SourceType = URL
 	public typealias ResultType = FileHandle
@@ -32,7 +32,7 @@ public struct URLToFileHandleResultProcessor : ResultProcessor {
 		self.processingQueue = processingQueue
 	}
 	
-	public func transform(source: URL, urlResponse: URLResponse, handler: @escaping (Result<FileHandle, Error>) -> Void) {
+	public func transform(source: URL, urlResponse: URLResponse, handler: @escaping @Sendable (Result<FileHandle, Error>) -> Void) {
 		processingQueue.execute{ handler(Result{
 			try FileHandle(forReadingFrom: source)
 		}.mapError{ MyErr.cannotOpenFile($0) })}

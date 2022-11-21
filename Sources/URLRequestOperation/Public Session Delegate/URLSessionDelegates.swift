@@ -24,9 +24,9 @@ import FoundationNetworking
  A helper to forward NSURLSession's delegate message to another observer for a given task.
  
  The URLSessionDelegates and URLSessionTask are not retained by this class (weak references). */
-final class URLSessionDelegates {
+final class URLSessionDelegates : @unchecked Sendable {
 	
-	func setTaskDelegate(_ delegate: AnyObject & URLSessionTaskDelegate, forTask task: URLSessionTask) {
+	func setTaskDelegate(_ delegate: AnyObject & Sendable & URLSessionTaskDelegate, forTask task: URLSessionTask) {
 		queueSyncForMapTable.sync{ taskToDelegate.setObject(delegate, forKey: task) }
 	}
 	

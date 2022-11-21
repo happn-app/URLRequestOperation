@@ -25,7 +25,7 @@ import RetryingOperation
 
 
 
-public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLRequestOperation, URLSessionDataDelegate {
+public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOperation, URLRequestOperation, URLSessionDataDelegate, @unchecked Sendable {
 	
 #if DEBUG
 	public let urlOperationIdentifier: Int
@@ -147,7 +147,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 	}
 #endif
 	
-	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
 		assert(currentData == nil)
 		assert(currentResponse == nil)
 		assert(session === self.session)
@@ -394,6 +394,7 @@ public final class URLRequestDataOperation<ResultType> : RetryingOperation, URLR
 		return nil
 	}
 	
+	@Sendable
 	private func taskEndedHandler(data: Data?, response: URLResponse?, error: Error?) {
 		/* First validate the response if we have one, and we have no errors */
 		if let response = response, error == nil {

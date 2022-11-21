@@ -21,7 +21,7 @@ import FoundationNetworking
 
 
 /** Throws ``Err.UnexpectedStatusCode`` errors. */
-public struct HTTPStatusCodeCheckResultProcessor : ResultProcessor {
+public struct HTTPStatusCodeCheckResultProcessor : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Data
 	public typealias ResultType = Data
@@ -32,7 +32,7 @@ public struct HTTPStatusCodeCheckResultProcessor : ResultProcessor {
 		self.expectedCodes = expectedCodes
 	}
 	
-	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping (Result<ResultType, Error>) -> Void) {
+	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping @Sendable (Result<ResultType, Error>) -> Void) {
 		handler(Result{
 			guard let code = (urlResponse as? HTTPURLResponse)?.statusCode else {
 				throw Err.UnexpectedStatusCode(expected: expectedCodes, actual: nil, httpBody: source)

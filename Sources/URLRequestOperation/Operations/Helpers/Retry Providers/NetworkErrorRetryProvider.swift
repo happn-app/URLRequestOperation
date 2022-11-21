@@ -16,8 +16,8 @@ extension NSNotification.Name {
 
 /**
  A retry provider that can provide a retry helper for exponential backoff retry,
- with potential early retry on reachability and “other success on same domain”. */
-public final class NetworkErrorRetryProvider : RetryProvider {
+  with potential early retry on reachability and “other success on same domain.” */
+public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendable {
 	
 	public static let idempotentHTTPMethods = Set(arrayLiteral: "GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE")
 	
@@ -58,18 +58,20 @@ public final class NetworkErrorRetryProvider : RetryProvider {
 		
 		notifObservers.append(contentsOf: [
 			notificationCenter.addObserver(forName: .URLRequestOperationNetworkErrorRetryProviderShouldResetRetryCount, object: nil, queue: nil, using: { [weak self] n in
+				guard let self = self else {return}
 				guard let urlOpID = n.object as? URLRequestOperationID else {
 					Conf.logger?.warning("Got notif telling retry provider should reset retry count, but object of notif is not an URLRequestOperationID: \(String(describing: n.object))")
 					return
 				}
-				Self.syncQ.sync{ self?.currentNumberOfRetriesPerOperation[urlOpID] = 0 }
+				Self.syncQ.sync{ self.currentNumberOfRetriesPerOperation[urlOpID] = 0 }
 			}),
 			notificationCenter.addObserver(forName: .URLRequestOperationDidSucceedOperation, object: nil, queue: nil, using: { [weak self] n in
+				guard let self = self else {return}
 				guard let urlOpID = n.object as? URLRequestOperationID else {
 					Conf.logger?.warning("Got notif telling URL request operation did succeed, but object of notif is not an URLRequestOperationID: \(String(describing: n.object))")
 					return
 				}
-				Self.syncQ.sync{ _ = self?.currentNumberOfRetriesPerOperation.removeValue(forKey: urlOpID) }
+				Self.syncQ.sync{ _ = self.currentNumberOfRetriesPerOperation.removeValue(forKey: urlOpID) }
 			})
 		])
 	}

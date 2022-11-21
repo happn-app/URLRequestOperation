@@ -20,7 +20,7 @@ import RetryingOperation
 
 
 @available(*, unavailable, message: "Not implemented yet")
-public final class URLRequestStreamOperation : RetryingOperation, URLRequestOperation {
+public final class URLRequestStreamOperation : RetryingOperation, URLRequestOperation, @unchecked Sendable {
 	
 #if DEBUG
 	public let urlOperationIdentifier: Int

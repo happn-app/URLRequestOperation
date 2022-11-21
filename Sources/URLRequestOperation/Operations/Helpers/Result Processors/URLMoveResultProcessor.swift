@@ -21,9 +21,9 @@ import FoundationNetworking
 
 
 /** Throws ``URLMoveResultProcessorError`` errors. */
-public struct URLMoveResultProcessor : ResultProcessor {
+public struct URLMoveResultProcessor : ResultProcessor, Sendable {
 	
-	public enum MoveBehavior {
+	public enum MoveBehavior : Sendable {
 		
 		/** Throw ``URLRequestOperationError.downloadDestinationExists`` if destination exists. */
 		case failIfDestinationExists
@@ -51,7 +51,7 @@ public struct URLMoveResultProcessor : ResultProcessor {
 		self.fileManager = fileManager
 	}
 	
-	public func transform(source: URL, urlResponse: URLResponse, handler: @escaping (Result<URL, Error>) -> Void) {
+	public func transform(source: URL, urlResponse: URLResponse, handler: @escaping @Sendable (Result<URL, Error>) -> Void) {
 		processingQueue.execute{ handler(Result{
 			var destinationURL = destinationURL.absoluteURL
 			let destinationFolderURL = destinationURL.deletingLastPathComponent()
