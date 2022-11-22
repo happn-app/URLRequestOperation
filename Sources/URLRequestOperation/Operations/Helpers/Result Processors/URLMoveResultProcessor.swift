@@ -20,8 +20,12 @@ import FoundationNetworking
 
 
 
+/* Regarding the "@unchecked" for the Sendability:
+ * The compiler cannot guarantee the Sendability of our struct because FileManager is not Sendable.
+ * Reading the doc, we learn that using FileManager from multiple threads is ok as long we do not use a delegate, so we should be good. */
+
 /** Throws ``URLMoveResultProcessorError`` errors. */
-public struct URLMoveResultProcessor : ResultProcessor, Sendable {
+public struct URLMoveResultProcessor : ResultProcessor, @unchecked Sendable {
 	
 	public enum MoveBehavior : Sendable {
 		
