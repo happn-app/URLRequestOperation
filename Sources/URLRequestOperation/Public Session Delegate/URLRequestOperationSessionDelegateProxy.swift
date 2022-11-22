@@ -53,8 +53,8 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 						case (.cancel, _),        (_, .cancel):        responseDisposition = .cancel
 						case (.allow, let other), (let other, .allow): responseDisposition = other
 						default:
-#if canImport(os)
 							let id = ((d as? URLRequestOperation)?.urlOperationIdentifier).flatMap{ "\($0)" }
+#if canImport(os)
 							if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 								Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Cannot merge two incompatible response disposition %ld and %ld. Cancelling request.", log: $0, type: .info, id ?? "<not from URLRequestOperation>", responseDisposition1.rawValue, responseDisposition2.rawValue) }}
 #endif
