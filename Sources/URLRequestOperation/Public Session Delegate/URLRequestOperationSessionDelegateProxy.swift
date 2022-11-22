@@ -42,6 +42,7 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 		/* We do _not_ call super for that one; instead we will call the “task delegate” ourselves.
 		 * We do this because the task delegate might return another response disposition than simply allow and we must merge that disposition with the one of the original delegate. */
 		if let d = delegates.taskDelegateForTask(dataTask), d.responds(to: #selector(URLSessionDataDelegate.urlSession(_:dataTask:didReceive:completionHandler:))) {
+			let dAsURLRequestOperation = d as? URLRequestOperation
 			d.urlSession!(session, dataTask: dataTask, didReceive: response, completionHandler: { responseDisposition1 in
 				guard responseDisposition1 != .cancel else {
 					/* No need to call the original delegate if we already know we want to cancel the task. */
@@ -53,7 +54,7 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 						case (.cancel, _),        (_, .cancel):        responseDisposition = .cancel
 						case (.allow, let other), (let other, .allow): responseDisposition = other
 						default:
-							let id = ((d as? URLRequestOperation)?.urlOperationIdentifier).flatMap{ "\($0)" }
+							let id = (dAsURLRequestOperation?.urlOperationIdentifier).flatMap{ "\($0)" }
 #if canImport(os)
 							if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 								Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Cannot merge two incompatible response disposition %ld and %ld. Cancelling request.", log: $0, type: .info, id ?? "<not from URLRequestOperation>", responseDisposition1.rawValue, responseDisposition2.rawValue) }}
@@ -61,7 +62,7 @@ public final class URLRequestOperationSessionDelegateProxy : URLRequestOperation
 							Conf.logger?.warning("Cannot merge two incompatible response disposition \(responseDisposition1) and \(responseDisposition2). Cancelling request.", metadata: id.flatMap{ [LMK.operationID: "\($0)"] })
 							responseDisposition = .cancel
 					}
-					if let op = d as? URLRequestOperation {
+					if let op = dAsURLRequestOperation {
 						switch responseDisposition {
 							case .allow, .cancel, .becomeDownload, .becomeStream: ()
 							@unknown default:
