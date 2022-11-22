@@ -2,8 +2,8 @@
 import PackageDescription
 
 
-//let swiftSettings: [SwiftSetting] = []
-let swiftSettings: [SwiftSetting] = [.unsafeFlags(["-Xfrontend", "-warn-concurrency", "-Xfrontend", "-enable-actor-data-race-checks"])]
+let swiftSettings: [SwiftSetting] = []
+//let swiftSettings: [SwiftSetting] = [.unsafeFlags(["-Xfrontend", "-warn-concurrency", "-Xfrontend", "-enable-actor-data-race-checks"])]
 
 let package = Package(
 	name: "URLRequestOperation",
