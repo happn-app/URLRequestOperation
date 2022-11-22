@@ -31,6 +31,7 @@ public struct DecodeHTTPContentResultProcessor<ResultType : Decodable & Sendable
 	
 	public let processingQueue: BlockDispatcher
 	
+	@available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *)
 	public init(jsonDecoder: JSONDecoder, processingQueue: BlockDispatcher = SyncBlockDispatcher()) {
 		self.decoders = [jsonDecoder]
 		self.processingQueue = processingQueue

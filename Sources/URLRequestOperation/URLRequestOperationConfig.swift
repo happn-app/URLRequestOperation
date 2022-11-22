@@ -58,8 +58,8 @@ public enum URLRequestOperationConfig {
 		return Logger(label: "com.happn.URLRequestOperation")
 	}()
 	
-	@SafeGlobal public static var defaultAPIResponseDecoders: [HTTPContentDecoder] = [JSONDecoder()]
-	@SafeGlobal public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = JSONEncoder()
+	@SafeGlobal public static var defaultAPIResponseDecoders: [HTTPContentDecoder] = [SendableJSONDecoderForHTTPContent()]
+	@SafeGlobal public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = SendableJSONEncoderForHTTPContent()
 	@SafeGlobal public static var defaultAPIRequestParametersEncoder: URLQueryEncoder = FormURLEncodedEncoder()
 	/** Before these retry providers, there will always be retry providers to block content decoding or unexpected status code errors. */
 	@SafeGlobal public static var defaultAPIRetryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
