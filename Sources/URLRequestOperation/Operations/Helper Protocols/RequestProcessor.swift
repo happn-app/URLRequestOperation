@@ -7,7 +7,7 @@ import FoundationNetworking
 
 public protocol RequestProcessor {
 	
-	func transform(urlRequest: URLRequest, handler: @escaping (Result<URLRequest, Error>) -> Void)
+	func transform(urlRequest: URLRequest, handler: @escaping @Sendable (Result<URLRequest, Error>) -> Void)
 	
 }
 
