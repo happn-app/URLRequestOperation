@@ -20,7 +20,7 @@ import Foundation
 import UIKit
 public typealias Image = UIImage
 #elseif canImport(AppKit)
-import AppKit
+@preconcurrency import AppKit /* We @preconcurrency because NSImage does not seem Sendable. We _assume_ it’s an annotation issue, but that’s far from being a given… */
 public typealias Image = NSImage
 #endif
 
