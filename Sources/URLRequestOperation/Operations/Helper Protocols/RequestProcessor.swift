@@ -5,7 +5,7 @@ import FoundationNetworking
 
 
 
-public protocol RequestProcessor {
+public protocol RequestProcessor : Sendable {
 	
 	func transform(urlRequest: URLRequest, handler: @escaping @Sendable (Result<URLRequest, Error>) -> Void)
 	

@@ -5,7 +5,7 @@ import FoundationNetworking
 
 
 
-public protocol URLResponseValidator {
+public protocol URLResponseValidator : Sendable {
 	
 	/**
 	 Method called to validate the URL response.

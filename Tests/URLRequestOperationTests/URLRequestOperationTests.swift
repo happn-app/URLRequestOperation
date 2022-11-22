@@ -26,10 +26,12 @@ import XCTest
 class URLRequestOperationTests : XCTestCase {
 	
 	func testRetryCount() {
-		class TryCounter : RequestProcessor {
-			var count = 0
+		final class TryCounter : RequestProcessor, @unchecked Sendable {
+			var _count = 0
+			var lock = NSLock()
+			var count: Int {lock.withLock{ _count }}
 			func transform(urlRequest: URLRequest, handler: @escaping (Result<URLRequest, Error>) -> Void) {
-				count += 1
+				lock.withLock{ _count += 1 }
 				handler(.success(urlRequest))
 			}
 		}

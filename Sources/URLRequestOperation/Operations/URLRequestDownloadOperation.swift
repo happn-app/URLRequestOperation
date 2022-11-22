@@ -346,7 +346,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	}
 	
 	/* Handler is only called in case of success */
-	private func runRequestProcessors(currentRequest: URLRequest, requestProcessors: [RequestProcessor], handler: @escaping (URLRequest) -> Void) {
+	private func runRequestProcessors(currentRequest: URLRequest, requestProcessors: [RequestProcessor], handler: @escaping @Sendable (URLRequest) -> Void) {
 		guard !isCancelled else {
 			return baseOperationEnded()
 		}

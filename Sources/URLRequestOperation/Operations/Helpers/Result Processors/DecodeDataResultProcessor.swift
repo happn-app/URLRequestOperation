@@ -21,7 +21,7 @@ import FoundationNetworking
 
 
 /** Throws ``Err.DataConversionFailed`` errors. */
-public struct DecodeDataResultProcessor<ResultType> : ResultProcessor, Sendable {
+public struct DecodeDataResultProcessor<ResultType : Sendable> : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Data
 	

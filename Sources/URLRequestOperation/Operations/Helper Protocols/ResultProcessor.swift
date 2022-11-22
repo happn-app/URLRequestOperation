@@ -5,12 +5,12 @@ import FoundationNetworking
 
 
 
-public protocol ResultProcessor {
+public protocol ResultProcessor : Sendable {
 	
-	associatedtype SourceType
-	associatedtype ResultType
+	associatedtype SourceType : Sendable
+	associatedtype ResultType : Sendable
 
 	@Sendable
-	func transform(source: SourceType, urlResponse: URLResponse, handler: @Sendable @escaping (Result<ResultType, Error>) -> Void)
+	func transform(source: SourceType, urlResponse: URLResponse, handler: @escaping @Sendable (Result<ResultType, Error>) -> Void)
 	
 }
