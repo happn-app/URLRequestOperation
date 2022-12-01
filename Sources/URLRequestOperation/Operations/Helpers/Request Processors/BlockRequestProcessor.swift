@@ -20,12 +20,16 @@ import FoundationNetworking
 
 
 
-public protocol ResultProcessor : Sendable {
+public struct BlockRequestProcessor : RequestProcessor {
 	
-	associatedtype SourceType : Sendable
-	associatedtype ResultType : Sendable
-
-	@Sendable
-	func transform(source: SourceType, urlResponse: URLResponse, handler: @escaping @Sendable (Result<ResultType, Error>) -> Void)
+	public let block: @Sendable (URLRequest, (Result<URLRequest, Error>) -> Void) -> Void
+	
+	public init(_ block: @escaping @Sendable (URLRequest, (Result<URLRequest, Error>) -> Void) -> Void) {
+		self.block = block
+	}
+	
+	public func transform(urlRequest: URLRequest, handler: @escaping @Sendable (Result<URLRequest, Error>) -> Void) {
+		block(urlRequest, handler)
+	}
 	
 }

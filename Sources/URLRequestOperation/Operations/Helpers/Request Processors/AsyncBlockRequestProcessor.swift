@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
+#if compiler(>=5.5) && canImport(_Concurrency)
+
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -20,12 +22,22 @@ import FoundationNetworking
 
 
 
-public protocol ResultProcessor : Sendable {
+@available(macOS 10.15, tvOS 13.0, iOS 13.0, watchOS 6.0, *)
+public struct AsyncBlockRequestProcessor : RequestProcessor {
 	
-	associatedtype SourceType : Sendable
-	associatedtype ResultType : Sendable
-
-	@Sendable
-	func transform(source: SourceType, urlResponse: URLResponse, handler: @escaping @Sendable (Result<ResultType, Error>) -> Void)
+	public let block: @Sendable (URLRequest) async throws -> URLRequest
+	
+	public init(_ block: @escaping @Sendable (URLRequest) async throws -> URLRequest) {
+		self.block = block
+	}
+	
+	public func transform(urlRequest: URLRequest, handler: @escaping @Sendable (Result<URLRequest, Error>) -> Void) {
+		Task{
+			do    {try await handler(.success(block(urlRequest)))}
+			catch {          handler(.failure(error))}
+		}
+	}
 	
 }
+
+#endif
