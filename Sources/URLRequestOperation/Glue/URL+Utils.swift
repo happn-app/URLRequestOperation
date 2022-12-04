@@ -22,6 +22,7 @@ import FormURLEncodedEncoding
 extension URL {
 	
 	internal func appendingQueryParameters<Parameters : Encodable>(from parameters: Parameters, encoder: URLQueryEncoder = Conf.defaultAPIRequestParametersEncoder) throws -> URL {
+#warning("TODO: Modify the URLQueryEncoder to encode to an array of URLQueryItem instead of a String and use this array to add the query parameters. This will allow using appending(queryItems:) for iOS 16+ and co, or URLComponents for iOS 15-.")
 		let encoded: String = try encoder.encode(parameters)
 		/* We do the URL/URLComponents trip, because otherwise it’s annoying to manage the fragment.
 		 * If the fragment were not there, I’d have simply appended the encoded parameters to the URL, w/ a “?” or a “&” before depending on whether query is nil. */
