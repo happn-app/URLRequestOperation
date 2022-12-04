@@ -32,10 +32,10 @@ extension JSONEncoder : HTTPContentEncoder {
 	}
 	
 }
-@available(watchOS, deprecated: 9.0, message: "JSONEncoder is already Sendable on watchOS 9, use it instead.")
-@available(macOS, deprecated: 13.0, message: "JSONEncoder is already Sendable on macOS 13, use it instead.")
-@available(tvOS, deprecated: 16.0, message: "JSONEncoder is already Sendable on tvOS 16, use it instead.")
 @available(iOS, deprecated: 16.0, message: "JSONEncoder is already Sendable on iOS 16, use it instead.")
+@available(tvOS, deprecated: 16.0, message: "JSONEncoder is already Sendable on tvOS 16, use it instead.")
+@available(macOS, deprecated: 13.0, message: "JSONEncoder is already Sendable on macOS 13, use it instead.")
+@available(watchOS, deprecated: 9.0, message: "JSONEncoder is already Sendable on watchOS 9, use it instead.")
 public struct SendableJSONEncoder : HTTPContentEncoder {
 	public func encodeForHTTPContent<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable {
 		return try (JSONEncoder().encode(value), MediaType(rawValue: "application/json")!)
@@ -49,7 +49,7 @@ public struct SendableJSONEncoder : HTTPContentEncoder {
 
 public func SendableJSONDecoderForHTTPContent() -> any HTTPContentDecoder {
 	if #available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *) {return JSONDecoder()}
-	else                       {return SendableJSONDecoder()}
+	else                                                           {return SendableJSONDecoder()}
 }
 
 @available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *)
@@ -67,10 +67,10 @@ extension JSONDecoder : HTTPContentDecoder {
 	}
 	
 }
-@available(watchOS, deprecated: 9.0, message: "JSONDecoder is already Sendable on watchOS 9, use it instead.")
-@available(macOS, deprecated: 13.0, message: "JSONDecoder is already Sendable on macOS 13, use it instead.")
-@available(tvOS, deprecated: 16.0, message: "JSONDecoder is already Sendable on tvOS 16, use it instead.")
 @available(iOS, deprecated: 16.0, message: "JSONDecoder is already Sendable on iOS 16, use it instead.")
+@available(tvOS, deprecated: 16.0, message: "JSONDecoder is already Sendable on tvOS 16, use it instead.")
+@available(macOS, deprecated: 13.0, message: "JSONDecoder is already Sendable on macOS 13, use it instead.")
+@available(watchOS, deprecated: 9.0, message: "JSONDecoder is already Sendable on watchOS 9, use it instead.")
 public struct SendableJSONDecoder : HTTPContentDecoder {
 	public func canDecodeHTTPContent(mediaType: MediaType) -> Bool {
 		return mediaType.type == "application" && mediaType.subtype == "json"
