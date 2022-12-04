@@ -42,22 +42,54 @@ extension URL {
 		return try appendingQueryParameters(from: parameters, encoder: encoder)
 	}
 	
-	/** Does **not** check whether the components are valid (like URL’s `appendingPathComponent`). */
+	/**
+	 Does **not** check whether the components contain a `/` (like URL’s `appendingPathComponent`).
+	 
+	 - Note: Deprecation tells to use the new `appending(components:directoryHint:)` method, but it’s not the same.
+	 The new method is indeed **much** better as it percent-encode the `/` in the components… */
+	@available(iOS, deprecated: 16.0, message: "Use Foundation’s appending(components:directoryHint:).")
+	@available(tvOS, deprecated: 16.0, message: "Use Foundation’s appending(components:directoryHint:).")
+	@available(macOS, deprecated: 13.0, message: "Use Foundation’s appending(components:directoryHint:).")
+	@available(watchOS, deprecated: 9.0, message: "Use Foundation’s appending(components:directoryHint:).")
 	public func appendingPathComponents(_ components: String...) -> URL {
 		return components.reduce(self, { reduced, new in reduced.appendingPathComponent(new) })
 	}
 	
-	/** Shorter name for ``appendingPathComponentsSafely(_:)``. */
+	/**
+	 Shorter name for ``appendingPathComponentsSafely(_:)``.
+	 
+	 - Note: Deprecation tells to use the new `appending(components:directoryHint:)` method, but it’s not the same.
+	 The new Foundation method percent-encode the `/` in the path components; this method throws if any component contains a `/`. */
+	@available(iOS, deprecated: 16.0, message: "Use Foundation’s version.")
+	@available(tvOS, deprecated: 16.0, message: "Use Foundation’s version.")
+	@available(macOS, deprecated: 13.0, message: "Use Foundation’s version.")
+	@available(watchOS, deprecated: 9.0, message: "Use Foundation’s version.")
 	public func appending(_ components: String...) throws -> URL {
 		try appendingPathComponentsSafely(components)
 	}
 	
-	/** Throws if any of the given component contains a path separator. */
+	/**
+	 Throws if any of the given component contains a path separator.
+	 
+	 - Note: Deprecation tells to use the new `appending(components:directoryHint:)` method, but it’s not the same.
+	 The new Foundation method percent-encode the `/` in the path components; this method throws if any component contains a `/`. */
+	@available(iOS, deprecated: 16.0, message: "Use Foundation’s version.")
+	@available(tvOS, deprecated: 16.0, message: "Use Foundation’s version.")
+	@available(macOS, deprecated: 13.0, message: "Use Foundation’s version.")
+	@available(watchOS, deprecated: 9.0, message: "Use Foundation’s version.")
 	public func appendingPathComponentsSafely(_ components: String...) throws -> URL {
 		try appendingPathComponentsSafely(components)
 	}
 	
-	/** Non-variadic variant of ``appendingPathComponentsSafely(_:)``. */
+	/**
+	 Non-variadic variant of ``appendingPathComponentsSafely(_:)``.
+	 
+	 - Note: Deprecation tells to use the new `appending(components:directoryHint:)` method, but it’s not the same.
+	 The new Foundation method percent-encode the `/` in the path components; this method throws if any component contains a `/`. */
+	@available(iOS, deprecated: 16.0, message: "Use Foundation’s version.")
+	@available(tvOS, deprecated: 16.0, message: "Use Foundation’s version.")
+	@available(macOS, deprecated: 13.0, message: "Use Foundation’s version.")
+	@available(watchOS, deprecated: 9.0, message: "Use Foundation’s version.")
 	public func appendingPathComponentsSafely(_ components: [String]) throws -> URL {
 		/* Let’s check the given path is valid (does not contain a path separator).
 		 * Note: We hardcode the path separator for now, but we shouldn’t. */
