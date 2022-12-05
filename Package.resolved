@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "HTTPCoders",
+        "repositoryURL": "https://github.com/happn-app/HTTPCoders.git",
+        "state": {
+          "branch": null,
+          "revision": "a8f18c3f8cd2387c10fc25a5c48a876876820a35",
+          "version": "0.1.0"
+        }
+      },
+      {
         "package": "RecursiveSyncDispatch",
         "repositoryURL": "https://github.com/happn-app/RecursiveSyncDispatch.git",
         "state": {

@@ -7,40 +7,36 @@ let swiftSettings: [SwiftSetting] = []
 
 let package = Package(
 	name: "URLRequestOperation",
-	products: [
-		.library(name: "URLRequestOperation", targets: ["URLRequestOperation"]),
-		.library(name: "MediaType", targets: ["MediaType"]),
-		.library(name: "FormDataEncoding", targets: ["FormDataEncoding"]),
-		.library(name: "FormURLEncodedEncoding", targets: ["FormURLEncodedEncoding"])
-	],
-	dependencies: [
-		.package(url: "https://github.com/apple/swift-collections.git", from: "1.0.1"),
-		.package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
-		.package(url: "https://github.com/Frizlab/stream-reader.git", from: "3.2.3"),
-		.package(url: "https://github.com/happn-app/RetryingOperation.git", from: "1.1.6"),
-		.package(url: "https://github.com/happn-app/SemiSingleton.git", from: "2.1.0-beta.1")
-	],
-	targets: [
-		.target(name: "MediaType", swiftSettings: swiftSettings),
-		.testTarget(name: "MediaTypeTests", dependencies: ["MediaType"], swiftSettings: swiftSettings),
+	products: {
+		var ret = [Product]()
+		ret.append(.library(name: "MediaType", targets: ["MediaType"]))
+		ret.append(.library(name: "URLRequestOperation", targets: ["URLRequestOperation"]))
+		return ret
+	}(),
+	dependencies: {
+		var ret = [Package.Dependency]()
+		ret.append(.package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"))
+		ret.append(.package(url: "https://github.com/happn-app/HTTPCoders.git", from: "0.1.0"))
+		ret.append(.package(url: "https://github.com/happn-app/RetryingOperation.git", from: "1.1.6"))
+		ret.append(.package(url: "https://github.com/happn-app/SemiSingleton.git", from: "2.1.0-beta.1"))
+		return ret
+	}(),
+	targets: {
+		var ret = [Target]()
+		ret.append(.target(name: "MediaType", swiftSettings: swiftSettings))
+		ret.append(.testTarget(name: "MediaTypeTests", dependencies: ["MediaType"], swiftSettings: swiftSettings))
 		
-		.target(name: "FormDataEncoding", dependencies: [
-			.product(name: "OrderedCollections", package: "swift-collections"),
-			.product(name: "StreamReader",       package: "stream-reader")
-		], swiftSettings: swiftSettings),
-		.testTarget(name: "FormDataEncodingTests", dependencies: ["FormDataEncoding"], swiftSettings: swiftSettings),
-		
-		.target(name: "FormURLEncodedEncoding", swiftSettings: swiftSettings),
-		.testTarget(name: "FormURLEncodedEncodingTests", dependencies: ["FormURLEncodedEncoding"], swiftSettings: swiftSettings),
-		
-		.target(name: "URLRequestOperation", dependencies: [
-			.product(name: "Logging",           package: "swift-log"),
-			.product(name: "RetryingOperation", package: "RetryingOperation"),
-			.product(name: "SemiSingleton",     package: "SemiSingleton"),
-			.target(name: "FormURLEncodedEncoding"),
-			.target(name: "MediaType")
-		], swiftSettings: swiftSettings),
-		.executableTarget(name: "URLRequestOperationManualTest", dependencies: ["URLRequestOperation"], swiftSettings: swiftSettings),
-		.testTarget(name: "URLRequestOperationTests", dependencies: ["URLRequestOperation"], swiftSettings: swiftSettings)
-	]
+		ret.append(.target(name: "URLRequestOperation", dependencies: {
+			var ret = [Target.Dependency]()
+			ret.append(.product(name: "FormURLEncodedCoder", package: "HTTPCoders"))
+			ret.append(.product(name: "Logging",             package: "swift-log"))
+			ret.append(.product(name: "RetryingOperation",   package: "RetryingOperation"))
+			ret.append(.product(name: "SemiSingleton",       package: "SemiSingleton"))
+			ret.append(.target(name: "MediaType"))
+			return ret
+		}(), swiftSettings: swiftSettings))
+		ret.append(.testTarget(name: "URLRequestOperationTests", dependencies: ["URLRequestOperation"], swiftSettings: swiftSettings))
+		ret.append(.executableTarget(name: "URLRequestOperationManualTest", dependencies: ["URLRequestOperation"], swiftSettings: swiftSettings))
+		return ret
+	}()
 )

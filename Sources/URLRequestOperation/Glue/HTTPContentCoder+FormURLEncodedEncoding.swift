@@ -15,7 +15,7 @@ limitations under the License. */
 
 import Foundation
 
-import FormURLEncodedEncoding
+import FormURLEncodedCoder
 import MediaType
 
 

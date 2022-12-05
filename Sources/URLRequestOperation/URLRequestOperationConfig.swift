@@ -20,7 +20,7 @@ import Foundation
 
 import Logging
 
-import FormURLEncodedEncoding
+import FormURLEncodedCoder
 
 
 

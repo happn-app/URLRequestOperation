@@ -18,7 +18,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-import FormURLEncodedEncoding
+import FormURLEncodedCoder
 
 
 
