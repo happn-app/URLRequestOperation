@@ -20,7 +20,7 @@ import FoundationNetworking
 
 
 
-/** Rethrows the error in input, unless it’s an ``Err.UnexpectedStatusCode`` error. */
+/** Rethrows the error in input, unless it’s an ``URLRequestOperationError/UnexpectedStatusCode`` error. */
 public struct RecoverHTTPStatusCodeCheckErrorResultProcessor : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Error

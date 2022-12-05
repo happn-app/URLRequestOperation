@@ -29,7 +29,7 @@ public struct URLMoveResultProcessor : ResultProcessor, @unchecked Sendable {
 	
 	public enum MoveBehavior : Sendable {
 		
-		/** Throw ``URLRequestOperationError.downloadDestinationExists`` if destination exists. */
+		/** Throw ``URLMoveResultProcessorError/downloadDestinationExists`` if destination exists. */
 		case failIfDestinationExists
 		case overwriteDestination
 		case findNonExistingFilenameInFolder
@@ -94,7 +94,7 @@ public struct URLMoveResultProcessor : ResultProcessor, @unchecked Sendable {
 
 public enum URLMoveResultProcessorError : Error {
 	
-	/** The destination file already exists and the move behavior is ``failIfDestinationExists`` */
+	/** The destination file already exists and the move behavior is ``URLMoveResultProcessor/MoveBehavior-swift.enum/failIfDestinationExists`` */
 	case downloadDestinationExists
 	
 	case fileManagerError(Error)

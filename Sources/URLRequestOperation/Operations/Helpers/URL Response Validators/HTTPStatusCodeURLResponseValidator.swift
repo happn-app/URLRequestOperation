@@ -20,7 +20,7 @@ import FoundationNetworking
 
 
 
-/** Returns ``Err.UnexpectedStatusCode`` errors. */
+/** Returns ``URLRequestOperationError/UnexpectedStatusCode`` errors. */
 public struct HTTPStatusCodeURLResponseValidator : URLResponseValidator {
 	
 	public let expectedCodes: Set<Int>

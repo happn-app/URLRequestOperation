@@ -20,7 +20,7 @@ import FoundationNetworking
 
 
 
-/** Throws ``Err.UnexpectedStatusCode`` errors. */
+/** Throws ``URLRequestOperationError/UnexpectedStatusCode`` errors. */
 public struct HTTPStatusCodeCheckResultProcessor : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Data

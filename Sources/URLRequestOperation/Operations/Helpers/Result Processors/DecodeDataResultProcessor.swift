@@ -20,7 +20,7 @@ import FoundationNetworking
 
 
 
-/** Throws ``Err.DataConversionFailed`` errors. */
+/** Throws ``URLRequestOperationError/DataConversionFailed`` errors. */
 public struct DecodeDataResultProcessor<ResultType : Sendable> : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Data
