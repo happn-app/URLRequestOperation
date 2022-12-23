@@ -157,7 +157,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		
 		guard let response = downloadTask.response else {
 			assertionFailure("nil task’s response in urlSession(:downloadTask:didFinishDownloadingTo:)")
-			currentResult = .failure(Err.invalidURLSessionContract)
+			currentResult = .failure(Err.brokenURLSessionContract)
 			return
 		}
 		
@@ -394,7 +394,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 			/* A nil response or url should indicate an error, in which case error should not be nil.
 			 * We still safely unwrap the error in production mode. */
 			assert(error != nil)
-			return endBaseOperation(result: .failure(error ?? Err.invalidURLSessionContract))
+			return endBaseOperation(result: .failure(error ?? Err.brokenURLSessionContract))
 		}
 		
 		guard !isCancelled else {

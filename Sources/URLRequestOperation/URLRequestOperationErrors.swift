@@ -69,7 +69,7 @@ public enum URLRequestOperationError : Error, Sendable {
 	 
 	 We provide this in order to avoid crashing instead if one of these do happen.
 	 In debug mode, we do crash (assertion failure). */
-	case invalidURLSessionContract
+	case brokenURLSessionContract
 	
 	
 	/* MARK: -

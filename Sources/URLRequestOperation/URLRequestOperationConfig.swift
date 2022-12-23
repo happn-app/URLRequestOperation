@@ -95,7 +95,9 @@ public enum URLRequestOperationConfig {
 	 When receiving data from a server, should we log it?
 	 
 	 URLRequestOperation can log all the responses that are received at log level trace.
-	 In general, should only be true for debug purpose. */
+	 In general, should only be true for debug purpose.
+	 
+	 Only the responses from ``URLRequestDataOperation``s are logged. */
 	@SafeGlobal public static var logHTTPResponses = false
 	/** Log everything URL Session related in the file at the given URL. */
 	@SafeGlobal public static var debugLogURL: URL?

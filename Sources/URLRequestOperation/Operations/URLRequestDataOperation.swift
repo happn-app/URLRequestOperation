@@ -413,16 +413,42 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 			return endBaseOperation(result: .failure(error))
 		}
 		
-		guard let response = response else {
+		guard let response else {
 			/* A nil response should indicate an error, in which case error should not be nil.
 			 * We still safely unwrap the error in production mode. */
 			assert(error != nil)
-			return endBaseOperation(result: .failure(error ?? Err.invalidURLSessionContract))
+			return endBaseOperation(result: .failure(error ?? Err.brokenURLSessionContract))
 		}
 		
 		/* If the response has no data, the “did receive data” delegate method is not called and our data accumulator is nil.
-		 * Tested: with the handler-based version of the task, even for 204 requests, which litterally have no data, the handler is still called with an empty Data object. */
+		 * Tested: With the handler-based version of the task, even for 204 requests, which litterally have no data, the handler is still called with an empty Data object. */
 		let data = data ?? Data()
+		
+		/* Let’s log the data we have retrieved from the server, if needed. */
+		if Conf.logHTTPResponses {
+			let dataStr = String(data: data, encoding: .utf8)?.quoted() ?? data.reduce("0x", { $0 + String(format: "%02x", $1) })
+			let responseCodeStr = ((response as? HTTPURLResponse)?.statusCode).flatMap(String.init) ?? "<None>"
+#if canImport(os)
+			if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+				Conf.oslog.flatMap{ os_log(
+					"""
+					URLOpID %{public}@: Received response.
+					   HTTP Status Code: %{public}@
+					   Data: %@
+					""",
+					log: $0,
+					type: .debug,
+					String(describing: urlOperationIdentifier),
+					responseCodeStr,
+					dataStr
+				) }}
+#endif
+			Conf.logger?.trace("Received response.", metadata: [
+				LMK.operationID: "\(urlOperationIdentifier)",
+				LMK.responseHTTPCode: "\(responseCodeStr)",
+				LMK.responseData: "\(dataStr)"
+			])
+		}
 		
 		guard !isCancelled else {
 			return baseOperationEnded()
