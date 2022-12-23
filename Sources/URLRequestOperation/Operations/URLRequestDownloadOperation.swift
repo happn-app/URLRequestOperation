@@ -27,11 +27,7 @@ import RetryingOperation
 
 public final class URLRequestDownloadOperation<ResultType : Sendable> : RetryingOperation, URLRequestOperation, URLSessionDownloadDelegate, @unchecked Sendable {
 	
-#if DEBUG
-	public let urlOperationIdentifier: Int
-#else
-	public let urlOperationIdentifier: UUID
-#endif
+	public let urlOperationIdentifier: URLRequestOperationID
 	
 	public let session: URLSession
 	
@@ -119,6 +115,8 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 			
 			let task = self.taskForCurrentRequest()
 			self.currentTask = task
+			
+			request.logIfNeeded(operationID: self.urlOperationIdentifier)
 			task.resume()
 		})
 	}

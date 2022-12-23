@@ -86,9 +86,17 @@ public enum URLRequestOperationConfig {
 	@SafeGlobal public static var networkRetryProviderBackoffTable: [TimeInterval] = [1, 3, 15, 27, 42, 60, 60 * 60, 6 * 60 * 60] as [TimeInterval]
 	
 	/**
-	 When data has been fetched from a server, if it is a valid UTF-8 string, should we log it?
-	 Set to true for debug purpose. */
-	@SafeGlobal public static var logFetchedStrings = false
+	 When sending data to a server, should we log it?
+	 
+	 URLRequestOperation can log all the requests that are started at log level trace.
+	 In general, should only be true for debug purpose. */
+	@SafeGlobal public static var logHTTPRequests = false
+	/**
+	 When receiving data from a server, should we log it?
+	 
+	 URLRequestOperation can log all the responses that are received at log level trace.
+	 In general, should only be true for debug purpose. */
+	@SafeGlobal public static var logHTTPResponses = false
 	/** Log everything URL Session related in the file at the given URL. */
 	@SafeGlobal public static var debugLogURL: URL?
 	
