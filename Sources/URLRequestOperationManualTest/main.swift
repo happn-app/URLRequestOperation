@@ -46,6 +46,9 @@ class SessionDelegate : NSObject, URLSessionTaskDelegate, URLSessionDataDelegate
 
 /* ************************************************************ */
 
+URLRequestOperationConfig.logHTTPRequests = true
+URLRequestOperationConfig.logHTTPResponses = true
+
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 let session = URLSession(configuration: .ephemeral, delegate: URLRequestOperationSessionDelegateProxy(SessionDelegate(id: 1)), delegateQueue: nil)
 #else
