@@ -100,7 +100,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		assert(currentData == nil)
 		assert(currentResponse == nil)
 		assert(expectedDataSize == nil)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
 			guard !self.isCancelled else {
@@ -150,7 +150,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		assert(currentResponse == nil)
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 		currentResponse = response
 		if response.expectedContentLength != -1/*NSURLResponseUnknownLength*/ {
@@ -192,7 +192,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 		currentData?.append(data) ?? {
 			var newData: Data
@@ -217,7 +217,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 #warning("TODO")
 //		currentTask = streamTask
@@ -234,7 +234,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 	public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
 		assert(session === self.session)
 		assert(dataTask === self.currentTask)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 #warning("TODO")
 //		currentTask = downloadTask
@@ -253,7 +253,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		assert(session === self.session)
 		assert(task === self.currentTask)
 		assert(currentResponse != nil || error != nil)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 		taskEnded(data: currentData, response: currentResponse, error: responseValidationError ?? error)
 		responseValidationError = nil

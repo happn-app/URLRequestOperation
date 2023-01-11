@@ -101,7 +101,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	public override func startBaseOperation(isRetry: Bool) {
 		assert(currentTask == nil)
 		assert(downloadStatus.isStatusWaiting)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 #warning("TODO: Properly manage resume data")
 		resumeData = nil
@@ -153,7 +153,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		assert(currentResult == nil)
 		assert(session === self.session)
 		assert(downloadTask === self.currentTask)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 		guard let response = downloadTask.response else {
 			assertionFailure("nil task’s response in urlSession(:downloadTask:didFinishDownloadingTo:)")
@@ -190,7 +190,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
 		assert(session === self.session)
 		assert(task === self.currentTask)
-		assert(Self.isNotFinishedOrCancelledError(result.failure))
+		assert(Self.isCancelledOrNotFinishedError(result.failure))
 		
 		if let rd = (error as NSError?)?.userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
 			resumeData = rd
