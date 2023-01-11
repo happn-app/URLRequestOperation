@@ -117,7 +117,9 @@ class URLRequestOperationTests : XCTestCase {
 	}
 	
 	func testFetchFrostLandStringConstant() async throws {
-		let op = URLRequestDataOperation.forString(url: URL(string: "https://frostland.fr/constant.txt")!)
+		let url = URL(string: "https://frostland.fr/constant.txt")!
+		let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData)
+		let op = URLRequestDataOperation.forString(urlRequest: request)
 		let res = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<String>, Error>) in
 			op.completionBlock = {
 				continuation.resume(with: op.result)
