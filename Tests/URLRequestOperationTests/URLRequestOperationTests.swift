@@ -131,20 +131,19 @@ class URLRequestOperationTests : XCTestCase {
 		XCTAssertEqual(res.result, "42")
 	}
 	
-//	func testFetchInvalidHost() {
-//		let op = URLRequestOperation(config: URLRequestOperation.Config(request: URLRequest(url: URL(string: "https://invalid.frostland.fr/")!), session: nil, maximumNumberOfRetries: 1))
-//		op.start()
-//		op.waitUntilFinished()
-//		XCTAssertNotNil(op.finalError)
-//		XCTAssertNil(op.statusCode)
-//	}
-//
-//	func testFetch404() {
-//		let op = URLRequestOperation(url: URL(string: "https://frostland.fr/this_page_does_not_exist.html")!)
-//		op.start()
-//		op.waitUntilFinished()
-//		XCTAssertNotNil(op.finalError)
-//		XCTAssertEqual(op.statusCode, 404)
-//	}
+	func testFetchInvalidHost() {
+		let op = URLRequestDataOperation.forData(url: URL(string: "https://invalid.frostland.fr/")!, retryProviders: [NetworkErrorRetryProvider(maximumNumberOfRetries: 1)])
+		op.start()
+		op.waitUntilFinished()
+		XCTAssertNotNil(op.result.failure)
+	}
+	
+	func testFetch404() {
+		let op = URLRequestDataOperation.forData(url: URL(string: "https://frostland.fr/this_page_does_not_exist.html")!)
+		op.start()
+		op.waitUntilFinished()
+		XCTAssertNotNil(op.result.failure)
+		XCTAssertEqual((op.result.failure as? URLRequestOperationError)?.unexpectedStatusCodeError?.actual, 404)
+	}
 	
 }
