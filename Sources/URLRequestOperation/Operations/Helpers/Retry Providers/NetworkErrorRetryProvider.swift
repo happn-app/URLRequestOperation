@@ -42,38 +42,18 @@ public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendabl
 	public let allowOtherSuccessObserver: Bool
 	public let allowReachabilityObserver: Bool
 	
-	public private(set) var currentNumberOfRetriesPerOperation = [URLRequestOperationID: Int]()
+	public private(set) var numberOfRetriesPerOperation = RetryCountsHolder(resetTryCountNotifName: .URLRequestOperationNetworkErrorRetryProviderShouldResetRetryCount)
 	
 	public init(
 		maximumNumberOfRetries: Int? = URLRequestOperationConfig.networkRetryProviderDefaultNumberOfRetries,
 		alsoRetryNonIdempotentRequests: Bool = false,
 		allowOtherSuccessObserver: Bool = true,
-		allowReachabilityObserver: Bool = true,
-		notificationCenter: NotificationCenter = .default
+		allowReachabilityObserver: Bool = true
 	) {
 		self.maximumNumberOfRetries = maximumNumberOfRetries
 		self.alsoRetryNonIdempotentRequests = alsoRetryNonIdempotentRequests
 		self.allowOtherSuccessObserver = allowOtherSuccessObserver
 		self.allowReachabilityObserver = allowReachabilityObserver
-		
-		notifObservers.append(contentsOf: [
-			notificationCenter.addObserver(forName: .URLRequestOperationNetworkErrorRetryProviderShouldResetRetryCount, object: nil, queue: nil, using: { [weak self] n in
-				guard let self = self else {return}
-				guard let urlOpID = n.object as? URLRequestOperationID else {
-					Conf.logger?.warning("Got notif telling retry provider should reset retry count, but object of notif is not an URLRequestOperationID: \(String(describing: n.object))")
-					return
-				}
-				Self.syncQ.sync{ self.currentNumberOfRetriesPerOperation[urlOpID] = 0 }
-			}),
-			notificationCenter.addObserver(forName: .URLRequestOperationWillFinishOperation, object: nil, queue: nil, using: { [weak self] n in
-				guard let self = self else {return}
-				guard let urlOpID = n.object as? URLRequestOperationID else {
-					Conf.logger?.warning("Got notif telling URL request operation did succeed, but object of notif is not an URLRequestOperationID: \(String(describing: n.object))")
-					return
-				}
-				Self.syncQ.sync{ _ = self.currentNumberOfRetriesPerOperation.removeValue(forKey: urlOpID) }
-			})
-		])
 	}
 	
 	public func retryHelpers(for request: URLRequest, error: URLRequestOperationError, operation: URLRequestOperation) -> [RetryHelper]?? {
@@ -85,7 +65,7 @@ public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendabl
 			/* We don’t want to retry non-idempotent requests, but we’ll not block other retry provider from retrying them if they want. */
 			return nil
 		}
-		let currentNumberOfRetries = Self.syncQ.sync{ currentNumberOfRetriesPerOperation[operation.urlOperationIdentifier, default: 0] }
+		let currentNumberOfRetries = numberOfRetriesPerOperation[operation.urlOperationIdentifier, default: 0]
 		guard (maximumNumberOfRetries.flatMap{ currentNumberOfRetries < $0 } ?? true) else {
 			/* We don’t want to retry after max number of retries, but we’ll not block other retry provider from retrying them if they want. */
 			return nil
@@ -100,7 +80,7 @@ public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendabl
 		 *       Note: We might want to do this in a separate retry provider. */
 		
 		/* We now know the request CAN be retried (idempotent and maximum number of retries not exceeded, task not cancelled). */
-		Self.syncQ.sync{ currentNumberOfRetriesPerOperation[operation.urlOperationIdentifier, default: 0] += 1 }
+		numberOfRetriesPerOperation[operation.urlOperationIdentifier, default: 0] += 1
 		let host = request.url?.host
 #if canImport(SystemConfiguration)
 		return ([
@@ -115,9 +95,5 @@ public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendabl
 		] as [RetryHelper?]).compactMap{ $0 }
 #endif
 	}
-	
-	private static let syncQ = DispatchQueue(label: "com.happn.URLRequestOperation.NetworkErrorRetryProviderSyncQ")
-	
-	private var notifObservers = [NSObjectProtocol]()
 	
 }
