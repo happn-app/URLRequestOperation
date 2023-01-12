@@ -466,6 +466,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: urlOperationIdentifier, userInfo: userInfo)
 			}
 		}
+		retryError = nil /* Reset the retry error before sending the retry helpers. Should already be null but cannot be guaranteed (races). */
 		baseOperationEnded(retryHelpers: retryHelpers)
 	}
 	
