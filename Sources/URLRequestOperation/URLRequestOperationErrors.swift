@@ -109,15 +109,15 @@ public extension URLRequestOperationError {
 		return postProcessError as? APIResultErrorWrapper<APIError>
 	}
 	
-	/* Internal because not very interesting for clients as it does not check for URLSession cancellation. */
-	internal var isCancelledError: Bool {
+	/* We do not check for URLSession cancellation error because the URLRequestOperations force the result to .operationCancelled when the operation is cancelled. */
+	var isCancelledError: Bool {
 		switch self {
 			case .operationCancelled: return true
 			default:                  return false
 		}
 	}
 	
-	internal var isCancelledOrNotFinishedError: Bool {
+	var isCancelledOrNotFinishedError: Bool {
 		switch self {
 			case .operationNotFinished: return true
 			case .operationCancelled:   return true

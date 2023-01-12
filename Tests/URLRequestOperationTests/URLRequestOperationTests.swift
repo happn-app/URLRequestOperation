@@ -18,12 +18,19 @@ import FoundationNetworking
 #endif
 import XCTest
 
+import RetryingOperation
+
 @testable import URLRequestOperation
 
 
 
 @available(tvOS 13.0, iOS 13.0, *)
 class URLRequestOperationTests : XCTestCase {
+	
+	override class func setUp() {
+		URLRequestOperationConfig.logHTTPResponses = true
+		URLRequestOperationConfig.logHTTPRequests = true
+	}
 	
 	func testRetryCount() {
 		final class TryCounter : RequestProcessor, @unchecked Sendable {
@@ -43,7 +50,7 @@ class URLRequestOperationTests : XCTestCase {
 	}
 	
 	func testSimpleAPIGet() async throws {
-		struct Todo : Decodable {
+		struct Todo : Decodable, Equatable {
 			var userId: Int
 			var id: Int
 			var title: String
@@ -58,14 +65,14 @@ class URLRequestOperationTests : XCTestCase {
 				}
 				op.start()
 			}
-			print(res)
+			XCTAssertEqual(res.result, Todo(userId: 1, id: 4, title: "et porro tempora", completed: true))
 		} catch {
 			XCTFail("Got error \(error)")
 		}
 	}
 	
 	func testSimpleAPIGetWithParameters() async throws {
-		struct Todo : Decodable {
+		struct Todo : Decodable, Equatable {
 			var userId: Int
 			var id: Int
 			var title: String
@@ -86,11 +93,12 @@ class URLRequestOperationTests : XCTestCase {
 			}
 			op.start()
 		}
-		print(res)
+		XCTAssertGreaterThan(res.result.count, 1)
+		XCTAssertEqual(res.result.first, Todo(userId: 1, id: 1, title: "delectus aut autem", completed: false))
 	}
 	
 	func testSimpleAPIPost() async throws {
-		struct Todo : Decodable {
+		struct Todo : Decodable, Equatable {
 			var userId: Int
 			var id: Int
 			var title: String
@@ -113,7 +121,7 @@ class URLRequestOperationTests : XCTestCase {
 			}
 			op.start()
 		}
-		print(res)
+		XCTAssertEqual(res.result, Todo(userId: 42, id: 201, title: "I did it!", completed: true))
 	}
 	
 	func testFetchFrostLandStringConstant() async throws {
@@ -151,8 +159,34 @@ class URLRequestOperationTests : XCTestCase {
 		op.cancel()
 		op.start()
 		op.waitUntilFinished()
-		print(op.result)
 		XCTAssertEqual(op.result.failure?.isCancelledError, true)
+	}
+	
+	func testCancellationDuringRetry() async throws {
+		struct RetryNever : RetryProvider, RetryHelper {
+			func retryHelpers(for request: URLRequest, error: URLRequestOperationError, operation: URLRequestOperation) -> [RetryHelper]?? {
+				return [self]
+			}
+			func setup() {}
+			func teardown() {}
+		}
+		let op = URLRequestDataOperation.forString(url: URL(string: "https://invalid.frostland.fr/")!, retryProviders: [RetryNever()])
+		Task{
+			try await Task.sleep(nanoseconds: 5_000_000_000)
+			op.cancel()
+		}
+		var err: Error?
+		do {
+			_ = try await withCheckedThrowingContinuation{ (continuation: CheckedContinuation<URLRequestOperationResult<String>, Error>) in
+				op.completionBlock = {
+					continuation.resume(with: op.result)
+				}
+				op.start()
+			}
+		} catch {
+			err = error
+		}
+		XCTAssertEqual((err as? URLRequestOperationError)?.isCancelledError, true)
 	}
 	
 }
