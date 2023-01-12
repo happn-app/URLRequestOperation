@@ -42,13 +42,25 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	public let retryProviders: [RetryProvider]
 	
 	public private(set) var result: Result<URLRequestOperationResult<ResultType>, URLRequestOperationError> {
-		get {resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
-		set {resultQ.sync{ _result = newValue }}
+		get {syncQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
+		set {syncQ.sync{ _result = newValue }}
 	}
 	/** The resume data if available. Should not be used before the operation is over. */
 	public private(set) var resumeData: Data? {
-		get {resultQ.sync{ _resumeData }}
-		set {resultQ.sync{ _resumeData = newValue }}
+		get {syncQ.sync{ _resumeData }}
+		set {syncQ.sync{ _resumeData = newValue }}
+	}
+	
+	/**
+	 This is checked at the beginning of the base operation and is used by retry helper to notify there was an error during the retry processing.
+	 
+	 If this is not `nil` when the base operation starts, the base operation fails directly.
+	 The retry providers are still called for this failure though.
+	 
+	 A retry helper should set this to a non-`nil` value before calling `retryNow()` if they have had a failure. */
+	public var retryError: Error? {
+		get {syncQ.sync{ _retryError }}
+		set {syncQ.sync{ _retryError = newValue }}
 	}
 	
 	public convenience init(
@@ -84,7 +96,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 #else
 		self.urlOperationIdentifier = UUID()
 #endif
-		self.resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.Download-\(self.urlOperationIdentifier).ResultSync")
+		self.syncQ = DispatchQueue(label: "com.happn.URLRequestOperation.Download-\(self.urlOperationIdentifier).ResultSync")
 		
 		self.session = session
 		self.currentRequest = request
@@ -102,6 +114,16 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		assert(currentTask == nil)
 		assert(downloadStatus.isStatusWaiting)
 		assert(result.failure?.isCancelledOrNotFinishedError ?? false)
+		
+		/* Check if we have a retry error (a retry helper notified it failed and the operation should fail). */
+		let retryError = syncQ.sync{
+			let ret = _retryError
+			_retryError = nil
+			return ret
+		}
+		if let retryError {
+			return endBaseOperation(result: .failure(.retryError(retryError)))
+		}
 		
 #warning("TODO: Properly manage resume data")
 		resumeData = nil
@@ -225,9 +247,10 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	   MARK: - Private
 	   *************** */
 	
-	private let resultQ: DispatchQueue
+	private let syncQ: DispatchQueue
 	
 	private var _result = Result<URLRequestOperationResult<ResultType>, URLRequestOperationError>.failure(Err.operationNotFinished)
+	private var _retryError: Error?
 	private var _resumeData: Data?
 	
 	private var currentRequest: URLRequest

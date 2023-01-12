@@ -37,6 +37,8 @@ public enum URLRequestOperationError : Error, Sendable {
 	
 	case urlSessionError(Error)
 	
+	case retryError(Error)
+	
 	/**
 	 When there is an issue converting between `URL` and `URLComponents`.
 	 Thrown by the `URL` extension method `URL.appendingQueryParameters(from:encoder:)` (but you don’t have access to that).

@@ -41,8 +41,20 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 	public let retryProviders: [RetryProvider]
 	
 	public private(set) var result: Result<URLRequestOperationResult<ResultType>, URLRequestOperationError> {
-		get {resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
-		set {resultQ.sync{ _result = newValue }}
+		get {syncQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
+		set {syncQ.sync{ _result = newValue }}
+	}
+	
+	/**
+	 This is checked at the beginning of the base operation and is used by retry helper to notify there was an error during the retry processing.
+	 
+	 If this is not `nil` when the base operation starts, the base operation fails directly.
+	 The retry providers are still called for this failure though.
+	 
+	 A retry helper should set this to a non-`nil` value before calling `retryNow()` if they have had a failure. */
+	public var retryError: Error? {
+		get {syncQ.sync{ _retryError }}
+		set {syncQ.sync{ _retryError = newValue }}
 	}
 	
 	/**
@@ -66,7 +78,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 #else
 		self.urlOperationIdentifier = UUID()
 #endif
-		self.resultQ = DispatchQueue(label: "com.happn.URLRequestOperation.Data-\(self.urlOperationIdentifier).ResultSync")
+		self.syncQ = DispatchQueue(label: "com.happn.URLRequestOperation.Data-\(self.urlOperationIdentifier).ResultSync")
 		
 		self.session = session
 		self.currentRequest = request
@@ -101,6 +113,16 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		assert(currentResponse == nil)
 		assert(expectedDataSize == nil)
 		assert(result.failure?.isCancelledOrNotFinishedError ?? false)
+		
+		/* Check if we have a retry error (a retry helper notified it failed and the operation should fail). */
+		let retryError = syncQ.sync{
+			let ret = _retryError
+			_retryError = nil
+			return ret
+		}
+		if let retryError {
+			return endBaseOperation(result: .failure(.retryError(retryError)))
+		}
 		
 		runRequestProcessors(currentRequest: currentRequest, requestProcessors: requestProcessors, handler: { request in
 			guard !self.isCancelled else {
@@ -272,9 +294,10 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 	   MARK: - Private
 	   *************** */
 	
-	private let resultQ: DispatchQueue
+	private let syncQ: DispatchQueue
 	
 	private var _result = Result<URLRequestOperationResult<ResultType>, URLRequestOperationError>.failure(Err.operationNotFinished)
+	private var _retryError: Error?
 	
 	private var currentRequest: URLRequest
 	private var currentTask: URLSessionDataTask?
