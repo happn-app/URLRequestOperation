@@ -189,4 +189,26 @@ class URLRequestOperationTests : XCTestCase {
 		XCTAssertEqual((err as? URLRequestOperationError)?.isCancelledError, true)
 	}
 	
+	func testFailedRetry() {
+		struct RetryError : Error {}
+		struct RetryFailProvider : RetryProvider {
+			struct RetryFail : RetryHelper {
+				let op: URLRequestOperation
+				func setup() {
+					op.retryError = RetryError()
+					op.retryNow()
+				}
+				func teardown() {}
+			}
+			func retryHelpers(for request: URLRequest, error: URLRequestOperationError, operation: URLRequestOperation) -> [RetryHelper]?? {
+				guard error.retryError == nil else {return .some(nil)}
+				return [RetryFail(op: operation)]
+			}
+		}
+		let op = URLRequestDataOperation.forString(url: URL(string: "https://invalid.frostland.fr/")!, retryProviders: [RetryFailProvider()])
+		op.start()
+		op.waitUntilFinished()
+		XCTAssertNotNil(op.result.failure?.retryError)
+	}
+	
 }

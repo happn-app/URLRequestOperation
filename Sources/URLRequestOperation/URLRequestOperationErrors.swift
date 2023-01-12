@@ -95,6 +95,13 @@ public extension URLRequestOperationError {
 		}
 	}
 	
+	var retryError: Error? {
+		switch self {
+			case .retryError(let e): return e
+			default:                 return nil
+		}
+	}
+	
 }
 
 public extension URLRequestOperationError {

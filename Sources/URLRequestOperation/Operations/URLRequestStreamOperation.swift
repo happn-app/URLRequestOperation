@@ -39,4 +39,6 @@ public final class URLRequestStreamOperation : RetryingOperation, URLRequestOper
 #endif
 	}
 	
+	public var retryError: Error?
+	
 }

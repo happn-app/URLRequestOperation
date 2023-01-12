@@ -35,6 +35,11 @@ public protocol URLRequestOperation : RetryingOperation, Sendable {
 	
 	var urlOperationIdentifier: URLRequestOperationID {get}
 	
+	/**
+	 This is used for notifying the request operation a retry helper failed.
+	 The retry helper that fails should set this to a non-nil value, then call `retryNow()`. */
+	var retryError: Error? {get set}
+	
 }
 
 
