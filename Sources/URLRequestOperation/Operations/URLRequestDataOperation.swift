@@ -512,10 +512,11 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 			/* We do not retry the operation.
 			 * We must set the result, whatever it is. */
 			self.result = result
-			/* If the operation is successful, let’s notify the people who care about it. */
+			/* Now let’s inform whoever cares about reaching the end of the operation. */
+			NotificationCenter.default.post(name: .URLRequestOperationWillFinishOperation, object: urlOperationIdentifier, userInfo: nil)
 			if result.failure == nil {
-				let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
-				NotificationCenter.default.post(name: .URLRequestOperationDidSucceedOperation, object: urlOperationIdentifier, userInfo: userInfo)
+				let notifUserInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
+				NotificationCenter.default.post(name: .URLRequestOperationWillSucceedOperation, object: urlOperationIdentifier, userInfo: notifUserInfo)
 			}
 		}
 		retryError = nil /* Reset the retry error before sending the retry helpers. Should already be null but cannot be guaranteed (races). */

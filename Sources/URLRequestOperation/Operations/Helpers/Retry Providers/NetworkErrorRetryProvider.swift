@@ -65,7 +65,7 @@ public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendabl
 				}
 				Self.syncQ.sync{ self.currentNumberOfRetriesPerOperation[urlOpID] = 0 }
 			}),
-			notificationCenter.addObserver(forName: .URLRequestOperationDidSucceedOperation, object: nil, queue: nil, using: { [weak self] n in
+			notificationCenter.addObserver(forName: .URLRequestOperationWillFinishOperation, object: nil, queue: nil, using: { [weak self] n in
 				guard let self = self else {return}
 				guard let urlOpID = n.object as? URLRequestOperationID else {
 					Conf.logger?.warning("Got notif telling URL request operation did succeed, but object of notif is not an URLRequestOperationID: \(String(describing: n.object))")

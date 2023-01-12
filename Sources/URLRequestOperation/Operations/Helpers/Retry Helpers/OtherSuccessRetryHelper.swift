@@ -25,7 +25,8 @@ import RetryingOperation
 extension NSNotification.Name {
 	
 	public static let URLRequestOperationDidSucceedURLSessionTask = NSNotification.Name(rawValue: "com.happn.URLRequestOperation.DidSucceedURLSessionTask")
-	public static let URLRequestOperationDidSucceedOperation = NSNotification.Name(rawValue: "com.happn.URLRequestOperation.DidSucceedOperation")
+	public static let URLRequestOperationWillSucceedOperation = NSNotification.Name(rawValue: "com.happn.URLRequestOperation.WillSucceedOperation")
+	public static let URLRequestOperationWillFinishOperation = NSNotification.Name(rawValue: "com.happn.URLRequestOperation.WillFinishOperation")
 	
 }
 
@@ -39,7 +40,7 @@ public final class OtherSuccessRetryHelper : RetryHelper, @unchecked Sendable {
 	public init?(host: String?, monitorSessionTaskSuccessInsteadOfOperationSuccess: Bool = false, operation: URLRequestOperation) {
 		guard let host = host else {return nil}
 		self.host = host
-		self.notifName = monitorSessionTaskSuccessInsteadOfOperationSuccess ? .URLRequestOperationDidSucceedURLSessionTask : .URLRequestOperationDidSucceedOperation
+		self.notifName = monitorSessionTaskSuccessInsteadOfOperationSuccess ? .URLRequestOperationDidSucceedURLSessionTask : .URLRequestOperationWillSucceedOperation
 		self.operation = operation
 	}
 	
