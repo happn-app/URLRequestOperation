@@ -19,9 +19,9 @@ import MediaType
 
 
 
-public func SendableJSONEncoderForHTTPContent() -> any HTTPContentEncoder {
-	if #available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *) {return JSONEncoder()}
-	else                       {return SendableJSONEncoder()}
+public func SendableJSONEncoderForHTTPContent(_ encoderConfig: @escaping @Sendable (JSONEncoder) -> Void = { _ in }) -> any HTTPContentEncoder {
+	if #available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *) {let ret = JSONEncoder(); encoderConfig(ret); return ret}
+	else                                                           {return SendableJSONEncoder(encoderConfig)}
 }
 
 @available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *)
@@ -37,8 +37,14 @@ extension JSONEncoder : HTTPContentEncoder {
 @available(macOS, deprecated: 13.0, message: "JSONEncoder is already Sendable on macOS 13, use it instead.")
 @available(watchOS, deprecated: 9.0, message: "JSONEncoder is already Sendable on watchOS 9, use it instead.")
 public struct SendableJSONEncoder : HTTPContentEncoder {
+	public let encoderConfig: @Sendable (JSONEncoder) -> Void
+	public init(_ encoderConfig: @escaping @Sendable (JSONEncoder) -> Void) {
+		self.encoderConfig = encoderConfig
+	}
 	public func encodeForHTTPContent<T>(_ value: T) throws -> (Data, MediaType) where T : Encodable {
-		return try (JSONEncoder().encode(value), MediaType(rawValue: "application/json")!)
+		let encoder = JSONEncoder()
+		encoderConfig(encoder)
+		return try (encoder.encode(value), MediaType(rawValue: "application/json")!)
 	}
 }
 
@@ -47,9 +53,9 @@ public struct SendableJSONEncoder : HTTPContentEncoder {
    MARK: -
    ******* */
 
-public func SendableJSONDecoderForHTTPContent() -> any HTTPContentDecoder {
-	if #available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *) {return JSONDecoder()}
-	else                                                           {return SendableJSONDecoder()}
+public func SendableJSONDecoderForHTTPContent(_ decoderConfig: @escaping @Sendable (JSONDecoder) -> Void = { _ in }) -> any HTTPContentDecoder {
+	if #available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *) {let ret = JSONDecoder(); decoderConfig(ret); return ret}
+	else                                                           {return SendableJSONDecoder(decoderConfig)}
 }
 
 @available(macOS 13.0, tvOS 16.0, iOS 16.0, watchOS 9.0, *)
@@ -72,6 +78,10 @@ extension JSONDecoder : HTTPContentDecoder {
 @available(macOS, deprecated: 13.0, message: "JSONDecoder is already Sendable on macOS 13, use it instead.")
 @available(watchOS, deprecated: 9.0, message: "JSONDecoder is already Sendable on watchOS 9, use it instead.")
 public struct SendableJSONDecoder : HTTPContentDecoder {
+	public let decoderConfig: @Sendable (JSONDecoder) -> Void
+	public init(_ decoderConfig: @escaping @Sendable (JSONDecoder) -> Void) {
+		self.decoderConfig = decoderConfig
+	}
 	public func canDecodeHTTPContent(mediaType: MediaType) -> Bool {
 		return mediaType.type == "application" && mediaType.subtype == "json"
 	}
@@ -79,6 +89,8 @@ public struct SendableJSONDecoder : HTTPContentDecoder {
 		guard canDecodeHTTPContent(mediaType: mediaType) else {
 			throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid media type \(mediaType)", underlyingError: nil))
 		}
-		return try JSONDecoder().decode(type, from: data)
+		let decoder = JSONDecoder()
+		decoderConfig(decoder)
+		return try decoder.decode(type, from: data)
 	}
 }
