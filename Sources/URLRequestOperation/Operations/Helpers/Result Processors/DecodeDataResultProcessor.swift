@@ -40,7 +40,7 @@ public struct DecodeDataResultProcessor<ResultType : Sendable> : ResultProcessor
 	}
 	
 	public func transform(source: Data, urlResponse: URLResponse, handler: @Sendable @escaping (Result<ResultType, Error>) -> Void) {
-		processingQueue.execute{ handler(Result{ try decoder(source) }.mapError{ Err.DataConversionFailed(data: source, underlyingError: $0) }) }
+		processingQueue.execute{ handler(Result{ try decoder(source) }.mapError{ DataConversionFailed(data: source, underlyingError: $0) }) }
 	}
 	
 }

@@ -29,7 +29,7 @@ public struct RecoverHTTPStatusCodeCheckErrorResultProcessor : ResultProcessor, 
 	public func transform(source: Error, urlResponse: URLResponse, handler: @escaping @Sendable (Result<Data, Error>) -> Void) {
 		handler(Result{
 			guard
-				let statusCodeError = source as? Err.UnexpectedStatusCode,
+				let statusCodeError = source as? UnexpectedStatusCode,
 				let data = statusCodeError.httpBody
 			else {
 				throw source

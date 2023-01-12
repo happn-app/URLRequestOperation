@@ -38,6 +38,6 @@ public protocol RetryProvider : Sendable {
 	 - `nil` if the provider does not have a retry helper to retry the request, but the next providers can provide helpers (the request may be retried);
 	 - `.some(nil)` if the request must _not_ be retried;
 	 - `.some([retryHelpers])` if the provider knows how to retry the operation. */
-	func retryHelpers(for request: URLRequest, error: Error, operation: URLRequestOperation) -> [RetryHelper]??
+	func retryHelpers(for request: URLRequest, error: URLRequestOperationError, operation: URLRequestOperation) -> [RetryHelper]??
 	
 }

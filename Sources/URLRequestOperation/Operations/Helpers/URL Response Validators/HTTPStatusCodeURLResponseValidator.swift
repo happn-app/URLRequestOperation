@@ -31,10 +31,10 @@ public struct HTTPStatusCodeURLResponseValidator : URLResponseValidator {
 	
 	public func validate(urlResponse: URLResponse) -> Error? {
 		guard let code = (urlResponse as? HTTPURLResponse)?.statusCode else {
-			return Err.UnexpectedStatusCode(expected: expectedCodes, actual: nil, httpBody: nil)
+			return UnexpectedStatusCode(expected: expectedCodes, actual: nil, httpBody: nil)
 		}
 		guard expectedCodes.contains(code) else {
-			return Err.UnexpectedStatusCode(expected: expectedCodes, actual: code, httpBody: nil)
+			return UnexpectedStatusCode(expected: expectedCodes, actual: code, httpBody: nil)
 		}
 		return nil
 	}

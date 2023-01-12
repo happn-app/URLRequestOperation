@@ -41,7 +41,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	public let resultProcessor: AnyResultProcessor<URL, ResultType>
 	public let retryProviders: [RetryProvider]
 	
-	public private(set) var result: Result<URLRequestOperationResult<ResultType>, Error> {
+	public private(set) var result: Result<URLRequestOperationResult<ResultType>, URLRequestOperationError> {
 		get {resultQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
 		set {resultQ.sync{ _result = newValue }}
 	}
@@ -101,7 +101,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	public override func startBaseOperation(isRetry: Bool) {
 		assert(currentTask == nil)
 		assert(downloadStatus.isStatusWaiting)
-		assert(Self.isCancelledOrNotFinishedError(result.failure))
+		assert(result.failure?.isCancelledOrNotFinishedError ?? false)
 		
 #warning("TODO: Properly manage resume data")
 		resumeData = nil
@@ -153,7 +153,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		assert(currentResult == nil)
 		assert(session === self.session)
 		assert(downloadTask === self.currentTask)
-		assert(Self.isCancelledOrNotFinishedError(result.failure))
+		assert(result.failure?.isCancelledOrNotFinishedError ?? false)
 		
 		guard let response = downloadTask.response else {
 			assertionFailure("nil task’s response in urlSession(:downloadTask:didFinishDownloadingTo:)")
@@ -175,7 +175,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 				assert(self.currentResult == nil)
 				let res = res
 					.map{ URLRequestOperationResult(finalURLRequest: self.currentRequest, urlResponse: response, result: $0) }
-					.mapError{ Err.resultProcessorError($0) as Error }
+					.mapError{ Err.resultProcessorError($0) }
 				guard self.downloadStatus.doingResultProcessor() else {
 					self.currentResult = res
 					return
@@ -190,7 +190,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
 		assert(session === self.session)
 		assert(task === self.currentTask)
-		assert(Self.isCancelledOrNotFinishedError(result.failure))
+		assert(result.failure?.isCancelledOrNotFinishedError ?? false)
 		
 		if let rd = (error as NSError?)?.userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
 			resumeData = rd
@@ -216,7 +216,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		}
 		
 		assert((currentResult == nil && error != nil) || (currentResult != nil && error == nil))
-		endBaseOperation(result: currentResult ?? .failure(error!))
+		endBaseOperation(result: currentResult ?? .failure(.urlSessionError(error!)))
 		assert(downloadStatus.isStatusWaiting)
 		currentResult = nil
 	}
@@ -227,7 +227,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	
 	private let resultQ: DispatchQueue
 	
-	private var _result = Result<URLRequestOperationResult<ResultType>, Error>.failure(Err.operationNotFinished)
+	private var _result = Result<URLRequestOperationResult<ResultType>, URLRequestOperationError>.failure(Err.operationNotFinished)
 	private var _resumeData: Data?
 	
 	private var currentRequest: URLRequest
@@ -265,7 +265,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	}
 	
 	private var downloadStatus: DownloadStatus = .waiting
-	private var currentResult: Result<URLRequestOperationResult<ResultType>, Error>?
+	private var currentResult: Result<URLRequestOperationResult<ResultType>, URLRequestOperationError>?
 	
 	/* TODO: Resume data init. */
 	private func taskForCurrentRequest() -> URLSessionDownloadTask {
@@ -364,7 +364,7 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		})
 	}
 	
-	private func runResponseValidators(urlResponse: URLResponse) -> Error? {
+	private func runResponseValidators(urlResponse: URLResponse) -> URLRequestOperationError? {
 		guard !isCancelled else {
 			return Err.operationCancelled
 		}
@@ -383,18 +383,18 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 			resumeData = rd
 		}
 		
-		if let error = error {
-			return endBaseOperation(result: .failure(error))
+		if let error {
+			return endBaseOperation(result: .failure(.urlSessionError(error)))
 		} else {
 			let userInfo = self.currentRequest.url?.host.flatMap{ [OtherSuccessRetryHelper.requestSucceededNotifUserInfoHostKey: $0] }
 			NotificationCenter.default.post(name: .URLRequestOperationDidSucceedURLSessionTask, object: urlOperationIdentifier, userInfo: userInfo)
 		}
 		
-		guard let response = response, let url = url else {
+		guard let response, let url else {
 			/* A nil response or url should indicate an error, in which case error should not be nil.
 			 * We still safely unwrap the error in production mode. */
-			assert(error != nil)
-			return endBaseOperation(result: .failure(error ?? Err.brokenURLSessionContract))
+			assertionFailure("error is nil but either response or url is nil; this should not be possible (broken URLSession contract).")
+			return endBaseOperation(result: .failure(Err.brokenURLSessionContract))
 		}
 		
 		guard !isCancelled else {
@@ -410,14 +410,14 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		})
 	}
 	
-	private func endBaseOperation(result: Result<URLRequestOperationResult<ResultType>, Error>) {
+	private func endBaseOperation(result: Result<URLRequestOperationResult<ResultType>, URLRequestOperationError>) {
 		let retryHelpers: [RetryHelper]?
 		
 	retryHelpersComputation:
 		if let error = result.failure {
 			/* We do not want to retry a cancelled operation.
 			 * In theory RetryingOperation would not let us anyway, but let’s be extra cautious. */
-			guard !Self.isCancelledError(error) else {
+			guard !error.isCancelledError else {
 				retryHelpers = nil
 				break retryHelpersComputation
 			}

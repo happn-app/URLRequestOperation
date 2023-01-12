@@ -35,10 +35,10 @@ public struct HTTPStatusCodeCheckResultProcessor : ResultProcessor, Sendable {
 	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping @Sendable (Result<ResultType, Error>) -> Void) {
 		handler(Result{
 			guard let code = (urlResponse as? HTTPURLResponse)?.statusCode else {
-				throw Err.UnexpectedStatusCode(expected: expectedCodes, actual: nil, httpBody: source)
+				throw UnexpectedStatusCode(expected: expectedCodes, actual: nil, httpBody: source)
 			}
 			guard expectedCodes.contains(code) else {
-				throw Err.UnexpectedStatusCode(expected: expectedCodes, actual: code, httpBody: source)
+				throw UnexpectedStatusCode(expected: expectedCodes, actual: code, httpBody: source)
 			}
 			return source
 		})

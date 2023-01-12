@@ -53,7 +53,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		isAPIErrorRetryable: @escaping @Sendable (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
+		isAPIErrorRetryable: @escaping @Sendable (_ error: APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		let resultProcessor = resultProcessorModifier(
@@ -62,7 +62,7 @@ public extension URLRequestDataOperation {
 				.flatMapError(
 					RecoverHTTPStatusCodeCheckErrorResultProcessor()
 						.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
-						.flatMap{ throw Err.APIResultErrorWrapper(urlResponse: $1, error: $0) }
+						.flatMap{ throw APIResultErrorWrapper(urlResponse: $1, error: $0) }
 				)
 		)
 		
@@ -81,7 +81,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		isAPIErrorRetryable: @escaping @Sendable (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
+		isAPIErrorRetryable: @escaping @Sendable (_ error: APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
@@ -105,7 +105,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		isAPIErrorRetryable: @escaping @Sendable (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
+		isAPIErrorRetryable: @escaping @Sendable (_ error: APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
@@ -124,7 +124,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		isAPIErrorRetryable: @escaping @Sendable (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
+		isAPIErrorRetryable: @escaping @Sendable (_ error: APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		return try Self.forAPIRequest(
@@ -145,7 +145,7 @@ public extension URLRequestDataOperation {
 		resultProcessingDispatcher: BlockDispatcher = SyncBlockDispatcher(),
 		requestProcessors: [RequestProcessor] = [],
 		resultProcessorModifier: (AnyResultProcessor<Data, ResultType>) -> AnyResultProcessor<Data, ResultType> = { $0 },
-		isAPIErrorRetryable: @escaping @Sendable (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
+		isAPIErrorRetryable: @escaping @Sendable (_ error: APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) throws -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
 		let url = try url.appendingQueryParameters(from: urlParameters, encoder: parameterEncoder)

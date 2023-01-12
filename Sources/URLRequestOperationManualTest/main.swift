@@ -92,7 +92,7 @@ let operation1 = URLRequestDataOperation<Data>(
 	urlResponseValidators: [HTTPStatusCodeURLResponseValidator(expectedCodes: Set(arrayLiteral: 500))],
 	resultProcessor: .identity(),
 	retryProviders: [
-		UnretriedErrorsRetryProvider(isBlacklistedError: { $0 is URLRequestOperationError }),
+		UnretriedErrorsRetryProvider(isBlacklistedError: { $0.urlSessionError == nil }),
 		NetworkErrorRetryProvider(maximumNumberOfRetries: 5)
 	]
 )

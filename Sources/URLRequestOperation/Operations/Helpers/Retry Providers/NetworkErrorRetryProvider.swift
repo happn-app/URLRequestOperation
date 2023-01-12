@@ -76,14 +76,18 @@ public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendabl
 		])
 	}
 	
-	public func retryHelpers(for request: URLRequest, error: Error, operation: URLRequestOperation) -> [RetryHelper]?? {
+	public func retryHelpers(for request: URLRequest, error: URLRequestOperationError, operation: URLRequestOperation) -> [RetryHelper]?? {
+		guard let error = error.urlSessionError else {
+			/* The error is not an URLSession error, we do not retry this, but do not block other retry providers from retrying if they want. */
+			return nil
+		}
 		guard Self.isRequestIdempotent(request) || alsoRetryNonIdempotentRequests else {
-			/* We don’t want to retry non-idempotent requests, but we’ll not block other retry provider to retry them if they want. */
+			/* We don’t want to retry non-idempotent requests, but we’ll not block other retry provider from retrying them if they want. */
 			return nil
 		}
 		let currentNumberOfRetries = Self.syncQ.sync{ currentNumberOfRetriesPerOperation[operation.urlOperationIdentifier, default: 0] }
-		guard maximumNumberOfRetries.flatMap({ currentNumberOfRetries < $0 }) ?? true else {
-			/* We don’t want to retry after max number of retries, but we’ll not block other retry provider to retry them if they want. */
+		guard (maximumNumberOfRetries.flatMap{ currentNumberOfRetries < $0 } ?? true) else {
+			/* We don’t want to retry after max number of retries, but we’ll not block other retry provider from retrying them if they want. */
 			return nil
 		}
 		let nserror = error as NSError

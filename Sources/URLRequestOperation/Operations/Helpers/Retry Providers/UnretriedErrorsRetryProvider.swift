@@ -26,7 +26,7 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 	
 	public static func forBlacklistedStatusCodes(_ codes: Set<Int> = Set(400..<500), blacklistNil: Bool = true) -> UnretriedErrorsRetryProvider {
 		return Self{ err in
-			guard let statusCodeError = (err as? Err)?.postProcessError as? Err.UnexpectedStatusCode else {
+			guard let statusCodeError = err.unexpectedStatusCodeError else {
 				return false
 			}
 			return statusCodeError.actual.flatMap{ codes.contains($0) } ?? blacklistNil
@@ -35,7 +35,7 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 	
 	public static func forWhitelistedStatusCodes(_ codes: Set<Int> = Set(500..<600), whitelistNil: Bool = false) -> UnretriedErrorsRetryProvider {
 		return Self{ err in
-			guard let statusCodeError = (err as? Err)?.postProcessError as? Err.UnexpectedStatusCode else {
+			guard let statusCodeError = err.unexpectedStatusCodeError else {
 				return false
 			}
 			return statusCodeError.actual.flatMap{ !codes.contains($0) } ?? !whitelistNil
@@ -44,16 +44,16 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 	
 	public static func forHTTPContentDecoding() -> UnretriedErrorsRetryProvider {
 		return Self{ err in
-			guard let postProcessError = (err as? Err)?.postProcessError else {
+			guard let postProcessError = err.postProcessError else {
 				return false
 			}
 			return postProcessError is DecodeHTTPContentResultProcessorError
 		}
 	}
 	
-	public static func forAPIError<APIErrorType>(errorType: APIErrorType.Type = APIErrorType.self, isRetryableBlock: @escaping @Sendable (_ error: URLRequestOperationError.APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false }) -> UnretriedErrorsRetryProvider {
+	public static func forAPIError<APIErrorType>(errorType: APIErrorType.Type = APIErrorType.self, isRetryableBlock: @escaping @Sendable (_ error: APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false }) -> UnretriedErrorsRetryProvider {
 		return Self{ err in
-			guard let apiErrorWrapper = (err as? Err)?.postProcessError as? Err.APIResultErrorWrapper<APIErrorType> else {
+			guard let apiErrorWrapper = err.postProcessError as? APIResultErrorWrapper<APIErrorType> else {
 				return false
 			}
 			return !isRetryableBlock(apiErrorWrapper)
@@ -62,16 +62,16 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 	
 	public static func forDataConversion() -> UnretriedErrorsRetryProvider {
 		return Self{ err in
-			guard let postProcessError = (err as? Err)?.postProcessError else {
+			guard let postProcessError = err.postProcessError else {
 				return false
 			}
-			return postProcessError is Err.DataConversionFailed
+			return postProcessError is DataConversionFailed
 		}
 	}
 	
 	public static func forDownload() -> UnretriedErrorsRetryProvider {
 		return Self{ err in
-			guard let postProcessError = (err as? Err)?.postProcessError else {
+			guard let postProcessError = err.postProcessError else {
 				return false
 			}
 			return postProcessError is URLMoveResultProcessorError
@@ -80,20 +80,20 @@ public struct UnretriedErrorsRetryProvider : RetryProvider {
 	
 	public static func forFileHandleFromDownload() -> UnretriedErrorsRetryProvider {
 		return Self{ err in
-			guard let postProcessError = (err as? Err)?.postProcessError else {
+			guard let postProcessError = err.postProcessError else {
 				return false
 			}
 			return postProcessError is URLToFileHandleResultProcessorError
 		}
 	}
 	
-	public let isBlacklistedError: @Sendable (Error) -> Bool
+	public let isBlacklistedError: @Sendable (URLRequestOperationError) -> Bool
 	
-	public init(isBlacklistedError: @escaping @Sendable (Error) -> Bool) {
+	public init(isBlacklistedError: @escaping @Sendable (URLRequestOperationError) -> Bool) {
 		self.isBlacklistedError = isBlacklistedError
 	}
 	
-	public func retryHelpers(for request: URLRequest, error: Error, operation: URLRequestOperation) -> [RetryHelper]?? {
+	public func retryHelpers(for request: URLRequest, error: URLRequestOperationError, operation: URLRequestOperation) -> [RetryHelper]?? {
 		if isBlacklistedError(error) {
 			return .some(nil)
 		}

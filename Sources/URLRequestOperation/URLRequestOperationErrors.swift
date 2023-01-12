@@ -25,19 +25,6 @@ import MediaType
 /** All of the errors thrown by the module should have this type. */
 public enum URLRequestOperationError : Error, Sendable {
 	
-	/** Directly access the response validator or result processor error if any. */
-	public var postProcessError: Error? {
-		switch self {
-			case .responseValidatorError(let e): return e
-			case .resultProcessorError(let e): return e
-			default: return nil
-		}
-	}
-	
-	public var unexpectedStatusCodeError: UnexpectedStatusCode? {
-		return postProcessError as? UnexpectedStatusCode
-	}
-	
 	case operationNotFinished
 	case operationCancelled
 	
@@ -48,9 +35,11 @@ public enum URLRequestOperationError : Error, Sendable {
 	/** All errors from result processors are wrapped in this error. */
 	case resultProcessorError(Error)
 	
+	case urlSessionError(Error)
+	
 	/**
 	 When there is an issue converting between `URL` and `URLComponents`.
-	 Thrown by the  `URL` extension method `URL.appendingQueryParameters(from:,encoder:)` (but you don’t have access to that).
+	 Thrown by the `URL` extension method `URL.appendingQueryParameters(from:encoder:)` (but you don’t have access to that).
 	 Can also be thrown by creating an `URLRequest*Operation` via one of the convenient method that allows specifying some query parameters to add to the base URL.
 	 
 	 This error should never happen, but technically can (if I understand correctly such failure can occur because `URL` and `URLComponents` do not parse URLs using the same RFCs). */
@@ -71,60 +60,114 @@ public enum URLRequestOperationError : Error, Sendable {
 	 In debug mode, we do crash (assertion failure). */
 	case brokenURLSessionContract
 	
+}
+
+typealias Err = URLRequestOperationError
+
+
+public extension URLRequestOperationError {
 	
 	/* MARK: -
-	 * Most of the time the classes/structs declare their own errors in their file directly,
-	 * but the following structure are re-used and are thus grouped together here. */
+	 * Some conveniences for easily accessing sub-errors. */
 	
-	
-	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
-	public struct DataConversionFailed : Error, Sendable {
-		
-		public var data: Data
-		public var underlyingError: Error?
-		
+	var preProcessError: Error? {
+		switch self {
+			case .requestProcessorError(let e): return e
+			default:                            return nil
+		}
 	}
 	
-	/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
-	public struct UnexpectedStatusCode : Error, Sendable {
-		
-		public var expected: Set<Int>
-		public var actual: Int?
-		
-		public var httpBody: Data?
-		
-		public init(expected: Set<Int>, actual: Int? = nil, httpBody: Data? = nil) {
-			self.expected = expected
-			self.actual = actual
-			self.httpBody = httpBody
+	/** Directly access the response validator or result processor error if any. */
+	var postProcessError: Error? {
+		switch self {
+			case .responseValidatorError(let e): return e
+			case .resultProcessorError(let e):   return e
+			default:                             return nil
 		}
-		
 	}
 	
-	/** A wrapper for an API Error. */
-	public struct APIResultErrorWrapper<APIError : Sendable> : Error {
-		
-		public var urlResponse: URLResponse
-		public var error: APIError
-		
-		/** Convenience to get the APIResultErrorWrapper from any Error (the error has to be an URLRequestOperationError, of course). */
-		public static func get(from error: Error) -> Self? {
-			switch error as? Err {
-				case .resultProcessorError(let e)?:
-					return e as? Self
-					
-				default:
-					return nil
-			}
+	var urlSessionError: Error? {
+		switch self {
+			case .urlSessionError(let e): return e
+			default:                      return nil
 		}
-		
-		public init(urlResponse: URLResponse, error: APIError) {
-			self.urlResponse = urlResponse
-			self.error = error
-		}
-		
 	}
 	
 }
 
-typealias Err = URLRequestOperationError
+public extension URLRequestOperationError {
+	
+	var unexpectedStatusCodeError: UnexpectedStatusCode? {
+		return postProcessError as? UnexpectedStatusCode
+	}
+	
+	func apiError<APIError : Sendable>(_ apiErrorType: APIError.Type) -> APIError? {
+		return apiErrorWrapper(apiErrorType)?.error
+	}
+	
+	func apiErrorWrapper<APIError : Sendable>(_ apiErrorType: APIError.Type) -> APIResultErrorWrapper<APIError>? {
+		return postProcessError as? APIResultErrorWrapper<APIError>
+	}
+	
+	/* Internal because not very interesting for clients as it does not check for URLSession cancellation. */
+	internal var isCancelledError: Bool {
+		switch self {
+			case .operationCancelled: return true
+			default:                  return false
+		}
+	}
+	
+	internal var isCancelledOrNotFinishedError: Bool {
+		switch self {
+			case .operationNotFinished: return true
+			case .operationCancelled:   return true
+			default:                    return false
+		}
+	}
+	
+}
+
+
+
+/* MARK: -
+ * Most of the time the classes/structs declare their own errors in their file directly,
+ * but the following structure are re-used and are thus grouped together here. */
+
+/** Error that can be thrown by ``DecodeDataResultProcessor`` and ``DecodeHTTPContentResultProcessor``. */
+public struct DataConversionFailed : Error, Sendable {
+	
+	public var data: Data
+	public var underlyingError: Error?
+	
+}
+
+
+/** Error that can be thrown by ``HTTPStatusCodeURLResponseValidator`` and ``HTTPStatusCodeCheckResultProcessor``. */
+public struct UnexpectedStatusCode : Error, Sendable {
+	
+	public var expected: Set<Int>
+	public var actual: Int?
+	
+	public var httpBody: Data?
+	
+	public init(expected: Set<Int>, actual: Int? = nil, httpBody: Data? = nil) {
+		self.expected = expected
+		self.actual = actual
+		self.httpBody = httpBody
+	}
+	
+}
+
+
+/** A wrapper for an API Error. */
+public struct APIResultErrorWrapper<APIError : Sendable> : Error {
+	
+	public var urlResponse: URLResponse
+	public var error: APIError
+	
+	public init(urlResponse: URLResponse, error: APIError) {
+		self.urlResponse = urlResponse
+		self.error = error
+	}
+	
+}

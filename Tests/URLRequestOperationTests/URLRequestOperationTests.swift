@@ -143,7 +143,16 @@ class URLRequestOperationTests : XCTestCase {
 		op.start()
 		op.waitUntilFinished()
 		XCTAssertNotNil(op.result.failure)
-		XCTAssertEqual((op.result.failure as? URLRequestOperationError)?.unexpectedStatusCodeError?.actual, 404)
+		XCTAssertEqual(op.result.failure?.unexpectedStatusCodeError?.actual, 404)
+	}
+	
+	func testCancellationBeforeRun() {
+		let op = URLRequestDataOperation.forString(url: URL(string: "https://frostland.fr/constant.txt")!)
+		op.cancel()
+		op.start()
+		op.waitUntilFinished()
+		print(op.result)
+		XCTAssertEqual(op.result.failure?.isCancelledError, true)
 	}
 	
 }
