@@ -28,7 +28,7 @@ public struct DecodeHTTPContentResultProcessor<ResultType : Decodable & Sendable
 	public typealias SourceType = Data
 	
 	/** Convenience method that can be accessed outside of the context of a result processor, that does what this processor do (but not on a processing queue). */
-	public static func decodeHTTPContent(source: Data, urlResponse: URLResponse, decoders: [HTTPContentDecoder]) throws -> ResultType {
+	public static func decodeHTTPContent(_ type: ResultType.Type, source: Data, urlResponse: URLResponse, decoders: [HTTPContentDecoder]) throws -> ResultType {
 		/* ⚠️ Mostly copied from `transform(source:urlResponse:handler:)`. */
 		
 		guard let httpResponse = urlResponse as? HTTPURLResponse,
