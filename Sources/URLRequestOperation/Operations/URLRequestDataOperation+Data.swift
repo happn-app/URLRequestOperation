@@ -22,25 +22,30 @@ import FoundationNetworking
 
 public extension URLRequestDataOperation {
 	
+	/* If retryableStatusCodes is nil, no filtering is done on the status code. */
 	static func forData(
 		urlRequest: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
-		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
+		retryableStatusCodes: Set<Int>? = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
 		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDataRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Data {
+		let retryProvidersPrefix: [RetryProvider]
+		if let retryableStatusCodes {retryProvidersPrefix = [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes)]}
+		else                        {retryProvidersPrefix = []}
+		
 		return URLRequestDataOperation<Data>(
 			request: urlRequest, session: session,
 			requestProcessors: requestProcessors,
 			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
 			resultProcessor: .identity(),
-			retryProviders: [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes)] + retryProviders
+			retryProviders: retryProvidersPrefix + retryProviders
 		)
 	}
 	
 	static func forData(
 		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
-		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
+		retryableStatusCodes: Set<Int>? = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
 		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDataRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Data {
 		var request = URLRequest(url: url, cachePolicy: cachePolicy)
