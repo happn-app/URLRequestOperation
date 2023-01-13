@@ -41,4 +41,29 @@ public final class URLRequestStreamOperation : RetryingOperation, URLRequestOper
 	
 	public var retryError: Error?
 	
+	public var startDate: Date? {
+		get {lock.withLock{ _startDate }}
+		set {lock.withLock{ _startDate = newValue }}
+	}
+	
+	public var latestFailureDate: Date? {
+		get {lock.withLock{ _latestFailureDate }}
+		set {lock.withLock{ _latestFailureDate = newValue }}
+	}
+	
+	public var latestTryStartDate: Date? {
+		get {lock.withLock{ _latestTryStartDate }}
+		set {lock.withLock{ _latestTryStartDate = newValue }}
+	}
+	
+	/* ***************
+	   MARK: - Private
+	   *************** */
+	
+	private let lock = NSLock()
+	
+	private var _startDate: Date?
+	private var _latestFailureDate: Date?
+	private var _latestTryStartDate: Date?
+	
 }

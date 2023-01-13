@@ -42,13 +42,13 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	public let retryProviders: [RetryProvider]
 	
 	public private(set) var result: Result<URLRequestOperationResult<ResultType>, URLRequestOperationError> {
-		get {syncQ.sync{ isCancelled ? .failure(Err.operationCancelled) : _result }}
-		set {syncQ.sync{ _result = newValue }}
+		get {lock.withLock{ isCancelled ? .failure(Err.operationCancelled) : _result }}
+		set {lock.withLock{ _result = newValue }}
 	}
 	/** The resume data if available. Should not be used before the operation is over. */
 	public private(set) var resumeData: Data? {
-		get {syncQ.sync{ _resumeData }}
-		set {syncQ.sync{ _resumeData = newValue }}
+		get {lock.withLock{ _resumeData }}
+		set {lock.withLock{ _resumeData = newValue }}
 	}
 	
 	/**
@@ -59,8 +59,23 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	 
 	 A retry helper should set this to a non-`nil` value before calling `retryNow()` if they have had a failure. */
 	public var retryError: Error? {
-		get {syncQ.sync{ _retryError }}
-		set {syncQ.sync{ _retryError = newValue }}
+		get {lock.withLock{ _retryError }}
+		set {lock.withLock{ _retryError = newValue }}
+	}
+	
+	public var startDate: Date? {
+		get {lock.withLock{ _startDate }}
+		set {lock.withLock{ _startDate = newValue }}
+	}
+	
+	public var latestFailureDate: Date? {
+		get {lock.withLock{ _latestFailureDate }}
+		set {lock.withLock{ _latestFailureDate = newValue }}
+	}
+	
+	public var latestTryStartDate: Date? {
+		get {lock.withLock{ _latestTryStartDate }}
+		set {lock.withLock{ _latestTryStartDate = newValue }}
 	}
 	
 	public convenience init(
@@ -96,8 +111,6 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 #else
 		self.urlOperationIdentifier = UUID()
 #endif
-		self.syncQ = DispatchQueue(label: "com.happn.URLRequestOperation.Download-\(self.urlOperationIdentifier).ResultSync")
-		
 		self.session = session
 		self.currentRequest = request
 		self.originalRequest = request
@@ -115,10 +128,17 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		assert(downloadStatus.isStatusWaiting)
 		assert(result.failure?.isCancelledOrNotFinishedError ?? false)
 		
-		/* Check if we have a retry error (a retry helper notified it failed and the operation should fail). */
-		let retryError = syncQ.sync{
+		/* Check if we have a retry error (a retry helper notified it failed and the operation should fail) and set a few variables. */
+		let retryError = lock.withLock{
 			let ret = _retryError
 			_retryError = nil
+			
+			let now = Date()
+			_latestTryStartDate = now
+			if _startDate == nil {
+				_startDate = now
+			}
+			
 			return ret
 		}
 		if let retryError {
@@ -247,11 +267,14 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 	   MARK: - Private
 	   *************** */
 	
-	private let syncQ: DispatchQueue
+	private let lock = NSLock()
 	
 	private var _result = Result<URLRequestOperationResult<ResultType>, URLRequestOperationError>.failure(Err.operationNotFinished)
-	private var _retryError: Error?
 	private var _resumeData: Data?
+	private var _retryError: Error?
+	private var _startDate: Date?
+	private var _latestFailureDate: Date?
+	private var _latestTryStartDate: Date?
 	
 	private var currentRequest: URLRequest
 	private var currentTask: URLSessionDownloadTask?
@@ -438,6 +461,8 @@ public final class URLRequestDownloadOperation<ResultType : Sendable> : Retrying
 		
 	retryHelpersComputation:
 		if let error = result.failure {
+			latestFailureDate = Date()
+			
 			/* We do not want to retry a cancelled operation.
 			 * In theory RetryingOperation would not let us anyway, but let’s be extra cautious. */
 			guard !error.isCancelledError else {
