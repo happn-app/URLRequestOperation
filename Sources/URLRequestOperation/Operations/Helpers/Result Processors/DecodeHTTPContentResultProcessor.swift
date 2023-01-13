@@ -22,28 +22,29 @@ import MediaType
 
 
 
+/** Convenience method that can be accessed outside of the context of a result processor, that does what this processor do (but not on a processing queue). */
+public func DecodeHTTPContent<ResultType : Decodable & Sendable>(_ type: ResultType.Type = ResultType.self, from source: Data, urlResponse: URLResponse, decoders: [HTTPContentDecoder]) throws -> ResultType {
+	/* ⚠️ Mostly copied from `transform(source:urlResponse:handler:)`. */
+	
+	guard let httpResponse = urlResponse as? HTTPURLResponse,
+			let contentType = httpResponse.hpn_value(forHTTPHeaderField: "content-type").flatMap(MediaType.init)
+	else {
+		throw MyErr.noOrInvalidContentType(urlResponse)
+	}
+	guard let decoder = decoders.first(where: { $0.canDecodeHTTPContent(mediaType: contentType) }) else {
+		throw MyErr.noDecoderForContentType(contentType)
+	}
+	
+	return try Result{
+		return try decoder.decodeHTTPContent(ResultType.self, from: source, mediaType: contentType)
+	}.mapError{ MyErr.dataConversionFailed(source, $0) }.get()
+}
+
+
 /** Throws ``DecodeHTTPContentResultProcessorError`` errors. */
 public struct DecodeHTTPContentResultProcessor<ResultType : Decodable & Sendable> : ResultProcessor, Sendable {
 	
 	public typealias SourceType = Data
-	
-	/** Convenience method that can be accessed outside of the context of a result processor, that does what this processor do (but not on a processing queue). */
-	public static func decodeHTTPContent(_ type: ResultType.Type, source: Data, urlResponse: URLResponse, decoders: [HTTPContentDecoder]) throws -> ResultType {
-		/* ⚠️ Mostly copied from `transform(source:urlResponse:handler:)`. */
-		
-		guard let httpResponse = urlResponse as? HTTPURLResponse,
-				let contentType = httpResponse.hpn_value(forHTTPHeaderField: "content-type").flatMap(MediaType.init)
-		else {
-			throw MyErr.noOrInvalidContentType(urlResponse)
-		}
-		guard let decoder = decoders.first(where: { $0.canDecodeHTTPContent(mediaType: contentType) }) else {
-			throw MyErr.noDecoderForContentType(contentType)
-		}
-		
-		return try Result{
-			return try decoder.decodeHTTPContent(ResultType.self, from: source, mediaType: contentType)
-		}.mapError{ MyErr.dataConversionFailed(source, $0) }.get()
-	}
 	
 	public let decoders: [HTTPContentDecoder]
 	
@@ -61,7 +62,7 @@ public struct DecodeHTTPContentResultProcessor<ResultType : Decodable & Sendable
 	}
 	
 	public func transform(source: Data, urlResponse: URLResponse, handler: @escaping @Sendable (Result<ResultType, Error>) -> Void) {
-		/* ⚠️ Mostly copied to `decodeHTTPContent(source:urlResponse:)`. */
+		/* ⚠️ Mostly copied to `DecodeHTTPContent(_:source:urlResponse:)`. */
 		
 		/* O(n) or less, n being the number of headers in the response + the number of decoders,
 		 *  both of which are always small, so outside of processing queue. */
