@@ -88,6 +88,17 @@ public extension URLRequestOperationError {
 		}
 	}
 	
+	var postProcessOrApiUpstreamError: Error? {
+		let ret1: Error? = {
+			switch self {
+				case .responseValidatorError(let e): return e
+				case .resultProcessorError(let e):   return e
+				default:                             return nil
+			}
+		}()
+		return (ret1 as? APIResultErrorWrapperProtocol)?.upstreamError ?? ret1
+	}
+	
 	var urlSessionError: Error? {
 		switch self {
 			case .urlSessionError(let e): return e
@@ -107,11 +118,11 @@ public extension URLRequestOperationError {
 public extension URLRequestOperationError {
 	
 	var unexpectedStatusCodeError: UnexpectedStatusCode? {
-		return postProcessError as? UnexpectedStatusCode
+		return (postProcessOrApiUpstreamError as? UnexpectedStatusCode)
 	}
 	
 	func apiError<APIError : Sendable>(_ apiErrorType: APIError.Type) -> APIError? {
-		return apiErrorWrapper(apiErrorType)?.error
+		return apiErrorWrapper(apiErrorType)?.apiError
 	}
 	
 	func apiErrorWrapper<APIError : Sendable>(_ apiErrorType: APIError.Type) -> APIResultErrorWrapper<APIError>? {
@@ -169,14 +180,22 @@ public struct UnexpectedStatusCode : Error, Sendable {
 
 
 /** A wrapper for an API Error. */
-public struct APIResultErrorWrapper<APIError : Sendable> : Error {
+protocol APIResultErrorWrapperProtocol : Error {
+	var urlResponse: URLResponse {get}
+	var upstreamError: Error? {get}
+}
+
+public struct APIResultErrorWrapper<APIError : Sendable> : Error, APIResultErrorWrapperProtocol {
+	
+	public var apiError: APIError
 	
 	public var urlResponse: URLResponse
-	public var error: APIError
+	public var upstreamError: Error?
 	
-	public init(urlResponse: URLResponse, error: APIError) {
+	public init(apiError: APIError, urlResponse: URLResponse, upstreamError: Error? = nil) {
+		self.apiError = apiError
 		self.urlResponse = urlResponse
-		self.error = error
+		self.upstreamError = upstreamError
 	}
 	
 }

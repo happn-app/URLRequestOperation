@@ -56,13 +56,23 @@ public extension URLRequestDataOperation {
 		isAPIErrorRetryable: @escaping @Sendable (_ error: APIResultErrorWrapper<APIErrorType>) -> Bool = { _ in false },
 		retryProviders: [RetryProvider] = [NetworkErrorRetryProvider()]
 	) -> URLRequestDataOperation<ResultType> where ResultType : Decodable {
+		let expectedStatusCodes = Set(200..<400)
 		let resultProcessor = resultProcessorModifier(
-			HTTPStatusCodeCheckResultProcessor()
+			/* First we check: did we get a 2xx or 3xx? */
+			HTTPStatusCodeCheckResultProcessor(expectedCodes: expectedStatusCodes)
+				/* If we did, let’s decode the data into the expected `ResultType` */
 				.flatMap(DecodeHTTPContentResultProcessor<ResultType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
 				.flatMapError(
+					/* Looks like there was an error (not necessarily decoding, can be any error).
+					 * If the error was an unexpected status code error, we recover from it… */
 					RecoverHTTPStatusCodeCheckErrorResultProcessor()
+						/* … which allows us to retrieve the original data from the URL request, and decode it this time as an `APIErrorType`. */
 						.flatMap(DecodeHTTPContentResultProcessor<APIErrorType>(decoders: decoders, processingQueue: resultProcessingDispatcher))
-						.flatMap{ throw APIResultErrorWrapper(urlResponse: $1, error: $0) }
+						/* We recovered the status code error, but we’re still technically in error, we do not have a `ResultType` object to return, so let’s throw an error.
+						 * The error is a special APIError wrapper type.
+						 * In this type we also include the upstream error (an unexpected status code error)
+						 *  which will simplify checking for unexpected status codes for clients. */
+						.flatMap{ throw APIResultErrorWrapper(apiError: $0, urlResponse: $1, upstreamError: UnexpectedStatusCode(expected: expectedStatusCodes, actual: ($1 as? HTTPURLResponse)?.statusCode, httpBody: nil)) }
 				)
 		)
 		
