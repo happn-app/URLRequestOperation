@@ -88,19 +88,33 @@ public enum URLRequestOperationConfig {
 	/**
 	 When sending data to a server, should we log it?
 	 
-	 URLRequestOperation can log all the requests that are started at log level trace.
-	 In general, should only be true for debug purpose. */
-	@SafeGlobal public static var logHTTPRequests = false
+	 `URLRequestOperation` can log all the requests that are started at log level trace.
+	 This variable controls when the requests should be logged depending on the request’s body size.
+	 
+	 If variable is set to `nil`, requests are never logged.
+	 Unless in debug mode, you should leaving it `nil`.
+	 
+	 If set to `0`, only requests with no body at all (usually `GET` and `DELETE`, but can also be `POST` or other) are logged.
+	 
+	 Set the value to `.max` to log _everything_.
+	 This is dangerous though as you can get very big logs depending on your usage. */
+	@SafeGlobal public static var maxRequestBodySizeToLog: Int? = nil
 	/**
 	 When receiving data from a server, should we log it?
 	 
-	 URLRequestOperation can log all the responses that are received at log level trace.
-	 In general, should only be true for debug purpose.
+	 `URLRequestOperation` can log all the responses that are received at log level trace.
+	 This variable controls when the responses should be logged depending on the response’s data size.
 	 
-	 Only the responses from ``URLRequestDataOperation``s are logged. */
-	@SafeGlobal public static var logHTTPResponses = false
+	 If variable is set to `nil`, responses are never logged.
+	 Unless in debug mode, you should leaving it `nil`.
+	 
+	 If set to `0`, only responses with no data at all are logged.
+	 
+	 Set the value to `.max` to log _everything_.
+	 This is dangerous though as you can get very big logs depending on your usage. */
+	@SafeGlobal public static var maxResponseBodySizeToLog: Int? = nil
 	/** Log everything URL Session related in the file at the given URL. */
-	@SafeGlobal public static var debugLogURL: URL?
+//	@SafeGlobal public static var debugLogURL: URL?
 	
 }
 

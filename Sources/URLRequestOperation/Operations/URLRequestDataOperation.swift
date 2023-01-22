@@ -471,7 +471,7 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		let data = data ?? Data()
 		
 		/* Let’s log the data we have retrieved from the server, if needed. */
-		if Conf.logHTTPResponses {
+		if let maxSize = Conf.maxResponseBodySizeToLog, data.count <= maxSize {
 			let dataStr = String(data: data, encoding: .utf8)?.quoted() ?? data.reduce("0x", { $0 + String(format: "%02x", $1) })
 			let responseCodeStr = ((response as? HTTPURLResponse)?.statusCode).flatMap(String.init) ?? "<None>"
 #if canImport(os)

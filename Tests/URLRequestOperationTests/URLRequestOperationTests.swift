@@ -28,8 +28,8 @@ import RetryingOperation
 class URLRequestOperationTests : XCTestCase {
 	
 	override class func setUp() {
-		URLRequestOperationConfig.logHTTPResponses = true
-		URLRequestOperationConfig.logHTTPRequests = true
+		URLRequestOperationConfig.maxRequestBodySizeToLog = .max
+		URLRequestOperationConfig.maxResponseBodySizeToLog = .max
 	}
 	
 	func testRetryCount() {

@@ -26,7 +26,7 @@ import os.log
 extension URLRequest {
 	
 	func logIfNeeded(operationID: URLRequestOperationID) {
-		guard Conf.logHTTPRequests else {
+		guard let maxSize = Conf.maxRequestBodySizeToLog, (httpBody?.count ?? 0) <= maxSize else {
 			return
 		}
 		
