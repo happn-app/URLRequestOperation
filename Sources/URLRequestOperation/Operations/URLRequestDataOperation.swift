@@ -338,10 +338,13 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		if #available(macOS 12.0, tvOS 15.0, iOS 15.0, watchOS 8.0, *) {
 			/* Tasks can have delegates. */
 			if session.delegate is URLRequestOperation {
+				if !LoggedWarnings.weirdSessionSetupWithURLRequestOperationDelegate {
 #if canImport(os)
-				Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }
+					Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing, this will be logged only once.", log: $0, type: .info, String(describing: urlOperationIdentifier)) }
 #endif
-				Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+					Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing, this will be logged only once.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+					LoggedWarnings.weirdSessionSetupWithURLRequestOperationDelegate = true
+				}
 			}
 			
 			task = session.dataTask(with: currentRequest)
@@ -356,26 +359,35 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 				if session.delegate != nil {
 					if session.delegate is URLRequestOperation {
 						/* Session’s delegate is an URLRequestOperation. */
+						if !LoggedWarnings.weirdSessionSetupWithURLRequestOperationDelegate {
 #if canImport(os)
-						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-							Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", log: $0, type: .info, String(describing: urlOperationIdentifier)) }}
+							if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+								Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing, this will be logged only once.", log: $0, type: .info, String(describing: urlOperationIdentifier)) }}
 #endif
-						Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+							Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing, this will be logged only once.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+							LoggedWarnings.weirdSessionSetupWithURLRequestOperationDelegate = true
+						}
 					} else {
 						/* Session’s delegate is non-nil, but it’s not an URLRequestOperationSessionDelegate. */
+						if !LoggedWarnings.dataOperationWithSessionDelegateNotURLRequestOperationSessionDelegate {
 #if canImport(os)
-						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-							Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least).", log: $0, String(describing: urlOperationIdentifier)) }}
+							if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+								Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least). This will be logged only once.", log: $0, String(describing: urlOperationIdentifier)) }}
 #endif
-						Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least).", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+							Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least). This will be logged only once.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+							LoggedWarnings.dataOperationWithSessionDelegateNotURLRequestOperationSessionDelegate = true
+						}
 					}
 				} else {
 					/* Session’s delegate is nil. */
+					if !LoggedWarnings.dataOperationWithSessionDelegateNil {
 #if canImport(os)
-					if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
-						Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", log: $0, String(describing: urlOperationIdentifier)) }}
+						if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
+							Conf.oslog.flatMap{ os_log("URLOpID %{public}@: Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected. This will be logged only once.", log: $0, String(describing: urlOperationIdentifier)) }}
 #endif
-					Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+						Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected. This will be logged only once.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+						LoggedWarnings.dataOperationWithSessionDelegateNil = true
+					}
 				}
 				task = session.dataTask(with: currentRequest, completionHandler: taskEndedHandler)
 			}
@@ -389,14 +401,23 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 			if session.delegate != nil {
 				if session.delegate is URLRequestOperation {
 					/* Session’s delegate is an URLRequestOperation. */
-					Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing…", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+					if !LoggedWarnings.weirdSessionSetupWithURLRequestOperationDelegate {
+						Conf.logger?.warning("Very weird setup of an URLSession where its delegate is an URLRequestOperation. I hope you know what you’re doing, this will be logged only once.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+						LoggedWarnings.weirdSessionSetupWithURLRequestOperationDelegate = true
+					}
 				} else {
 					/* Session’s delegate is non-nil, but it’s not an URLRequestOperationSessionDelegate. */
-					Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least).", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+					if !LoggedWarnings.dataOperationWithSessionDelegateNotURLRequestOperationSessionDelegate {
+						Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is non-nil, and not an URLRequestOperationSessionDelegate: creating a handler-based task, which mean you won’t receive some delegate calls (task did receive response, did receive data and did complete at least). This will be logged only once.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+						LoggedWarnings.dataOperationWithSessionDelegateNotURLRequestOperationSessionDelegate = true
+					}
 				}
 			} else {
 				/* Session’s delegate is nil. */
-				Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+				if !LoggedWarnings.dataOperationWithSessionDelegateNil {
+					Conf.logger?.warning("Creating task for an URLRequestDataOperation, but session’s delegate is nil: creating a handler-based task, which mean task metrics won’t be collected. This will be logged only once.", metadata: [LMK.operationID: "\(urlOperationIdentifier)"])
+					LoggedWarnings.dataOperationWithSessionDelegateNil = true
+				}
 			}
 			task = session.dataTask(with: currentRequest, completionHandler: taskEndedHandler)
 		}

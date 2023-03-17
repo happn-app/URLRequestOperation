@@ -55,6 +55,14 @@ public protocol URLRequestOperation : RetryingOperation, Sendable {
 }
 
 
-public extension URLRequestOperation {
+internal enum LoggedWarnings {
+	
+	@SafeGlobal static var weirdSessionSetupWithURLRequestOperationDelegate = false
+	
+	@SafeGlobal static var dataOperationWithSessionDelegateNotURLRequestOperationSessionDelegate = false
+	@SafeGlobal static var dataOperationWithSessionDelegateNil = false
+	
+	@SafeGlobal static var downloadOperationWithSessionDelegateNotURLRequestOperationSessionDelegate = false
+	@SafeGlobal static var downloadOperationWithSessionDelegateNil = false
 	
 }
