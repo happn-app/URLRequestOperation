@@ -26,6 +26,9 @@ public struct RecoverHTTPStatusCodeCheckErrorResultProcessor : ResultProcessor, 
 	public typealias SourceType = Error
 	public typealias ResultType = Data
 	
+	public init() {
+	}
+	
 	public func transform(source: Error, urlResponse: URLResponse, handler: @escaping @Sendable (Result<Data, Error>) -> Void) {
 		handler(Result{
 			guard
