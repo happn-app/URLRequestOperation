@@ -25,13 +25,14 @@ public extension URLRequestDataOperation {
 	static func forData(
 		urlRequest: URLRequest, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
+		acceptableStatusCodes: Set<Int> = Set(200..<400),
 		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
 		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDataRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Data {
 		return URLRequestDataOperation<Data>(
 			request: urlRequest, session: session,
 			requestProcessors: requestProcessors,
-			urlResponseValidators: [HTTPStatusCodeURLResponseValidator()],
+			urlResponseValidators: [HTTPStatusCodeURLResponseValidator(expectedCodes: acceptableStatusCodes)],
 			resultProcessor: .identity(),
 			retryProviders: [UnretriedErrorsRetryProvider.forWhitelistedStatusCodes(retryableStatusCodes)] + retryProviders
 		)
@@ -40,6 +41,7 @@ public extension URLRequestDataOperation {
 	static func forData(
 		url: URL, headers: [String: String?] = [:], cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy, session: URLSession = .shared,
 		requestProcessors: [RequestProcessor] = [],
+		acceptableStatusCodes: Set<Int> = Set(200..<400),
 		retryableStatusCodes: Set<Int> = URLRequestOperationConfig.defaultDataRetryableStatusCodes,
 		retryProviders: [RetryProvider] = URLRequestOperationConfig.defaultDataRetryProviders
 	) -> URLRequestDataOperation<ResultType> where ResultType == Data {
@@ -48,7 +50,9 @@ public extension URLRequestDataOperation {
 		return Self.forData(
 			urlRequest: request, session: session,
 			requestProcessors: requestProcessors,
-			retryableStatusCodes: retryableStatusCodes, retryProviders: retryProviders
+			acceptableStatusCodes: acceptableStatusCodes,
+			retryableStatusCodes: retryableStatusCodes,
+			retryProviders: retryProviders
 		)
 	}
 	
