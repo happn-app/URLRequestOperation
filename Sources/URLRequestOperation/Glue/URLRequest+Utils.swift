@@ -26,11 +26,21 @@ import os.log
 extension URLRequest {
 	
 	func logIfNeeded(operationID: URLRequestOperationID) {
-		guard let maxSize = Conf.maxRequestBodySizeToLog, (httpBody?.count ?? 0) <= maxSize else {
+		guard let maxSize = Conf.maxRequestBodySizeToLog else {
 			return
 		}
 		
-		let bodyStr = httpBody.flatMap{ String(data: $0, encoding: .utf8)?.quoted() ?? $0.reduce("0x", { $0 + String(format: "%02x", $1) }) } ?? "<None>"
+		let (bodyStrPrefix, bodyStr): (String, String?) = httpBody.flatMap{ httpBody in
+			if httpBody.count <= maxSize {
+				if let str = String(data: httpBody, encoding: .utf8)?.quoted() {
+					return ("Quoted body: ", str)
+				} else {
+					return ("Hex-encoded body: ", httpBody.reduce("0x", { $0 + String(format: "%02x", $1) }))
+				}
+			} else {
+				return ("Body skipped (too big)", nil)
+			}
+		} ?? ("No body", "")
 #if canImport(os)
 		if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 			Conf.oslog.flatMap{ os_log(
@@ -38,22 +48,25 @@ extension URLRequest {
 				URLOpID %{public}@: Starting request.
 				   URL: %@
 				   Method: %{public}@
-				   Body: %@
+				   Body size: %{private}ld
+				   %{public}@%@
 				""",
 				log: $0,
 				type: .debug,
 				String(describing: operationID),
-				url?.absoluteString ?? "<None>",
-				httpMethod ?? "<None>",
-				bodyStr
+				url?.absoluteString ?? "<nil>",
+				httpMethod ?? "<nil>",
+				httpBody?.count ?? 0,
+				bodyStrPrefix, bodyStr ?? ""
 			) }}
 #endif
 		Conf.logger?.trace("Starting a new request.", metadata: [
 			LMK.operationID: "\(operationID)",
 			LMK.requestURL: "\(url?.absoluteString ?? "<None>")",
 			LMK.requestMethod: "\(httpMethod ?? "<None>")",
-			LMK.requestBody: "\(bodyStr)"
-		])
+			LMK.requestBody: bodyStr.flatMap{ "\($0)" },
+			LMK.requestBodySize: "\(httpBody?.count ?? 0)"
+		].compactMapValues{ $0 })
 	}
 	
 }

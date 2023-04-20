@@ -94,7 +94,8 @@ public enum URLRequestOperationConfig {
 	 If variable is set to `nil`, requests are never logged.
 	 Unless in debug mode, you should leaving it `nil`.
 	 
-	 If set to `0`, only requests with no body at all (usually `GET` and `DELETE`, but can also be `POST` or other) are logged.
+	 If non-`nil`, all requests are logged, and the body is logged only if its size is lower than the value.
+	 For requests whose body is bigger than the value, the body size is printed instead of the body.
 	 
 	 Set the value to `.max` to log _everything_.
 	 This is dangerous though as you can get very big logs depending on your usage. */
@@ -108,7 +109,8 @@ public enum URLRequestOperationConfig {
 	 If variable is set to `nil`, responses are never logged.
 	 Unless in debug mode, you should leaving it `nil`.
 	 
-	 If set to `0`, only responses with no data at all are logged.
+	 If non-`nil`, all responses are logged, and the body is logged only if its size is lower than the value.
+	 For responses whose body is bigger than the value, the body size is printed instead of the body.
 	 
 	 Set the value to `.max` to log _everything_.
 	 This is dangerous though as you can get very big logs depending on your usage. */

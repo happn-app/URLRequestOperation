@@ -492,29 +492,41 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		let data = data ?? Data()
 		
 		/* Let’s log the data we have retrieved from the server, if needed. */
-		if let maxSize = Conf.maxResponseBodySizeToLog, data.count <= maxSize {
-			let dataStr = String(data: data, encoding: .utf8)?.quoted() ?? data.reduce("0x", { $0 + String(format: "%02x", $1) })
-			let responseCodeStr = ((response as? HTTPURLResponse)?.statusCode).flatMap(String.init) ?? "<None>"
+		if let maxSize = Conf.maxResponseBodySizeToLog {
+			let (dataStrPrefix, dataStr): (String, String?)
+			if data.count <= maxSize {
+				if let str = String(data: data, encoding: .utf8)?.quoted() {
+					(dataStrPrefix, dataStr) = ("Quoted data: ", str)
+				} else {
+					(dataStrPrefix, dataStr) = ("Hex-encoded data: ", data.reduce("0x", { $0 + String(format: "%02x", $1) }))
+				}
+			} else {
+				(dataStrPrefix, dataStr) = ("Data skipped (too big)", nil)
+			}
+			let responseCodeStr = ((response as? HTTPURLResponse)?.statusCode).flatMap(String.init) ?? "<nil>"
 #if canImport(os)
 			if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 				Conf.oslog.flatMap{ os_log(
 					"""
 					URLOpID %{public}@: Received response.
-					   HTTP Status Code: %{public}@
-					   Data: %@
+						HTTP Status Code: %{public}@
+						Data size: %{private}ld
+						%{public}@%@
 					""",
 					log: $0,
 					type: .debug,
 					String(describing: urlOperationIdentifier),
 					responseCodeStr,
-					dataStr
+					data.count,
+					dataStrPrefix, dataStr ?? ""
 				) }}
 #endif
 			Conf.logger?.trace("Received response.", metadata: [
 				LMK.operationID: "\(urlOperationIdentifier)",
 				LMK.responseHTTPCode: "\(responseCodeStr)",
-				LMK.responseData: "\(dataStr)"
-			])
+				LMK.responseData: dataStr.flatMap{ "\($0)" },
+				LMK.responseDataSize: "\(data.count)"
+			].compactMapValues{ $0 })
 		}
 		
 		guard !isCancelled else {
