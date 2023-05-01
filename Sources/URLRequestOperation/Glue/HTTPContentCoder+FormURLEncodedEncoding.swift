@@ -36,7 +36,14 @@ extension FormURLEncodedEncoder : HTTPContentEncoder {
 extension FormURLEncodedDecoder : HTTPContentDecoder {
 	
 	public func canDecodeHTTPContent(mediaType: MediaType) -> Bool {
-		return mediaType.type == "application" && mediaType.subtype == "x-www-form-urlencoded"
+		/* We compare only the part of the subtype after the last “+”:
+		 *  it seems to be a common practice to define subtypes as “SUB_FORMAT+FORMAT” (e.g. “vnd.api+json”, “svg+xml”),
+		 *  so we consider this being a norm and we parse the subtype.
+		 * I have not found a standard confirming or infirming this though.
+		 * For the same reason, we do NOT compare the type of the media-type (“application” in “application/json”):
+		 *  for the “xml” example, we have “application/xml” and also “image/svg+xml” that we could theorically parse… */
+		/* TODO: We assume UTF-8, but we should technically check. */
+		return mediaType.subtype.split(separator: "+").last == "x-www-form-urlencoded"
 	}
 	
 	public func decodeHTTPContent<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {

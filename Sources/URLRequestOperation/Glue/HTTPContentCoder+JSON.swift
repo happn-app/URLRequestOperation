@@ -62,7 +62,8 @@ public func SendableJSONDecoderForHTTPContent(_ decoderConfig: @escaping @Sendab
 extension JSONDecoder : HTTPContentDecoder {
 	
 	public func canDecodeHTTPContent(mediaType: MediaType) -> Bool {
-		return mediaType.type == "application" && mediaType.subtype == "json"
+		/* TODO: We assume UTF-8, but we should technically check. */
+		return mediaType.subtype.split(separator: "+").last == "json"
 	}
 	
 	public func decodeHTTPContent<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
@@ -83,7 +84,8 @@ public struct SendableJSONDecoder : HTTPContentDecoder {
 		self.decoderConfig = decoderConfig
 	}
 	public func canDecodeHTTPContent(mediaType: MediaType) -> Bool {
-		return mediaType.type == "application" && mediaType.subtype == "json"
+		/* TODO: We assume UTF-8, but we should technically check. */
+		return mediaType.subtype.split(separator: "+").last == "json"
 	}
 	public func decodeHTTPContent<T>(_ type: T.Type, from data: Data, mediaType: MediaType) throws -> T where T : Decodable {
 		guard canDecodeHTTPContent(mediaType: mediaType) else {
