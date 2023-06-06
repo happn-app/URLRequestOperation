@@ -19,9 +19,13 @@ import Foundation
 
 extension String {
 	
-	func quoted() -> String {
+	func quoted(emptyStaysEmpty: Bool = false) -> String {
+		guard !emptyStaysEmpty || !isEmpty else {
+			return ""
+		}
+		
 		var (sepOpen, sepClose) = (#"""#, #"""#)
-		while self.contains(sepOpen) || self.contains(sepClose) {
+		while contains(sepOpen) || contains(sepClose) {
 			sepOpen = "#" + sepOpen
 			sepClose = sepClose + "#"
 		}

@@ -30,17 +30,17 @@ extension URLRequest {
 			return
 		}
 		
-		let (bodyStrPrefix, bodyStr): (String, String?) = httpBody.flatMap{ httpBody in
+		let (bodyStrPrefix, bodyTransform, bodyStr): (String, String?, String?) = httpBody.flatMap{ httpBody in
 			if httpBody.count <= maxSize {
-				if let str = String(data: httpBody, encoding: .utf8)?.quoted() {
-					return ("Quoted body: ", str)
+				if let str = String(data: httpBody, encoding: .utf8) {
+					return ("Quoted body: ", "to-str", str) /* Quoted later. */
 				} else {
-					return ("Hex-encoded body: ", httpBody.reduce("0x", { $0 + String(format: "%02x", $1) }))
+					return ("Hex-encoded body: ", "to-hex", httpBody.reduce("0x", { $0 + String(format: "%02x", $1) }))
 				}
 			} else {
-				return ("Body skipped (too big)", nil)
+				return ("Body skipped (too big)", nil, nil)
 			}
-		} ?? ("No body", "")
+		} ?? ("No body", "to-str", "")
 #if canImport(os)
 		if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 			Conf.oslog.flatMap{ os_log(
@@ -57,7 +57,7 @@ extension URLRequest {
 				url?.absoluteString ?? "<nil>",
 				httpMethod ?? "<nil>",
 				httpBody?.count ?? 0,
-				bodyStrPrefix, bodyStr ?? ""
+				bodyStrPrefix, (bodyStr ?? "").quoted(emptyStaysEmpty: true)
 			) }}
 #endif
 		Conf.logger?.trace("Starting a new request.", metadata: [
@@ -65,7 +65,8 @@ extension URLRequest {
 			LMK.requestURL: "\(url?.absoluteString ?? "<None>")",
 			LMK.requestMethod: "\(httpMethod ?? "<None>")",
 			LMK.requestBody: bodyStr.flatMap{ "\($0)" },
-			LMK.requestBodySize: "\(httpBody?.count ?? 0)"
+			LMK.requestBodySize: "\(httpBody?.count ?? 0)",
+			LMK.requestBodyTransform: bodyTransform.flatMap{ "\($0)" }
 		].compactMapValues{ $0 })
 	}
 	

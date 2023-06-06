@@ -493,15 +493,15 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 		
 		/* Let’s log the data we have retrieved from the server, if needed. */
 		if let maxSize = Conf.maxResponseBodySizeToLog {
-			let (dataStrPrefix, dataStr): (String, String?)
+			let (dataStrPrefix, dataTransform, dataStr): (String, String?, String?)
 			if data.count <= maxSize {
-				if let str = String(data: data, encoding: .utf8)?.quoted() {
-					(dataStrPrefix, dataStr) = ("Quoted data: ", str)
+				if let str = String(data: data, encoding: .utf8) {
+					(dataStrPrefix, dataTransform, dataStr) = ("Quoted data: ", "to-str", str) /* Quoted later. */
 				} else {
-					(dataStrPrefix, dataStr) = ("Hex-encoded data: ", data.reduce("0x", { $0 + String(format: "%02x", $1) }))
+					(dataStrPrefix, dataTransform, dataStr) = ("Hex-encoded data: ", "to-hex", data.reduce("0x", { $0 + String(format: "%02x", $1) }))
 				}
 			} else {
-				(dataStrPrefix, dataStr) = ("Data skipped (too big)", nil)
+				(dataStrPrefix, dataTransform, dataStr) = ("Data skipped (too big)", nil, nil)
 			}
 			let responseCodeStr = ((response as? HTTPURLResponse)?.statusCode).flatMap(String.init) ?? "<nil>"
 #if canImport(os)
@@ -518,14 +518,15 @@ public final class URLRequestDataOperation<ResultType : Sendable> : RetryingOper
 					String(describing: urlOperationIdentifier),
 					responseCodeStr,
 					data.count,
-					dataStrPrefix, dataStr ?? ""
+					dataStrPrefix, (dataStr ?? "").quoted(emptyStaysEmpty: true)
 				) }}
 #endif
 			Conf.logger?.trace("Received response.", metadata: [
 				LMK.operationID: "\(urlOperationIdentifier)",
 				LMK.responseHTTPCode: "\(responseCodeStr)",
 				LMK.responseData: dataStr.flatMap{ "\($0)" },
-				LMK.responseDataSize: "\(data.count)"
+				LMK.responseDataSize: "\(data.count)",
+				LMK.responseDataTransform: dataTransform.flatMap{ "\($0)" }
 			].compactMapValues{ $0 })
 		}
 		
