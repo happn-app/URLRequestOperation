@@ -27,9 +27,17 @@ open class URLRequestOperationSessionDelegate : NSObject, URLSessionDataDelegate
 	/** Method is open, but if overwritten, care must be taken to merge the result from the task delegate for the given task. */
 	open func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
 #if !canImport(FoundationNetworking)
-		delegates.taskDelegateForTask(dataTask)?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
+		if let delegate = delegates.taskDelegateForTask(dataTask), delegate.responds(to: #selector(URLSessionDataDelegate.urlSession(_:dataTask:didReceive:completionHandler:))) {
+			delegate.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
+		} else {
+			completionHandler(.allow)
+		}
 #else
-		delegates.taskDelegateForTask(dataTask)?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
+		if let delegate = delegates.taskDelegateForTask(dataTask) {
+			delegate.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
+		} else {
+			completionHandler(.allow)
+		}
 #endif
 	}
 	
