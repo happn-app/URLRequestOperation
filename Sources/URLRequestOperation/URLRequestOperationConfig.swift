@@ -58,6 +58,40 @@ public enum URLRequestOperationConfig {
 		return Logger(label: "com.happn.URLRequestOperation")
 	}()
 	
+	/* Maybe TODO: Avoid locking each and every time we access the conf variable.
+	 * The global idea is to use
+	 *    let myConfVar: MyType = { return myValue }()
+	 *
+	 * This is thread-safe!
+	 *
+	 * So there’s probably a lock from the language, but it’s probably(?) better than an NSLock…
+	 *  … and it’s more in the philosophy of the configuration the way I see it:
+	 *  once the config is accessed once, it should not change.
+	 *
+	 * A full implementation could look like this (untested; probable good candidate for a macro):
+	 *
+	 *    /* We use the same lock for all Conf instances.
+	 *     * We could use one lock per instance instead but there’s no need AFAICT. */
+	 *    private let confLock = NSLock()
+	 *    @propertyWrapper public class Conf<T : Sendable> : @unchecked Sendable {
+	 *    	var hasBeenAccessed = false
+	 *    	public var wrappedValue: T {
+	 *    		/* If needed, we could have an explicit method to access the wrapped value and set hasBeenAccessed
+	 *    		 *  (I’m worried the variable would get accessed for some reasons, outside of the _myVar init block). */
+	 *    		get {safeGlobalLock.withLock{ hasBeenAccessed = true; _wrappedValue }}
+	 *    		set {safeGlobalLock.withLock{ assert(!hasBeenAccessed, "A conf variable cannot be changed after having been accessed."); _wrappedValue = newValue }}
+	 *    	}
+	 *    	public init(wrappedValue: T) {
+	 *    		self._wrappedValue = wrappedValue
+	 *    	}
+	 *    	private var _wrappedValue: T
+	 *    }
+	 *    public enum MyConf {
+	 *    	@Conf public static var myVar: MyType = defaultValue
+	 *    	internal static let _myVar = { myVar }()
+	 *    }
+	 */
+	
 	@SafeGlobal public static var defaultAPIResponseDecoders: [HTTPContentDecoder] = [SendableJSONDecoderForHTTPContent()]
 	@SafeGlobal public static var defaultAPIRequestBodyEncoder: HTTPContentEncoder = SendableJSONEncoderForHTTPContent()
 	@SafeGlobal public static var defaultAPIRequestParametersEncoder: URLQueryEncoder = FormURLEncodedEncoder()
