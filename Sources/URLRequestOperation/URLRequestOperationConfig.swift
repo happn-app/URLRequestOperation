@@ -86,9 +86,13 @@ public enum URLRequestOperationConfig {
 	 *    	}
 	 *    	private var _wrappedValue: T
 	 *    }
-	 *    public enum MyConf {
+	 *    /* The conf entity used externally to set conf values. */
+	 *    public enum ServiceConf {
 	 *    	@Conf public static var myVar: MyType = defaultValue
-	 *    	internal static let _myVar = { myVar }()
+	 *    }
+	 *    /* The conf entity used to access configuration internally. */
+	 *    internal enum Conf {
+	 *    	internal static let myVar = { ServiceConf.myVar }()
 	 *    }
 	 */
 	
