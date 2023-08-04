@@ -19,7 +19,7 @@ extension NSNotification.Name {
   with potential early retry on reachability and “other success on same domain.” */
 public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendable {
 	
-	public static let idempotentHTTPMethods = Set(arrayLiteral: "GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE")
+	public static let idempotentHTTPMethods = Set(arrayLiteral: "GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "QUERY")
 	
 	public static func exponentialBackoffTimeForIndex(_ idx: Int) -> TimeInterval {
 		let retryDelays: [TimeInterval] = Conf.networkRetryProviderBackoffTable
