@@ -29,7 +29,7 @@ public final class NetworkErrorRetryProvider : RetryProvider, @unchecked Sendabl
 	}
 	
 	public static func isRequestIdempotent(_ urlRequest: URLRequest) -> Bool {
-		guard let method = urlRequest.httpMethod else {
+		guard let method = urlRequest.httpMethod?.uppercased() else {
 			return false
 		}
 		
