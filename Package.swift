@@ -9,13 +9,11 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url: "https://github.com/apple/swift-log.git", from: "1.2.0"),
-		.package(url: "https://github.com/happn-app/AsyncOperationResult.git", from: "1.0.5"),
 		.package(url: "https://github.com/happn-app/RetryingOperation.git", from: "1.1.2"),
 		.package(url: "https://github.com/happn-app/SemiSingleton.git", from: "2.0.3")
 	],
 	targets: [
 		.target(name: "URLRequestOperation", dependencies: [
-			.product(name: "AsyncOperationResult", package: "AsyncOperationResult"),
 			.product(name: "Logging", package: "swift-log"),
 			.product(name: "RetryingOperation", package: "RetryingOperation"),
 			.product(name: "SemiSingleton", package: "SemiSingleton")

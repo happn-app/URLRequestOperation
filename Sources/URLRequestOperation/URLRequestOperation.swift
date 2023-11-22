@@ -21,7 +21,6 @@ import Foundation
 	import os.log
 #endif
 
-import AsyncOperationResult
 import Logging
 import RetryingOperation
 
@@ -437,7 +436,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 					
 					createAndLaunchTask()
 					
-				case .error(let error):
+				case .failure(let error):
 					#if canImport(os)
 					if #available(macOS 10.12, tvOS 10.0, iOS 10.0, watchOS 3.0, *) {
 						URLRequestOperationConfig.oslog.flatMap{ os_log("URL Op id %d: Got error while processing URL: %@", log: $0, type: .debug, self.urlOperationIdentifier, String(describing: error)) }}
@@ -488,7 +487,7 @@ open class URLRequestOperation : RetryingOperation, URLSessionDataDelegate, URLS
 	“Direct” subclasses of `URLRequestOperation` don’t have to call super as it
 	is guaranteed to return the original url request. Subclasses of subclasses
 	should call super though (see the doc of the subclass for more info). */
-	open func processURLRequestForRunning(_ originalRequest: URLRequest, handler: @escaping (AsyncOperationResult<URLRequest>) -> Void) {
+	open func processURLRequestForRunning(_ originalRequest: URLRequest, handler: @escaping (Result<URLRequest, Error>) -> Void) {
 		handler(.success(originalRequest))
 	}
 	

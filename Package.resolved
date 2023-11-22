@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "AsyncOperationResult",
-        "repositoryURL": "https://github.com/happn-app/AsyncOperationResult.git",
-        "state": {
-          "branch": null,
-          "revision": "fe81cdaa25a577a9ea688d71aa81387bfed213c7",
-          "version": "1.0.7"
-        }
-      },
-      {
         "package": "RecursiveSyncDispatch",
         "repositoryURL": "https://github.com/happn-app/RecursiveSyncDispatch.git",
         "state": {
